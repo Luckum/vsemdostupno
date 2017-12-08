@@ -1,0 +1,1 @@
+ALTER TABLE `member` ADD `become_provider` BOOLEAN NULL AFTER `partner_id`;

@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin
+Disallow: /api
+Disallow: /cart
+Disallow: /profile
+Disallow: /pricelist
+Disallow: /category/74
+Disallow: /category/79
+Disallow: /product/397

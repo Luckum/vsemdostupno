@@ -1,0 +1,273 @@
+html,
+body {
+    height: 100%;
+}
+
+.wrap {
+    min-height: 100%;
+    height: auto;
+    margin: 0 auto -75px;
+    padding: 0 0 60px;
+}
+
+.wrap > .container {
+    padding: 70px 15px 20px;
+}
+
+.footer {
+    height: 75px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+}
+
+.footer .container .pull-right {
+    margin-top: 10px;
+    margin-right: 70px;
+}
+
+.has-error .input-group-addon,
+.has-success .input-group-addon {
+    background-color: #eee;
+    border-color: #ccc;
+    color: #555;
+}
+
+.has-error .form-control,
+.has-success .form-control {
+    border-color: #e6e6e6;
+}
+
+.has-error .form-control:focus,
+.has-success .form-control:focus {
+    border-color: #66afe9;
+}
+
+#scrollUp {
+    background-image: linear-gradient(#54b4eb, #2fa4e7 60%, #1d9ce5);
+    background-repeat: no-repeat;
+    border-bottom: 1px solid #178acc;
+    border-radius: 4px;
+    color: #fff;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.site-page {
+    margin-top: 15px;
+}
+
+.menu-panel a {
+    font-size: 12px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.menu-panel h5 {
+    margin-top: 0;
+}
+
+.menu-panel a {
+    text-transform: uppercase;
+}
+
+.product-name h2,
+.service-name h2,
+.category-name h2 {
+    margin: 0;
+}
+
+.product-grid .product-item,
+.service-grid .service-item,
+.category-grid .category-item {
+    margin-bottom: 40px;
+}
+
+.product-grid .product-item,
+.service-grid .service-item {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.category-grid .category-item {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.product-panel,
+.service-panel,
+.category-panel {
+    margin-bottom: 20px;
+}
+
+.product-grid .product-name,
+.service-grid .service-name {
+    height: 60px;
+}
+
+.product-grid .product-name h5,
+.service-grid .service-name h5 {
+    margin: 0;
+}
+
+.product-grid .thumbnail,
+.service-grid .thumbnail,
+.category-grid .thumbnail {
+    margin-bottom: 10px;
+}
+
+.product-price span,
+.service-price span {
+    font-size: 16px;
+    background-color: #73a839;
+    background-image: linear-gradient(#88c149, #73a839 60%, #699934);
+    background-repeat: no-repeat;
+}
+
+.page-header {
+    margin: 10px 0 20px 0;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.product-description,
+.service-description {
+    margin-bottom: 20px;
+}
+
+#login-form .form-horizontal .form-group {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#login-form .forgot-password {
+    margin-top: -10px;
+    margin-bottom: 5px;
+}
+
+.cart {
+    margin-bottom: 50px;
+}
+
+.cart .thumbnail {
+    margin-bottom: 0;
+}
+
+.cart .bootstrap-touchspin {
+    width: 140px;
+}
+
+.cart .bootstrap-touchspin input {
+    text-align: right;
+}
+
+.cart .total {
+    font-size: 120%;
+    margin-bottom: 20px;
+}
+
+.add-product-to-cart-panel {
+    margin-bottom: 20px;
+}
+
+.bootbox-body {
+    font-size: 16px;
+}
+
+.tooltip-inner {
+    max-width: 400px;
+    width: 400px;
+}
+
+.tooltip.top .tooltip-inner {
+    background-color: #eeeb8d;
+    color: #444;
+    font-size: 14px;
+}
+
+.tooltip.top .tooltip-arrow {
+    border-top-color: #eeeb8d;
+}
+
+.table tbody>tr>td.vert-align
+{
+    vertical-align: middle;
+}
+
+.user-account-transfer .kv-editable-link {
+    padding: 0;
+}
+
+.contacts {
+    margin: 10px;
+}
+
+.panel-primary > .panel-heading {
+    background-color: #01001e;
+}
+
+.navbar {
+    background: #01001e;
+}
+
+#scrollUp {
+    background: #01001e;
+}
+
+.navbar-header {
+    height: 70px;
+}
+
+.navbar-brand img {
+    height: 40px;
+}
+
+.navbar-header div {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+.td-v-align {
+	vertical-align: middle !important;
+}
+.alert-info {
+	position: relative;
+	top: -80%;
+	margin: 0 auto;
+	width: 40%;
+	left: 50px;
+}
+.alert-def {
+	position: static;
+	top: 0;
+	margin-bottom: 20px;
+	width: 100%;
+	left: 0;
+}
+.steps-imgs {
+	text-align: center;
+}
+span.fancytree-empty,
+span.fancytree-vline,
+span.fancytree-expander,
+span.fancytree-icon,
+span.fancytree-checkbox,
+span.fancytree-radio,
+span.fancytree-drag-helper-img,
+#fancytree-drop-marker {
+    background: none;
+}
+span.fancytree-node {
+    margin-top: 5px;
+}
+div.required > label::after {
+	color: red;
+	content: "\0020\002a";
+}
+.policy-label {
+	display: inline;
+}

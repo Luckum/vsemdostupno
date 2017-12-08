@@ -1,0 +1,1 @@
+INSERT INTO `page` (`visibility`, `slug`, `title`, `content`) VALUES (0, 'profile-provider-register-success', 'Поздравляем с успешной регистрацией!', '<p>Вы успешно зарегистрировались в качестве поставщика.</p>\r\n\r\n<p>На ваш почтовый адрес отправлено письмо с данными аккаунта.</p>\r\n');

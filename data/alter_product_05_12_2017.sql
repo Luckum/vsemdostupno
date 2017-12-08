@@ -1,0 +1,3 @@
+﻿ALTER TABLE `product`
+	ADD COLUMN `tare` VARCHAR(10) NULL DEFAULT NULL COMMENT 'Тара' AFTER `weight`,
+	ADD COLUMN `measurement` VARCHAR(10) NULL DEFAULT NULL COMMENT 'Ед. измерения' AFTER `tare`;

@@ -208,9 +208,9 @@ class CartController extends BaseController
                                 
                             } else {
                                 $rest = $orderHasProduct->quantity - $stock_provider->reaminder_rent;
+                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
                                 $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
                                 $stock_provider->reaminder_rent = 0;
-                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
                                 $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
                                 $stock_provider->save();
                                 
@@ -227,9 +227,9 @@ class CartController extends BaseController
                                         $rest = 0;
                                     } else {
                                         $rest -= $stock_provider->reaminder_rent;
+                                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
                                         $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
                                         $stock_provider->reaminder_rent = 0;
-                                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
                                         $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
                                         $stock_provider->save();
                                     }

@@ -17,6 +17,7 @@ class ApplyNewPriceController extends Controller
                 $model->inventory = $product->quantity;
                 $model->purchase_price = $product->price;
                 $model->partner_price = $model->price = $model->member_price = 0;
+                $model->stock_date = $product->date;
                 $model->scenario = 'apply_product';
                 if ($model->save()) {
                     $product->delete();

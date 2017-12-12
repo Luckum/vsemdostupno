@@ -111,7 +111,7 @@ class Product extends \yii\db\ActiveRecord
             [['price', 'member_price', 'partner_price', 'purchase_price', 'storage_price', 'weight'], 'number'],
             [['name'], 'string', 'max' => 255],
             [['tare', 'measurement'], 'string', 'max' => 10],
-            [['gallery', 'quantity', 'expiry_timestamp'], 'safe'],
+            [['gallery', 'quantity', 'expiry_timestamp', 'stock_date'], 'safe'],
         ];
     }
 

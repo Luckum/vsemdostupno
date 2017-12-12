@@ -327,6 +327,7 @@ class StockController extends BaseController
             $product->tare = $_POST['tare'];
             $product->weight = $_POST['weight'];
             $product->measurement = $_POST['measurement'];
+            $product->stock_date = $_POST['StockHead']['date'];
             $product->save();
         }
         

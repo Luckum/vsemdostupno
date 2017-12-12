@@ -16,6 +16,7 @@ class PricelistController extends BaseController
         foreach ($productQuery as $product) {
             $products[] = [
                 'name' => Category::getCategoryPath($product->categoryHasProduct[0]->category->id) . $product->name,
+                //'date' => (new \DateTime($product->stock_date))->format('d.m.Y'),
                 'date' => $product->purchaseDate ? (new \DateTime($product->purchaseDate))->format('d.m.Y') : '',
                 'inventory' => $product->inventory,
                 'price' => $product->price != 0 ? $product->price : '',

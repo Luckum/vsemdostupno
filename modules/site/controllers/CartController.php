@@ -85,7 +85,7 @@ class CartController extends BaseController
             $deposit = Yii::$app->user->identity->entity->deposit;
 
             if ($cart->total > $deposit->total) {
-                Yii::$app->session->setFlash('message', 'Недостаточно средств на счете для совершения покупки!');
+                Yii::$app->session->setFlash('message', 'Недостаточно средств на счете для совершения заказа!');
 
                 return $this->redirect('/cart');
             }

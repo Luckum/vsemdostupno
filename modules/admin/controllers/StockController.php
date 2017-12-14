@@ -141,11 +141,12 @@ class StockController extends BaseController
             'model' => $model,
         ]);
     }
-    public function actionDelete($id) {
-       
-        $model=$this->findModel($id);
-        $model->deleted_by_admin=1;
-        $model->save();
+    public function actionDelete($id)
+    {
+        $model = $this->findModel($id);
+        $model->delete();
+        
+        
         return $this->redirect(['/admin/provider']);
     }
 

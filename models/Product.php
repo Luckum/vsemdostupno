@@ -221,6 +221,12 @@ class Product extends \yii\db\ActiveRecord
         } else {
             if ($this->scenario != 'apply_product') {
                 if ($this->category_id != 0) {
+                    $categoryForDel = CategoryHasProduct::findAll(['product_id' => $this->id]);
+                    if ($categoryForDel) {
+                        foreach ($categoryForDel as $cat) {
+                            $cat->delete();
+                        }
+                    }
                     $categoryHasProduct = CategoryHasProduct::findOne(['product_id' => $this->id, 'category_id' => $this->category_id]);
                     if (!$categoryHasProduct) {
                         $categoryHasProduct = new CategoryHasProduct();

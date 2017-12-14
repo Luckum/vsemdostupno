@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'name' => 'Молодой Мир',
+    'name' => 'Стол заказов - Будь здоров!',
     'adminEmail' => 'p-o-n@list.ru',
     'fromEmail' => 'info@vsemdostupno.ru',
     'devEmail' => 'naumenko@naumenko.org',

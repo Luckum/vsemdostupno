@@ -176,12 +176,12 @@ if (Yii::$app->user->isGuest) {
                 <?php
                     $prices = [
                         [
-                            'content' => 'Цена для всех желающих',
+                            'content' => 'Стоимость для всех желающих',
                             'badge' => $model->formattedPrice,
                             'options' => ['class' => $model->price != $model->calculatedPrice ? 'disabled' : ''],
                         ],
                         [
-                            'content' => 'Цена для участников ПО',
+                            'content' => 'Стоимость для участников ПО',
                             'badge' => $model->formattedMemberPrice,
                             'options' => ['class' => $model->member_price != $model->calculatedPrice ? 'disabled' : ''],
                         ],
@@ -189,14 +189,14 @@ if (Yii::$app->user->isGuest) {
 
                     if (!Yii::$app->user->isGuest && in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_PARTNER])) {
                         array_push($prices, [
-                            'content' => 'Цена для партнеров ПО',
+                            'content' => 'Стоимость для партнеров ПО',
                             'badge' => $model->formattedPartnerPrice,
                             'options' => ['class' => $model->partner_price != $model->calculatedPrice ? 'disabled' : ''],
                         ]);
                     }
 
                     echo Html::panel([
-                            'heading' => Icon::show('tags') . ' Цены',
+                            'heading' => Icon::show('tags') . ' Стоимость',
                             'postBody' => Html::listGroup($prices),
                             'headingTitle' => true,
                         ],

@@ -384,13 +384,24 @@ class Product extends \yii\db\ActiveRecord
     
     public static function getPriceList()
     {
-        return self::find()
-            //->select('product.*, category.*')
-            ->joinWith('categoryHasProduct')
-            ->joinWith('categoryHasProduct.category')
-            ->where(['product.visibility' => 1, 'product.published' => 1])
-            ->andWhere(['<>', 'product.inventory', 0])
+        return ProductFeature::find()
+            ->joinWith('productPrices')
+            ->joinWith('product')
+            ->joinWith('product.categoryHasProduct')
+            ->joinWith('product.categoryHasProduct.category')
+            ->andWhere('product.visibility != 0')
+            ->andWhere('product.published != 0')
+            ->andWhere('quantity > 0')
             ->all();
+        
+        
+        //return self::find()
+//            ->select('product.*, category.*')
+//            ->joinWith('categoryHasProduct')
+//            ->joinWith('categoryHasProduct.category')
+//            ->where(['product.visibility' => 1, 'product.published' => 1])
+//            ->andWhere(['<>', 'product.inventory', 0])
+//            ->all();
     }
     
     public function getFeaturesForView()

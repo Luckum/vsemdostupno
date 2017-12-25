@@ -36,27 +36,30 @@ $script = <<<JS
                 $("#save-fund-btn").data('id', '').attr('data-id', '');
                 $("#del-fund-btn").data('id', '').attr('data-id', '');
             } else {
-                $("#fund-name-tbl tr").css({'background-color' : '#fff'});
-                $(this).css({'background-color' : '#9d9d9d'});
-                $("#add-fund-btn").hide();
-                $("#del-fund-btn").show();
-                $("#add-fund-cnt").show();
-                $("#save-fund-btn").show();
-                $("#cancel-fund-btn").show();
-                $("#save-fund-btn").data('action', 'update').attr('data-action', 'update');
-                $("#save-fund-btn").data('id', $(this).data('key')).attr('data-id', $(this).data('key'));
-                $("#del-fund-btn").data('id', $(this).data('key')).attr('data-id', $(this).data('key'));
-                $.ajax({
-                    url: "/admin/fund/get-fund",
-                    type: "POST",
-                    data: {id: $(this).data('key')},
-                    success: function(response) {
-                        var data = $.parseJSON(response);
-                        
-                        $("#fund-name").val(data.name);
-                        $("#fund-percent").val(data.percent);
-                    }
-                });
+                var attr = $(this).attr('data-key');
+                if (typeof attr !== typeof undefined && attr !== false) {
+                    $("#fund-name-tbl tr").css({'background-color' : '#fff'});
+                    $(this).css({'background-color' : '#9d9d9d'});
+                    $("#add-fund-btn").hide();
+                    $("#del-fund-btn").show();
+                    $("#add-fund-cnt").show();
+                    $("#save-fund-btn").show();
+                    $("#cancel-fund-btn").show();
+                    $("#save-fund-btn").data('action', 'update').attr('data-action', 'update');
+                    $("#save-fund-btn").data('id', $(this).data('key')).attr('data-id', $(this).data('key'));
+                    $("#del-fund-btn").data('id', $(this).data('key')).attr('data-id', $(this).data('key'));
+                    $.ajax({
+                        url: "/admin/fund/get-fund",
+                        type: "POST",
+                        data: {id: $(this).data('key')},
+                        success: function(response) {
+                            var data = $.parseJSON(response);
+                            
+                            $("#fund-name").val(data.name);
+                            $("#fund-percent").val(data.percent);
+                        }
+                    });
+                }
             }
         });
     })

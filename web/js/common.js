@@ -8,6 +8,7 @@ $(document).ready(function() {
         $("#fund-percent").val('');
         $("#save-fund-btn").show();
         $("#cancel-fund-btn").show();
+        $("#add-fund-btn").hide();
     });
     
     $("#cancel-fund-btn").click(function() {

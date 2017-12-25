@@ -15,12 +15,12 @@ class PricelistController extends BaseController
         $productQuery = Product::getPriceList();
         foreach ($productQuery as $product) {
             $products[] = [
-                'name' => Category::getCategoryPath($product->categoryHasProduct[0]->category->id) . $product->name,
+                'name' => Category::getCategoryPath($product->product->categoryHasProduct[0]->category->id) . $product->product->name . ' (' . $product->tare . ', ' . $product->volume . ' ' . $product->measurement . ')',
                 //'date' => (new \DateTime($product->stock_date))->format('d.m.Y'),
-                'date' => $product->purchaseDate ? (new \DateTime($product->purchaseDate))->format('d.m.Y') : '',
-                'inventory' => $product->inventory,
-                'price' => $product->price != 0 ? $product->price : '',
-                'member_price' => $product->member_price != 0 ? $product->member_price : ''
+                'date' => $product->product->purchaseDate ? (new \DateTime($product->product->purchaseDate))->format('d.m.Y') : '',
+                'inventory' => $product->quantity,
+                'price' => $product->productPrices[0]->price != 0 ? $product->productPrices[0]->price : '',
+                'member_price' => $product->productPrices[0]->member_price != 0 ? $product->productPrices[0]->member_price : ''
             ];
         }
 

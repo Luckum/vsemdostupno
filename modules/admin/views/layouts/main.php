@@ -72,6 +72,7 @@ AppAsset::register($this);
                         [
                             'label' => 'Сайт',
                             'items' => [
+                                ['label' => 'Фонды', 'url' => ['/admin/fund']],
                                 ['label' => 'Страницы', 'url' => ['/admin/page']],
                                 ['label' => 'Письма', 'url' => ['/admin/email']],
                                 ['label' => 'Города', 'url' => ['/admin/city']],

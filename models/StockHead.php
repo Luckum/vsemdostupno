@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\ProductFeature;
 
 /**
  * This is the model class for table "stock_head".
@@ -64,6 +65,20 @@ class StockHead extends \yii\db\ActiveRecord
     {
         return $this->provider->name;
     }
-
-   
+    
+    public function beforeDelete()
+    {
+        if (parent::beforeDelete()) {
+            if ($this->stockBody) {
+                foreach ($this->stockBody as $body) {
+                    $product_feature = ProductFeature::find()->where(['id' => $body->product_feature_id])->one();
+                    $product_feature->quantity -= $body->provider_stock->reaminder_rent;
+                    $product_feature->save();
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

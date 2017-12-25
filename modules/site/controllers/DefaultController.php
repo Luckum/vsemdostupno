@@ -30,7 +30,6 @@ class DefaultController extends BaseController
             return $category->getAllProductsQuery()
                 ->andWhere('visibility != 0')
                 ->andWhere('published != 0')
-                ->andWhere('inventory IS NULL OR inventory > 0')
                 ->orderBy('RAND()')
                 ->limit(self::MAX_MAIN_PAGE_ITEMS)
                 ->all();

@@ -38,9 +38,9 @@ use kartik\helpers\Html;
                         <div class="row product-price">
                             <div class="col-md-12">
                                 <?php if (Yii::$app->user->isGuest): ?>
-                                    <?= Html::badge($products[$inCount]->formattedMemberPrice, ['class' => '']) ?>
+                                    <?= Html::badge($products[$inCount]->formattedPrice, ['class' => '']) ?>
                                 <?php else: ?>
-                                    <?= Html::badge($products[$inCount]->formattedCalculatedPrice, ['class' => '']) ?>
+                                    <?= Html::badge($products[$inCount]->formattedMemberPrice, ['class' => '']) ?>
                                 <?php endif ?>
                             </div>
                         </div>

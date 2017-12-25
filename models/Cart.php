@@ -7,6 +7,7 @@ use yii\base\Model;
 use yii\helpers\ArrayHelper;
 use yii\web\Session;
 use app\models\Product;
+use app\models\ProductFeature;
 
 /**
  * This is the model class for "Cart".
@@ -30,9 +31,9 @@ class Cart extends Model
     {
         $cart = $this->cart;
 
-        if ($quantity > 0 && $product->visibility) {
-            if ($quantity > $product->currentInventory) {
-                $quantity = $product->currentInventory;
+        if ($quantity > 0 && $product->product->visibility) {
+            if ($quantity > $product->quantity) {
+                $quantity = $product->quantity;
             }
 
             if (isset($cart[$product->id])) {
@@ -94,18 +95,19 @@ class Cart extends Model
         $cart = $this->cart;
 
         if ($cart) {
-            $products = Product::find()
-                ->andWhere(['IN', 'id', array_keys($cart)])
-                ->andWhere('visibility != 0')
-                ->andWhere('inventory IS NULL OR inventory > 0')
+            $products = ProductFeature::find()
+                ->joinWith('product')
+                ->andWhere(['IN', 'product_feature.id', array_keys($cart)])
+                ->andWhere('product.visibility != 0')
+                ->andWhere('quantity > 0')
                 ->orderBy(['name' => SORT_ASC])
                 ->all();
 
             foreach ($products as $index => $product) {
-                if ($cart[$product->id]['quantity'] > $products[$index]->currentInventory) {
-                    $products[$index]->quantity = $products[$index]->currentInventory;
+                if ($cart[$product->id]['quantity'] > $products[$index]->quantity) {
+                    $products[$index]->cart_quantity = $products[$index]->quantity;
                 } else {
-                    $products[$index]->quantity = $cart[$product->id]['quantity'];
+                    $products[$index]->cart_quantity = $cart[$product->id]['quantity'];
                 }
             }
 
@@ -145,9 +147,16 @@ class Cart extends Model
     {
         $cart = new self();
 
-        return $product && isset($cart->cart[$product->id]);
+        return $product && isset($cart->cart[$product->productFeatures[0]->id]);
     }
 
+    public static function hasProductId($product)
+    {
+        $cart = new self();
+
+        return $product && isset($cart->cart[$product->id]);
+    }
+    
     public static function hasQuantity($product)
     {
         $cart = new self();

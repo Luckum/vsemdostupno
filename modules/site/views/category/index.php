@@ -21,8 +21,7 @@ $categories = $model->children()
 
 $productsQuery = $model->getAllProductsQuery()
     ->andWhere('visibility != 0')
-    ->andWhere('published != 0')
-    ->andWhere('inventory IS NULL OR inventory > 0');
+    ->andWhere('published != 0');
 $productsCount = clone $productsQuery;
 $productPages = new Pagination([
     'totalCount' => $productsCount->count(),

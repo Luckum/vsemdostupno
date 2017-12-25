@@ -235,7 +235,9 @@ class Category extends \yii\db\ActiveRecord
         $productIds = $query->select('DISTINCT {{%product}}.id')
             ->from('{{%product}}')
             ->join('LEFT JOIN', '{{%category_has_product}}', '{{%category_has_product}}.product_id = {{%product}}.id')
+            ->join('LEFT JOIN', 'product_feature', 'product_feature.product_id = {{%product}}.id')
             ->where(['IN', '{{%category_has_product}}.category_id', $categoryIds])
+            ->andWhere(['>', 'product_feature.quantity', 0])
             ->all();
         $productIds = ArrayHelper::getColumn($productIds, 'id');
 

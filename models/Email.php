@@ -50,9 +50,9 @@ class Email extends \yii\db\ActiveRecord
 
     public static function send($name, $to, $params = [])
     {
-        if (YII_ENV_DEV) {
+        /*if (YII_ENV_DEV) {
             $to = Yii::$app->params['devEmail'];
-        }
+        }*/
 
         $email = self::findOne(['name' => $name]);
 

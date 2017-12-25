@@ -10,9 +10,10 @@ use Yii;
  * @property integer $id
  * @property integer $product_id
  * @property string $price
- * @property integer $quantity
- *
+ * @property integer $quantity      
+ * @property integer $product_feature_id
  * @property Product $product
+ * @property date $date
  */
 class ProductNewPrice extends \yii\db\ActiveRecord
 {
@@ -30,7 +31,7 @@ class ProductNewPrice extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['product_id', 'price', 'quantity', 'date'], 'required'],
+            [['product_id', 'price', 'quantity', 'date', 'product_feature_id'], 'required'],
             [['product_id', 'quantity'], 'integer'],
             [['price'], 'number'],
             [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => Product::className(), 'targetAttribute' => ['product_id' => 'id']],
@@ -58,11 +59,20 @@ class ProductNewPrice extends \yii\db\ActiveRecord
         return $this->hasOne(Product::className(), ['id' => 'product_id']);
     }
     
+     /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProductFeature()
+    {
+        return $this->hasOne(ProductFeature::className(), ['id' => 'product_feature_id']);
+    }
+    
     public static function getProducts()
     {
         return self::find()
             ->joinWith('product')
-            ->where(['product.visibility' => 1, 'product.published' => 1, 'product.inventory' => 0])
+            ->joinWith('productFeature')
+            ->where(['product.visibility' => 1, 'product.published' => 1, 'product_feature.quantity' => 0])
             ->groupBy('product_id')
             ->orderBy('date ASC')
             ->all();

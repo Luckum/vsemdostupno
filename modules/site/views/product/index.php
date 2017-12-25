@@ -56,6 +56,12 @@ if (Yii::$app->user->isGuest) {
     }
 }
 
+$features = [];
+foreach ($model->productFeatures as $feat) {
+    if ($feat->quantity > 0) {
+        $features[$feat->id] = $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement;
+    }
+}
 ?>
 
 <?= Html::pageHeader(Html::encode($model->name)) ?>
@@ -78,50 +84,98 @@ if (Yii::$app->user->isGuest) {
     <div class="col-md-6">
         <?php if ($enableCart): ?>
             <div class="row add-product-to-cart-panel">
-                <div class="col-md-3">
+                <div class="col-md-5">
                     <?= SelectizeDropDownList::widget([
-                        'name' => 'quantity',
-                        'value' => Cart::hasQuantity($model),
-                        'items' => array_combine(
-                            range(1, $model->currentInventory),
-                            range(1, $model->currentInventory)
-                        ),
+                        'name' => 'feature',
+                        'items' => $features,
                         'options' => [
-                            'data-product-id' => $model->id,
                             'readonly' => true,
                             'onchange' => new JsExpression('
-                                if ($(".btn-product-in-cart").length) {
-                                    var id = $(this).attr("data-product-id");
-                                    var quantity = $(this).val();
-
-                                    $(this).prop("disabled", true);
-                                    WidgetHelpers.showLoading();
-
-                                    if (CartHelpers.update(id, quantity)) {
-                                        WidgetHelpers.hideLoading();
-                                        $(this)[0].selectize.setValue(CartHelpers.UpdatedProductQuantity, true);
-                                    } else {
-                                        WidgetHelpers.hideLoading();
-                                        WidgetHelpers.showFlashDialog(CartHelpers.Message);
-                                        $(this).removeClass("btn-product-in-cart");
-                                        $(this).removeClass("btn-info");
-                                        $(this).addClass("btn-success");
-                                        $(this).html(\'' . Icon::show('cart-plus') . ' Добавить в корзину\');
-                                    }
-
-                                    if (CartHelpers.Information) {
-                                        $(".cart-information").text(CartHelpers.Information);
-                                    }
-
-                                    $(this).prop("disabled", false);
+                                $(".qnt-container").each(function() {
+                                    $(this).hide();
+                                });
+                                $("#quantity-container-"+$(this).val()).show();
+                                var html = $.ajax({
+                                    url: "/site/product/get-prices",
+                                    async: false,
+                                    type: "POST",
+                                    data: {f_id: $(this).val()}
+                                }).responseText;
+                                if (html) {
+                                    $("#prices-container").html(html);
                                 }
-
-                                return false;
+                                $.ajax({
+                                    url: "/site/product/in-cart",
+                                    type: "POST",
+                                    data: {f_id: $(this).val()},
+                                    success: function(response) {
+                                        if (response) {
+                                            $("#cart-btn").addClass("btn-product-in-cart");
+                                            $("#cart-btn").removeClass("btn-success");
+                                            $("#cart-btn").addClass("btn-info");
+                                            $("#cart-btn").html(\'' . Icon::show('shopping-cart') . ' Товар в корзине\');
+                                        } else {
+                                            $("#cart-btn").removeClass("btn-product-in-cart");
+                                            $("#cart-btn").removeClass("btn-info");
+                                            $("#cart-btn").addClass("btn-success");
+                                            $("#cart-btn").html(\'' . Icon::show('cart-plus') . ' Добавить в корзину\');
+                                        }
+                                    }
+                                });
                             '),
                         ],
                     ]) ?>
                 </div>
-                <div class="col-md-9">
+                <?php foreach ($model->productFeatures as $k => $feat): ?>
+                    <?php if($feat->quantity > 0): ?>
+                        <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($k != 0): ?>style="display: none;"<?php endif; ?>>
+                            <?= SelectizeDropDownList::widget([
+                                'name' => 'quantity',
+                                'value' => Cart::hasQuantity($feat),
+                                'items' => array_combine(
+                                    range(1, $feat->quantity),
+                                    range(1, $feat->quantity)
+                                ),
+                                'options' => [
+                                    'data-product-id' => $feat->id,
+                                    'id' => $feat->id,
+                                    'readonly' => true,
+                                    'onchange' => new JsExpression('
+                                        if ($(".btn-product-in-cart").length) {
+                                            var id = $(this).attr("data-product-id");
+                                            var quantity = $(this).val();
+
+                                            $(this).prop("disabled", true);
+                                            WidgetHelpers.showLoading();
+
+                                            if (CartHelpers.update(id, quantity)) {
+                                                WidgetHelpers.hideLoading();
+                                                WidgetHelpers.showFlashDialog(CartHelpers.Message);
+                                                $(this)[0].selectize.setValue(CartHelpers.UpdatedProductQuantity, true);
+                                            } else {
+                                                WidgetHelpers.hideLoading();
+                                                WidgetHelpers.showFlashDialog(CartHelpers.Message);
+                                                $(this).removeClass("btn-product-in-cart");
+                                                $(this).removeClass("btn-info");
+                                                $(this).addClass("btn-success");
+                                                $(this).html(\'' . Icon::show('cart-plus') . ' Добавить в корзину\');
+                                            }
+
+                                            if (CartHelpers.Information) {
+                                                $(".cart-information").text(CartHelpers.Information);
+                                            }
+
+                                            $(this).prop("disabled", false);
+                                        }
+
+                                        return false;
+                                    '),
+                                ],
+                            ]) ?>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                <div class="col-md-6">
                     <?php
                         if (Cart::hasProduct($model)) {
                             $icon = 'shopping-cart';
@@ -134,19 +188,24 @@ if (Yii::$app->user->isGuest) {
                         }
                         echo Html::button(Icon::show($icon) . ' ' . $title, [
                             'class' => 'btn ' . $class,
+                            'id' => 'cart-btn',
                             'onclick' => new JsExpression('
-                                var quantity = $("*[data-product-id]").val();
+                                var obj = $(".qnt-container:visible");
+                                var feature = $(obj).attr("data-feature-id");
+                                var quantity = $("#"+feature).val();
 
                                 $(this).prop("disabled", true);
-
+                                
                                 if ($(this).hasClass("btn-info")) {
                                     window.location.href = "' . Url::to(['/cart']) . '";
                                     return false;
                                 } else {
                                     WidgetHelpers.showLoading();
                                 }
-
-                                if (CartHelpers.add("' . $model->id . '", quantity)) {
+                                
+                                
+                                
+                                if (CartHelpers.add(feature, quantity)) {
                                     WidgetHelpers.hideLoading();
                                     WidgetHelpers.showFlashDialog(CartHelpers.Message);
                                     $(this).addClass("btn-product-in-cart");
@@ -170,30 +229,22 @@ if (Yii::$app->user->isGuest) {
                     ?>
                 </div>
             </div>
-        <?php endif ?>
+        <?php endif; ?>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-12" id="prices-container">
                 <?php
                     $prices = [
                         [
                             'content' => 'Стоимость для всех желающих',
                             'badge' => $model->formattedPrice,
-                            'options' => ['class' => $model->price != $model->calculatedPrice ? 'disabled' : ''],
+                            'options' => ['class' => !Yii::$app->user->isGuest ? 'disabled' : ''],
                         ],
                         [
                             'content' => 'Стоимость для участников ПО',
                             'badge' => $model->formattedMemberPrice,
-                            'options' => ['class' => $model->member_price != $model->calculatedPrice ? 'disabled' : ''],
+                            'options' => ['class' => Yii::$app->user->isGuest ? 'disabled' : ''],
                         ],
                     ];
-
-                    if (!Yii::$app->user->isGuest && in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_PARTNER])) {
-                        array_push($prices, [
-                            'content' => 'Стоимость для партнеров ПО',
-                            'badge' => $model->formattedPartnerPrice,
-                            'options' => ['class' => $model->partner_price != $model->calculatedPrice ? 'disabled' : ''],
-                        ]);
-                    }
 
                     echo Html::panel([
                             'heading' => Icon::show('tags') . ' Стоимость',

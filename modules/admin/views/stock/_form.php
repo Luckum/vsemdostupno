@@ -14,77 +14,175 @@ use app\models\City;
 use kartik\select2\Select2;
 use kartik\typeahead\Typeahead;
 
+$items_tare = [
+    'с/бут.' => 'с/бут.',
+    'п/бут.' => 'п/бут.',
+    'c/бан.' => 'c/бан.',
+    'п/к.' => 'п/к.',
+    'кор.' => 'кор.',
+    'п/п.' => 'п/п.',
+    'п/м.' => 'п/м.',
+    'мешок' => 'мешок'
+];
+
+$items_meas = [
+    'кг.' => 'кг.',
+    'л.' => 'л.',
+    'шт.' => 'шт.',
+    'гр.' => 'гр.',
+    'мл.' => 'мл.',
+    'мг.' => 'мг.',
+    'разновес.' => 'разновес.'
+];
+
 ?>
 
 <div class="provider-form">
-
     <div class="stockbody-1">
-        
+        <input type="hidden" name="product_exists" id="product-exists" value="0">
+        <?php if (count($product->productFeatures) > 0): ?>
+            <span>Имеющиеся на складе:</span>
+            <br />
+            <?php foreach ($product->productFeatures as $val): ?>
+                <a href="javascript:void(0);" data-id="<?= $val->id; ?>" class="avail-product" onclick="set_product_data(this);">
+                    <?= $val->tare . ' ' . $val->volume . ' ' . $val->measurement . ' в количестве ' . $val->quantity . ' шт. по цене ' . $val->productPrices[0]->purchase_price . ' руб.'; ?>
+                </a>
+            <?php endforeach; ?>
+            <a href="javascript:void(0);" data-id="0" class="avail-product" onclick="set_product_data(this);">Добавить</a>
+            
+            <div id="stock-inner-exists" style="display: none;">
+                <div class="form-group">
+                    <label for="tare">Тара</label>
+                    <?= Html::textInput('tare_ex', null, ['class' => 'form-control', 'id' => 'tare-ex', 'readonly' => true]); ?>
+                </div>
 
-        <div class="form-group">
-            <label for="tare">Тара</label>
-            <?= Html::dropDownList(
-                'tare',
-                '',
-                [
-                    'с/бут.' => 'с/бут.',
-                    'п/бут.' => 'п/бут.',
-                    'c/бан.' => 'c/бан.',
-                    'п/к.' => 'п/к.',
-                    'кор.' => 'кор.',
-                    'п/п.' => 'п/п.',
-                    'п/м.' => 'п/м.',
-                    'мешок' => 'мешок'],
-                ['class' => 'form-control', 'id' => 'tare']
-            ); ?>
-        </div>
+                <div class="form-group">
+                    <label for="weight">Масса/Объём</label>
+                    <?= Html::textInput('volume_ex', null, ['class' => 'form-control', 'id' => 'volume-ex', 'readonly' => true]); ?>
+                </div>
 
-        <div class="form-group">
-            <label for="weight">Масса</label>
-            <?= Html::textInput('weight', $product->weight, ['class' => 'form-control', 'id' => 'weight']); ?>
-        </div>
+                <div class="form-group">
+                    <label for="measurement">Ед. измерения</label>
+                    <?= Html::textInput('measurement_ex', null, ['class' => 'form-control', 'id' => 'measurement-ex', 'readonly' => true]); ?>
+                </div>
 
-        <div class="form-group">
-            <label for="measurement">Ед. измерения</label>
-            <?= Html::dropDownList(
-                'measurement',
-                '',
-                [
-                    'кг.' => 'кг.',
-                    'л.' => 'л.',
-                    'шт.' => 'шт.',
-                    'гр.' => 'гр.',
-                    'мл.' => 'мл.',
-                    'мг.' => 'мг.',
-                    'разновес.' => 'разновес.'],
-                ['class' => 'form-control', 'id' => 'measurement']
-            ); ?>
-        </div>
+                <div class="form-group">
+                    <label for="count">Количество</label>
+                    <?= Html::textInput('count_ex', null, ['class' => 'form-control', 'id' => 'count-ex']); ?>
+                </div>
 
-        <div class="form-group">
-            <label for="count">Количество</label>
-            <?= Html::textInput('count', null, ['class' => 'form-control', 'id' => 'count']); ?>
-        </div>
+                <div class="form-group">
+                    <label for="summ">Сумма за ед./т.</label>
+                    <?= Html::textInput('summ_ex', null, ['class' => 'form-control', 'id' => 'summ-ex', 'readonly' => true]); ?>
+                </div>
+                
+                <div class="form-group">
+                    <?= Html::checkbox('new_price', false, ['id' => 'new-price', 'onchange' => 'toggleNewPrice(this)']); ?>
+                    <label for="new-price">Принять по новой цене</label>
+                </div>
 
-        <div class="form-group">
-            <label for="summ">Сумма за ед./т.</label>
-            <?= Html::textInput('summ', $product->purchase_price, ['class' => 'form-control', 'id' => 'summ', 'readonly' => true]); ?>
-        </div>
+                <div class="form-group">
+                    <?= Html::checkbox('deposit_ex', false, ['id' => 'deposit']); ?>
+                    <label for="deposit">Зачислять на лицевой счёт</label>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment">Комментарий</label>
+                    <?= Html::textarea('comment_ex', '', ['class' => 'form-control', 'id' => 'comment']); ?>
+                </div>
+            </div>
+            <div id="stock-inner-new" style="display: none;">
+                <div class="form-group">
+                    <label for="tare">Тара</label>
+                    <?= Html::dropDownList(
+                        'tare',
+                        '',
+                        $items_tare,
+                        ['class' => 'form-control', 'id' => 'tare']
+                    ); ?>
+                </div>
 
-        <div class="form-group">
-            <?= Html::checkbox('new_price', false, ['id' => 'new-price', 'onchange' => 'toggleNewPrice(this)']); ?>
-            <label for="new-price">Принять по новой цене</label>
-        </div>
-        
-        <div class="form-group">
-            <?= Html::checkbox('deposit', false, ['id' => 'deposit']); ?>
-            <label for="deposit">Зачислять на лицевой счёт</label>
-        </div>
-        
-        <div class="form-group">
-            <label for="comment">Комментарий</label>
-            <?= Html::textarea('comment', '', ['class' => 'form-control', 'id' => 'comment']); ?>
-        </div>
+                <div class="form-group">
+                    <label for="weight">Масса/Объём</label>
+                    <?= Html::textInput('volume', null, ['class' => 'form-control', 'id' => 'volume']); ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="measurement">Ед. измерения</label>
+                    <?= Html::dropDownList(
+                        'measurement',
+                        '',
+                        $items_meas,
+                        ['class' => 'form-control', 'id' => 'measurement']
+                    ); ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="count">Количество</label>
+                    <?= Html::textInput('count', null, ['class' => 'form-control', 'id' => 'count']); ?>
+                </div>
+
+                <div class="form-group">
+                    <label for="summ">Сумма за ед./т.</label>
+                    <?= Html::textInput('summ', null, ['class' => 'form-control', 'id' => 'summ']); ?>
+                </div>
+
+                <div class="form-group">
+                    <?= Html::checkbox('deposit', false, ['id' => 'deposit']); ?>
+                    <label for="deposit">Зачислять на лицевой счёт</label>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment">Комментарий</label>
+                    <?= Html::textarea('comment', '', ['class' => 'form-control', 'id' => 'comment']); ?>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="form-group">
+                <label for="tare">Тара</label>
+                <?= Html::dropDownList(
+                    'tare',
+                    '',
+                    $items_tare,
+                    ['class' => 'form-control', 'id' => 'tare']
+                ); ?>
+            </div>
+
+            <div class="form-group">
+                <label for="weight">Масса/Объём</label>
+                <?= Html::textInput('volume', null, ['class' => 'form-control', 'id' => 'volume']); ?>
+            </div>
+
+            <div class="form-group">
+                <label for="measurement">Ед. измерения</label>
+                <?= Html::dropDownList(
+                    'measurement',
+                    '',
+                    $items_meas,
+                    ['class' => 'form-control', 'id' => 'measurement']
+                ); ?>
+            </div>
+
+            <div class="form-group">
+                <label for="count">Количество</label>
+                <?= Html::textInput('count', null, ['class' => 'form-control', 'id' => 'count']); ?>
+            </div>
+
+            <div class="form-group">
+                <label for="summ">Сумма за ед./т.</label>
+                <?= Html::textInput('summ', null, ['class' => 'form-control', 'id' => 'summ']); ?>
+            </div>
+
+            <div class="form-group">
+                <?= Html::checkbox('deposit', false, ['id' => 'deposit']); ?>
+                <label for="deposit">Зачислять на лицевой счёт</label>
+            </div>
+            
+            <div class="form-group">
+                <label for="comment">Комментарий</label>
+                <?= Html::textarea('comment', '', ['class' => 'form-control', 'id' => 'comment']); ?>
+            </div>
+        <?php endif; ?>
     </div>
 
 

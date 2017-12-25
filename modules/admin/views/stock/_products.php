@@ -6,7 +6,7 @@ use yii\helpers\BaseHtml;
 ?>
 
 <label class="control-label" for="stockhead-product">Наименование товара</label>
-<select name="product-id" class="form-control" onchange="displayProductData(this);">
+<select name="product-id" id="product-id" class="form-control" onchange="displayProductData(this);">
     <option value="0" selected disabled>Выберите товар</option>
     <?php foreach ($data as $cat => $val): ?>
         <optgroup label="<?= $cat; ?>">

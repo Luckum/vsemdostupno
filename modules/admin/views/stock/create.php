@@ -14,6 +14,19 @@ use yii\web\JsExpression;
 $this->title = 'Принять товар';
 $this->params['breadcrumbs'][] = ['label' => 'Поставщики', 'url' => ['/admin/provider']];
 $this->params['breadcrumbs'][] = $this->title;
+
+$script = <<<JS
+    $(function () {
+        $('#accept-product-modal').on('shown.bs.modal', function (e) {
+            $("#product-id").val('0');
+            $("#stockhead-product-form").html('');
+        });
+        $(".avail-product").click(function() {
+            console.log('21');
+        });
+    })
+JS;
+$this->registerJs($script, $this::POS_END);
 ?>
 <div class="stock-create">
     <h1><?= Html::encode($this->title) ?></h1>
@@ -75,7 +88,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <div class="stockbody-1">
             <div class="form-group field-stockhead-product" id="stockhead-product-container" style="display: none;"></div>
-	    <div class="form-group field-stockhead-product" id="stockhead-product-form"></div>	
+	        <div class="form-group field-stockhead-product" id="stockhead-product-form"></div>	
         </div>
     <?php ActiveForm::end(); ?>
 <?php Modal::end(); ?>

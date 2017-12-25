@@ -102,7 +102,7 @@ class Partner extends \yii\db\ActiveRecord
 
     public function getCityName()
     {
-        return $this->city->name;
+        return isset($this->city->name) ? $this->city->name : '';
     }
 
     public function getGroup()

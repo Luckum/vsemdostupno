@@ -103,7 +103,7 @@ var CartHelpers = {
             },
             error: function () {
                 result = false;
-                CartHelpers.Message = 'Произошла ошибка при очистки корзины!';
+                CartHelpers.Message = 'Произошла ошибка при очистке корзины!';
             },
         });
 

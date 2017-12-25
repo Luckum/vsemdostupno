@@ -5,9 +5,11 @@ use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use yii\web\JsExpression;
+use yii\bootstrap\Modal;
 use mihaildev\ckeditor\CKEditor;
 use app\models\Category;
 use app\models\Product;
+use app\models\FundProduct;
 use wbraganca\fancytree\FancytreeWidget;
 use kartik\file\FileInput;
 use kartik\date\DatePicker;
@@ -18,6 +20,7 @@ use kartik\select2\Select2;
 /* @var $form yii\widgets\ActiveForm */
 
 $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/youtube/youtube/plugin.js', '');");
+
 ?>
 
 <div class="product-form">
@@ -117,16 +120,26 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
 
     <?= $form->field($model, 'name') ?>
 
-    <?= $form->field($model, 'storage_price') ?>
-
-    <?= $form->field($model, 'purchase_price') ?>
-
-    <?= $form->field($model, 'partner_price') ?>
-
-    <?= $form->field($model, 'member_price') ?>
-
-    <?= $form->field($model, 'price') ?>
-
+    <?php if (!$model->isNewRecord): ?>
+        <div class="form-group">
+            <?php if ($model->productFeatures): ?>
+                <div><label class="control-label">Имеющиеся виды</label></div>
+                <?php foreach ($model->productFeatures as $feat): ?>
+                    <div style="height: 25px;">
+                        <div class="product-card-description">
+                            <?= '<b>' . $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement . '</b> в количестве <b>' . $feat->quantity . '</b> шт., закупочная цена - <b>' . $feat->productPrices[0]->purchase_price . '</b> руб., цена для участников - <b><span data-f-m-id="' . $feat->id . '">' . $feat->productPrices[0]->member_price . '</span></b> руб., цена для всех - <b><span data-f-a-id="' . $feat->id . '">' . $feat->productPrices[0]->price . '</span></b> руб.'; ?>
+                        </div>
+                        <?php if (count($model_fund) > 0): ?>
+                            <div class="product-card-price-btns">
+                                <button type="button" class="btn btn-primary btn-xs update-price-modal" data-id="<?= $feat->id; ?>" data-toggle="modal" data-target="#update-price-modal">Редактировать цену</button>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+    
     <?= $form->field($model, 'expiry_timestamp')->widget(DatePicker::className(), [
         'type' => DatePicker::TYPE_COMPONENT_PREPEND,
         'readonly' => true,
@@ -190,3 +203,33 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
     <?php ActiveForm::end(); ?>
 
 </div>
+
+<?php if (!$model->isNewRecord): ?>
+    <?php Modal::begin([
+        'id' => 'update-price-modal',
+        'options' => ['tabindex' => false,],
+        'size' => Modal::SIZE_SMALL,
+        'header' => '<h4>' . 'Фонды' . '</h4>',
+        'footer' => '<a class="btn btn-default" data-dismiss="modal" aria-hidden="true">' . 'Закрыть' . '</a>
+                     <button id="update-price-btn" class="btn btn-success" type="button" onclick="updatePrice()">' . 'Сохранить' . '</button>',
+    ]); ?>
+
+        <?php if (count($model_fund) > 0): ?>
+            <?php foreach ($model_fund as $fund): ?>
+                <div class="has-feedback" style="height: 35px;">
+                    <span><?= $fund->name; ?></span>
+                    <input type="text" class="form-control fund_percent_input" data-feature-id="" data-fund-id="<?= $fund->id; ?>" value="<?= $fund->percent; ?>">
+                    <span class="form-control-feedback">%</span>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        <hr>
+        <h4>Цена "Для всех"</h4>
+        <hr>
+        <div class="has-feedback">
+            <input type="text" class="form-control" id="fund_common_price_input" data-feature-id="" value="">
+            <span class="form-control-feedback">руб.</span>
+        </div>
+
+    <?php Modal::end(); ?>
+<?php endif; ?>

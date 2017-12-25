@@ -132,7 +132,7 @@ $this->registerJs($script, $this::POS_END);
                 'items' => [
                     [
                         'label' => 'Удалить',
-                        'url' => Url::to(['/admin/stock/delete', 'id' => $head->id]),
+                        'url' => Url::to(['/admin/stock/delete', 'id' => $head->id, 'provider' => $head->provider_id]),
                         'linkOptions' => [
                             'data' => [
                                 'confirm' => 'Вы уверены что хотите удалить данную поставку?',
@@ -170,12 +170,10 @@ $this->registerJs($script, $this::POS_END);
             ],
             'comment',
 
-            /*['class' => 'yii\grid\ActionColumn',
+            ['class' => 'yii\grid\ActionColumn',
                 'template'=> '{actions}',
                 'buttons' => [
                     'actions' => function ($url, $model) {
-
-
                         return Html::beginTag('div', ['class' => 'dropdown']) .
                             Html::button('Действия <span class="caret"></span>', [
                                 'type' => 'button',
@@ -187,23 +185,19 @@ $this->registerJs($script, $this::POS_END);
                                 'items' => [
                                     [
                                         'label' => 'Удалить',
-                                        'url' => Url::to(['/admin/stock/delete', 'id' => $model->id]),
+                                        'url' => Url::to(['/admin/stock/delete-body', 'id' => $model->id, 'provider' => $model->stockHead->provider_id]),
                                         'linkOptions' => [
                                             'data' => [
                                                 'confirm' => 'Вы уверены что хотите удалить данную поставку?',
                                                 'method' => 'post',
                                             ],
-                                        ], [
-                                        'label'=>'Перевод пая в депозит',
-                                        'url'=>Url::to(['/admin/stock/unit', 'id'=>$model->stockHead->provider_id]),
+                                        ], 
                                     ],
-                                    ],
-
-                                    ],
+                                ],
                             ]);
                     }
                 ],
-            ],*/
+            ],
         ],
     ]); ?>
 </div>

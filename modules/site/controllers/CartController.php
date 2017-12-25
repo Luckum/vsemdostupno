@@ -25,6 +25,7 @@ use app\models\ProviderStock;
 use app\models\Provider;
 use app\models\UnitContibution;
 use app\models\ProviderHasProduct;
+use app\models\Fund;
 
 class CartController extends BaseController
 {
@@ -152,42 +153,37 @@ class CartController extends BaseController
                 }
 
                 foreach ($cart->products as $product) {
-                    if ($product->orderDate && (strtotime($product->orderDate) + strtotime('1 day', 0)) < time()) {
+                    if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
                         throw new Exception('Товар нельзя заказать!');
                     }
 
-                    if (isset($product->inventory)) {
-                        $product->scenario = 'order_product';
-                        $product->inventory -= $product->quantity;
+                    if (isset($product->quantity)) {
+                        $product->quantity -= $product->cart_quantity;
 
                         if (!$product->save()) {
                             throw new Exception('Ошибка обновления количества товара в магазине!');
                         }
                     }
-
+                    
                     $orderHasProduct = new OrderHasProduct();
 
                     $orderHasProduct->order_id = $order->id;
-                    $orderHasProduct->product_id = $product->id;
-                    $orderHasProduct->name = $product->name;
-                    $orderHasProduct->orderDate = $product->orderDate;
-                    $orderHasProduct->purchaseDate = $product->purchaseDate;
+                    $orderHasProduct->product_id = $product->product_id;
+                    $orderHasProduct->name = $product->product->name;
+                    $orderHasProduct->orderDate = $product->product->orderDate;
+                    $orderHasProduct->purchaseDate = $product->product->purchaseDate;
                     $orderHasProduct->price = $product->calculatedPrice;
                     $orderHasProduct->purchase_price = $product->purchase_price;
-                    $orderHasProduct->storage_price = $product->storage_price;
-                    $orderHasProduct->invite_price = $product->calculatedInvitePrice;
-                    $orderHasProduct->fraternity_price = $product->calculatedFraternityPrice;
-                    if (!$order->user) {
-                        $orderHasProduct->group_price = $product->price - $product->partner_price;
-                    } elseif (!in_array($order->user->role, [User::ROLE_PARTNER])) {
-                        $orderHasProduct->group_price = $product->calculatedGroupPrice;
-                    } else {
-                        $orderHasProduct->group_price = 0;
-                    }
-                    $orderHasProduct->quantity = $product->quantity;
+                    $orderHasProduct->storage_price = 0;
+                    $orderHasProduct->invite_price = 0;
+                    $orderHasProduct->fraternity_price = 0;
+                    $orderHasProduct->product_feature_id = $product->id;
+                    $orderHasProduct->group_price = 0;
+                    
+                    $orderHasProduct->quantity = $product->cart_quantity;
                     $orderHasProduct->total = $product->calculatedTotalPrice;
                     
-                    $provider = ProviderHasProduct::find()->where(['product_id' => $product->id])->one();
+                    $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
                     $provider_id = $provider ? $provider->provider_id : 0;
 
                     if ($provider_id != 0) {
@@ -205,7 +201,6 @@ class CartController extends BaseController
                                 $paid_for_provider = $orderHasProduct->quantity * $body->summ;
                                 $stock_provider->summ_on_deposit += $paid_for_provider;
                                 $stock_provider->save();
-                                
                             } else {
                                 $rest = $orderHasProduct->quantity - $stock_provider->reaminder_rent;
                                 $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
@@ -236,16 +231,20 @@ class CartController extends BaseController
                                 }
                             }
                             $paid_for_provider = $orderHasProduct->quantity * $body->summ;
-                        }
-
-                        
-                        if ($body->deposit == '1') {
-                            if (!Account::swap($deposit, $provider_account, $paid_for_provider, 'Перевод пая на счёт')) {
-                                throw new Exception('Ошибка модификации счета пользователя!');
+                            
+                            if ($body->deposit == '1') {
+                                if (!Account::swap($deposit, $provider_account, $paid_for_provider, 'Перевод пая на счёт', false)) {
+                                    throw new Exception('Ошибка модификации счета пользователя!');
+                                }
+                                Email::send('account-log', $provider_account->user->email, [
+                                    'message' => 'Перевод пая на счёт',
+                                    'amount' => $paid_for_provider,
+                                    'total' => $provider_account->total,
+                                ]);
                             }
-                        } else {
                             $paid_for_provider = 0;
                         }
+
                         $unitContibution = new UnitContibution();
                         $unitContibution->order_id=$orderHasProduct->order_id;
                         $unitContibution->provider_stock_id=$stock_provider->id;
@@ -270,16 +269,18 @@ class CartController extends BaseController
                        throw new Exception('Ошибка модификации счета пользователя!');
                     }
                     if ($entity->role == User::ROLE_PROVIDER) {
-                        ProviderStock::setStockSum($entity->id, $order->paid_total-$paid_for_provider);
+                        ProviderStock::setStockSum($entity->id, $order->paid_total - $paid_for_provider);
                     }
 
                 }
+                
+                Fund::setDeductionForOrder($product->id, $product->purchase_price, $product->cart_quantity);
 
                 $transaction->commit();
             } catch (Exception $e) {
                 $transaction->rollBack();
 
-
+                //throw new ForbiddenHttpException($e->getMessage());
                 Yii::$app->session->setFlash('cart-checkout', [
                     'name' => 'cart-checkout-fail',
                 ]);

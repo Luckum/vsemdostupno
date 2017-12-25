@@ -136,3 +136,42 @@ form div.required label.control-label:after {
 .for-reg-check > input {
 	cursor: pointer;
 }
+#fund-name-pjax {
+	width: 65%;
+	display: inline-block;
+}
+.fund-buttons-container {
+	display: inline-block;
+	float: right;
+}
+#del-fund-btn {
+	width: 128px;
+}
+.fund-btns-row-2 {
+	text-align: center;
+	margin-top: 20px;
+}
+#fund-name-tbl tbody tr {
+	cursor: pointer;
+}
+.avail-product {
+	display: block;
+	text-decoration: underline;
+	text-decoration-style: dashed;
+}
+.avail-product:hover, .avail-product:focus {
+	text-decoration-style: dashed;
+}
+.product-card-description, .product-card-price-btns {
+	display: inline-block;
+}
+.product-card-price-btns {
+	float: right;
+}
+#update-price-modal {
+	top: 120px;
+}
+.fund_percent_input {
+	width: 35%;
+	float: right;
+}

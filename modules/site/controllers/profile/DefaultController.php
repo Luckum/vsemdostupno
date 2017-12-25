@@ -122,7 +122,7 @@ class DefaultController extends BaseController
         Yii::$app->user->logout();
 
         foreach ($products as $product) {
-            $cart->add($product, $product->quantity);
+            $cart->add($product, $product->cart_quantity);
         }
 
         return $this->redirect('/profile/login');
@@ -183,7 +183,9 @@ class DefaultController extends BaseController
                 $user->skills = $model->skills ? $model->skills : null;
                 $user->recommender_info = $model->recommender_info ? $model->recommender_info : null;
                 $user->number = (int) User::find()->max('number') + 1;
+                $user->re_captcha = $model->re_captcha;
 
+                
                 if (!$user->save()) {
                     throw new Exception('Ошибка создания пользователя!');
                 }

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\ProductFeature;
 
 /**
  * This is the model class for table "stock_body".
@@ -18,6 +19,7 @@ use Yii;
  * @property double $total_summ
  * @property integer $deposit
  * @property string $comment
+ * @property integer $product_feature_id
  */
 class StockBody extends \yii\db\ActiveRecord
 {
@@ -35,7 +37,7 @@ class StockBody extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['stock_head_id', 'product_id', 'tare', 'weight', 'measurement', 'count', 'summ', 'total_summ', 'deposit'], 'required'],
+            [['stock_head_id', 'product_id', 'tare', 'weight', 'measurement', 'count', 'summ', 'total_summ', 'deposit', 'product_feature_id'], 'required'],
             [['stock_head_id', 'product_id', 'count', 'deposit'], 'integer'],
             [['weight', 'total_summ', 'summ'], 'number'],
             [['comment'], 'string'],
@@ -90,6 +92,26 @@ class StockBody extends \yii\db\ActiveRecord
         return $this->product->name;
     }
     
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProductFeature()
+    {
+        return $this->hasOne(ProductFeature::className(), ['id' => 'product_feature_id']);
+    }
+    
+    public function beforeDelete()
+    {
+        if (parent::beforeDelete()) {
+            $product_feature = ProductFeature::find()->where(['id' => $this->product_feature_id])->one();
+            $product_feature->quantity -= $this->provider_stock->reaminder_rent;
+            $product_feature->save();
+            
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 

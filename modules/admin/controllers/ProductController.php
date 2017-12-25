@@ -16,6 +16,10 @@ use app\models\Photo;
 use app\models\ProductHasPhoto;
 use app\models\ProviderHasCategory;
 use app\models\Provider;
+use app\models\Fund;
+use app\models\FundProduct;
+use app\models\FundCommonPrice;
+use app\models\ProductPrice;
 
 /**
  * ProductController implements the CRUD actions for Product model.
@@ -64,7 +68,7 @@ class ProductController extends BaseController
         } else {
             $query = Product::find();
         }
-
+        
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
@@ -140,6 +144,7 @@ class ProductController extends BaseController
     {
         //$model = $this->findModel($id);
         $model = Product::getProductModelById($id);
+        $model_fund = Fund::find()->all();
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $gallery = UploadedFile::getInstances($model, 'gallery');
@@ -159,6 +164,7 @@ class ProductController extends BaseController
         } else {
             return $this->render('update', [
                 'model' => $model,
+                'model_fund' => $model_fund,
             ]);
         }
     }
@@ -212,5 +218,97 @@ class ProductController extends BaseController
             'provider' => $provider,
             'dataProvider' => $dataProvider,
         ]);
+    }
+    
+    public function actionGetFund()
+    {
+        $feature_id = $_POST['id'];
+        $funds = FundProduct::find()->where(['product_feature_id' => $feature_id])->all();
+        $res = [];
+        if ($funds) {
+            foreach ($funds as $fund) {
+                $res[] = [
+                    $fund->fund_id => $fund->percent
+                ];
+            }
+            
+        } else {
+            $funds = Fund::find()->all();
+            foreach ($funds as $fund) {
+                $res[] = [
+                    $fund->id => $fund->percent
+                ];
+            }
+        }
+        return json_encode($res);
+    }
+    
+    public function actionGetCommonPrice()
+    {
+        $feature_id = $_POST['id'];
+        $common_price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
+        return $common_price->price;
+    }
+    
+    public function actionSetPercent()
+    {
+        $feature_id = $_POST['f_id'];
+        $fund_id = $_POST['fund_id'];
+        $percent = $_POST['percent'];
+        
+        $fund = FundProduct::find()->where(['product_feature_id' => $feature_id, 'fund_id' => $fund_id])->one();
+        if ($fund) {
+            $fund->percent = $percent;
+            $fund->save();
+        } else {
+            $fund_common = Fund::findOne($fund_id);
+            if ($fund_common->percent != $percent) {
+                $fund = new FundProduct();
+                $fund->product_feature_id = $feature_id;
+                $fund->fund_id = $fund_id;
+                $fund->percent = $percent;
+                $fund->save();
+            }
+        }
+        return true;
+    }
+    
+    public function actionGetPrices()
+    {
+        $feature_id = $_POST['f_id'];
+        $product_price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
+        $res = [
+             'price' => $product_price->price,
+             'member_price' => $product_price->member_price
+        ];
+        
+        return json_encode($res);
+    }
+    
+    public function actionSetCommonPrice()
+    {
+        $feature_id = $_POST['f_id'];
+        $price = $_POST['price'];
+        $common_price = FundCommonPrice::find()->where(['product_feature_id' => $feature_id])->one();
+        $product_price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
+        if ($common_price) {
+            if ($common_price->price != $price) {
+                $common_price->price = $price;
+                if ($common_price->save()) {
+                    $product_price->price = $price;
+                    $product_price->save();
+                }
+            }
+        } else {
+            if ($product_price->price != $price) {
+                $common_price = new FundCommonPrice();
+                $common_price->product_feature_id = $feature_id;
+                $common_price->price = $price;
+                if ($common_price->save()) {
+                    $product_price->price = $price;
+                    $product_price->save();
+                }
+            }
+        }
     }
 }

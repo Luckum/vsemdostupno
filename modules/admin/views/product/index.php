@@ -4,6 +4,8 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\GridView;
 use yii\web\JsExpression;
+use app\models\ProductPrice;
+use app\models\ProductFeature;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -82,11 +84,43 @@ $this->registerJs($script, $this::POS_END);
         'dataProvider' => $dataProvider,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'price',
-            'member_price',
-            'partner_price',
-            'inventory',
-            'name',
+            
+            [
+                'label' => 'Название',
+                'content' => function ($model) {
+                    return $model->name . ProductFeature::getFeatureByProduct($model->id);
+                }
+            ],
+            [
+                'label' => 'Цена для участников',
+                'content' => function ($model) {
+                    return ProductPrice::getMemberPriceByProduct($model->id);
+                }
+            ],
+            [
+                'label' => 'Цена для всех',
+                'content' => function ($model) {
+                    return ProductPrice::getAllPriceByProduct($model->id);
+                }
+            ],
+            [
+                'label' => 'Количество',
+                'content' => function ($model) {
+                    return ProductFeature::getQuantityByProduct($model->id);
+                }
+            ],
+            [
+                'attribute' => 'visibility',
+                'content' => function ($model) {
+                    return '<input type="checkbox" ' . ($model->visibility ? 'checked' : '') . ' data-product-id="' . $model->id . '" class="update-visibility">';
+                }
+            ],
+            [
+                'attribute' => 'published',
+                'content' => function ($model) {
+                    return '<input type="checkbox" ' . ($model->published ? 'checked' : '') . ' data-product-id="' . $model->id . '" class="update-published">';
+                }
+            ],
 
             ['class' => 'yii\grid\ActionColumn'],
         ],

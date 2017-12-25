@@ -51,7 +51,7 @@ class OrderHasProduct extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['order_id', 'name', 'price', 'quantity', 'total', 'purchase_price', 'storage_price', 'invite_price', 'fraternity_price', 'group_price'], 'required'],
+            [['order_id', 'name', 'price', 'quantity', 'total', 'purchase_price', 'storage_price', 'invite_price', 'fraternity_price', 'group_price', 'product_feature_id'], 'required'],
             [['order_id', 'product_id', 'purchase','provider_id'], 'integer'],
             [['purchase_timestamp', 'order_timestamp'], 'safe'],
             [['price', 'quantity', 'total', 'purchase_price', 'storage_price', 'invite_price', 'fraternity_price', 'group_price'], 'number'],

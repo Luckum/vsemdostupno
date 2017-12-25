@@ -23,6 +23,8 @@ use app\models\UnitContibution;
 use yii\helpers\Json;
 use app\models\Product;
 use app\models\ProductNewPrice;
+use app\models\ProductFeature;
+use app\models\ProductPrice;
 
 class StockController extends BaseController
 {
@@ -32,7 +34,7 @@ class StockController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['post'],
+                    
                 ],
             ],
         ]);
@@ -141,13 +143,19 @@ class StockController extends BaseController
             'model' => $model,
         ]);
     }
-    public function actionDelete($id)
+    public function actionDelete($id, $provider)
     {
         $model = $this->findModel($id);
         $model->delete();
-        
-        
-        return $this->redirect(['/admin/provider']);
+        return $this->redirect(['/admin/stock/view?id=' . $provider]);
+    }
+    
+    public function actionDeleteBody($id, $provider)
+    {
+        $model = StockBody::find()->where(['id' => $id])->one();
+        $model->delete();
+        $count = StockBody::find()->where(['stock_head_id' => $model->stock_head_id])->count();
+        return $count > 0 ? $this->redirect(['/admin/stock/viewbody?id=' . $model->stock_head_id]) : $this->redirect(['/admin/stock/delete?id=' . $model->stock_head_id . '&provider=' . $provider]);
     }
 
     protected function findModel($id)
@@ -277,7 +285,7 @@ class StockController extends BaseController
     {
         $product_id = $_POST['product_id'];
 
-	    $product = Product::find()->where(['id' => $product_id])->one();
+	    $product = Product::find()->joinWith('productFeatures')->joinWith('productFeatures.productPrices')->where(['product.id' => $product_id])->one();
         return $this->renderPartial('_form', [
             'product' => $product,
         ]);
@@ -286,51 +294,79 @@ class StockController extends BaseController
 
     public function actionAddProduct() 
     {
-	    $head = StockHead::find()->where(['who' => $_POST['StockHead']['who'], 'provider_id' => $_POST['StockHead']['provider_id'], 'date' => $_POST['StockHead']['date']])->one();
-	    if (!$head) {
+        $volume = ($_POST['product_exists'] == '0') ? $_POST['volume'] : $_POST['volume_ex'];
+	    $tare = ($_POST['product_exists']) == '0' ? $_POST['tare'] : $_POST['tare_ex'];
+        $measurement = ($_POST['product_exists'] == '0') ? $_POST['measurement'] : $_POST['measurement_ex'];
+        $quantity = ($_POST['product_exists'] == '0') ? $_POST['count'] : $_POST['count_ex'];
+        $price = ($_POST['product_exists'] == '0') ? $_POST['summ'] : $_POST['summ_ex'];
+        $comment = ($_POST['product_exists'] == '0') ? $_POST['comment'] : $_POST['comment_ex'];
+        $deposit = ($_POST['product_exists'] == '0') ? (isset($_POST['deposit']) ? 1 : 0) : (isset($_POST['deposit_ex']) ? 1 : 0);
+        
+        $head = StockHead::find()
+            ->where([
+                'who' => $_POST['StockHead']['who'],
+                'provider_id' => $_POST['StockHead']['provider_id'],
+                'date' => $_POST['StockHead']['date']])
+            ->one();
+	    
+        if (!$head) {
 		    $head = new StockHead();
 		    $head->who = $_POST['StockHead']['who'];
 		    $head->date = $_POST['StockHead']['date'];
 		    $head->provider_id = $_POST['StockHead']['provider_id'];
 		    $head->save();
 	    }
-	    $product = Product::find()->where(['id' => $_POST['product-id']])->one();
-    //	return $head->id;
-	    $body = new StockBody();
+	    
+        $product = Product::find()->where(['id' => $_POST['product-id']])->one();
+	    $product_feature = ProductFeature::find()
+            ->where([
+                'product_id' => $product->id,
+                'volume' => $volume,
+                'measurement' => $measurement,
+                'tare' => $tare])
+            ->one();
+        if (!$product_feature) {
+            $product_feature = new ProductFeature();
+            $product_feature->product_id = $product->id;
+            $product_feature->volume = $volume;
+            $product_feature->measurement = $measurement;
+            $product_feature->tare = $tare;
+            $product_feature->quantity = $quantity;
+            $product_feature->save();
+            
+            $product_price = new ProductPrice();
+            $product_price->product_id = $product->id;
+            $product_price->product_feature_id = $product_feature->id;
+            $product_price->purchase_price = $price;
+            $product_price->save();
+        } else {
+            if (isset($_POST['new_price'])) {
+                $product_new_price = new ProductNewPrice();
+                $product_new_price->product_id = $product->id;
+                $product_new_price->price = $price;
+                $product_new_price->quantity = $quantity;
+                $product_new_price->date = $_POST['StockHead']['date'];
+                $product_new_price->product_feature_id = $product_feature->id;
+                $product_new_price->save();
+            } else {
+                $product_feature->quantity += $quantity;
+                $product_feature->save();
+            }
+        }
+        
+        $body = new StockBody();
 	    $body->stock_head_id = $head->id;
 	    $body->product_id = $product->id;
-	    $body->tare = $_POST['tare'];
-	    $body->weight = $_POST['weight'];
-	    $body->measurement = $_POST['measurement'];
-	    $body->count = $_POST['count'];
-	    $body->summ = $_POST['summ'];
-	    $body->total_summ = $_POST['summ'] * $_POST['count'];
-	    $body->deposit = isset($_POST['deposit']) ? 1 : 0;
-	    $body->comment = $_POST['comment'];
+        $body->product_feature_id = $product_feature->id;
+	    $body->tare = $tare;
+	    $body->weight = $volume;
+	    $body->measurement = $measurement;
+	    $body->count = $quantity;
+	    $body->summ = $price;
+	    $body->total_summ = $price * $quantity;
+	    $body->deposit = $deposit;
+	    $body->comment = $comment;
 	    $body->save();
-        
-        if (isset($_POST['new_price'])) {
-            $product_new_price = new ProductNewPrice();
-            $product_new_price->product_id = $product->id;
-            $product_new_price->price = $_POST['summ'];
-            $product_new_price->quantity = $_POST['count'];
-            $product_new_price->date = $_POST['StockHead']['date'];
-            $product_new_price->save();
-            
-            /*if (isset($_POST['add_to_avail'])) {
-                $product->scenario = 'apply_product';
-                $product->inventory += $_POST['count'];
-                $product->save();
-            }*/
-        } else {
-            $product->scenario = 'apply_product';
-            $product->inventory += $_POST['count'];
-            $product->tare = $_POST['tare'];
-            $product->weight = $_POST['weight'];
-            $product->measurement = $_POST['measurement'];
-            $product->stock_date = $_POST['StockHead']['date'];
-            $product->save();
-        }
         
         $provider_stock = new ProviderStock();
         $provider_stock->stock_body_id = $body->id;
@@ -349,5 +385,18 @@ class StockController extends BaseController
         return $this->renderPartial('_print', [
             'dataProvider' => $dataProvider,
         ]);
+    }
+    
+    public function actionGetFeature()
+    {
+        $id = $_POST['id'];
+        $feature = ProductFeature::find()->joinWith('productPrices')->where(['product_feature.id' => $id])->one();
+        $res = [
+            'tare' => $feature->tare,
+            'volume' => $feature->volume,
+            'measurement' => $feature->measurement,
+            'price' => $feature->productPrices[0]->purchase_price
+        ];
+        return json_encode($res);
     }
 }

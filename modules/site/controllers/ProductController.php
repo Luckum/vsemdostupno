@@ -7,16 +7,21 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use app\models\Product;
+use app\models\ProductFeature;
+use app\models\ProductPrice;
+use app\models\Cart;
 
 class ProductController extends BaseController
 {
     public function actionIndex($id)
     {
         $model = Product::find()
-            ->andWhere('id = :id', [':id' => $id])
+            ->joinWith('productFeatures')
+            ->joinWith('productFeatures.productPrices')
+            ->andWhere('product.id = :id', [':id' => $id])
             ->andWhere('visibility != 0')
             ->andWhere('published != 0')
-            ->andWhere('inventory IS NULL OR inventory > 0')
+            ->andWhere('product_feature.quantity > 0')
             ->one();
 
         if (!$model) {
@@ -26,5 +31,21 @@ class ProductController extends BaseController
         return $this->render('index', [
             'model' => $model,
         ]);
+    }
+    
+    public function actionGetPrices()
+    {
+        $feature_id = $_POST['f_id'];
+        return $this->renderPartial('_prices', [
+            'all_price' => Product::getFormattedPriceFeature($feature_id),
+            'member_price' => Product::getFormattedMemberPriceFeature($feature_id),
+        ]);
+    }
+    
+    public function actionInCart()
+    {
+        $feature_id = $_POST['f_id'];
+        $feature = ProductFeature::findOne($feature_id);
+        return Cart::hasProductId($feature);
     }
 }

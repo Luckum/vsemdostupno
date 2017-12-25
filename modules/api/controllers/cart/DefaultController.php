@@ -12,6 +12,7 @@ use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use app\models\User;
 use app\models\Product;
+use app\models\ProductFeature;
 use app\models\Cart;
 use app\modules\api\models\cart\ProductAddition;
 use app\modules\api\models\cart\ProductUpdating;
@@ -55,7 +56,17 @@ class DefaultController extends Controller
             throw new ForbiddenHttpException('Действие не разрешено.');
         }
 
-        $product = Product::findOne($productAddition->id);
+        /*$product = Product::find()
+            ->joinWith('productFeatures')
+            ->where(['product_feature.id' => $productAddition->id])
+            ->one();*/
+            
+        $product = ProductFeature::find()
+            ->joinWith('product')
+            ->joinWith('productPrices')
+            ->where(['product_feature.id' => $productAddition->id])
+            ->one();
+            
         $cart = new Cart();
 
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -67,38 +78,38 @@ class DefaultController extends Controller
             ];
         }
 
-        if (Yii::$app->user->isGuest && $product->only_member_purchase) {
+        if (Yii::$app->user->isGuest && $product->product->only_member_purchase) {
             return [
                 'success' => false,
                 'message' => 'Данное предложение доступно только для участников.',
             ];
         }
 
-        if ($product->orderDate && (strtotime($product->orderDate) + strtotime('1 day', 0)) < time()) {
-            $product->quantity = 0;
-            $cart->update($product, $product->quantity);
+        if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
+            $product->cart_quantity = 0;
+            $cart->update($product, $product->cart_quantity);
 
             return [
                 'success' => false,
                 'message' => sprintf(
                     'Товар недоступен для заказа. Прием заказов закончился "%s"',
-                    Yii::$app->formatter->asDate(strtotime($product->orderDate) + strtotime('1 day', 0), 'long')
+                    Yii::$app->formatter->asDate(strtotime($product->product->orderDate) + strtotime('1 day', 0), 'long')
                 ),
                 'cartInformation' => $cart->information,
-                'productQuantity' => $product->quantity,
+                'productQuantity' => $product->cart_quantity,
                 'productInformation' => $product->formattedCalculatedTotalPrice,
                 'order' => $cart->total != 0,
             ];
         }
 
-        $product->quantity = $productAddition->quantity;
-        $product->quantity = $cart->add($product, $product->quantity);
-
+        $product->cart_quantity = $productAddition->quantity;
+        $product->cart_quantity = $cart->add($product, $product->cart_quantity);
+        
         return [
             'success' => true,
             'message' => 'Товар добавлен в корзину!',
             'cartInformation' => $cart->information,
-            'productQuantity' => $product->quantity,
+            'productQuantity' => $product->cart_quantity,
             'productInformation' => $product->formattedCalculatedTotalPrice,
             'order' => $cart->total != 0,
         ];
@@ -111,7 +122,17 @@ class DefaultController extends Controller
             throw new ForbiddenHttpException('Действие не разрешено.');
         }
 
-        $product = Product::findOne($productUpdating->id);
+        /*$product = Product::find()
+            ->joinWith('productFeatures')
+            ->where(['product_feature.id' => $productUpdating->id])
+            ->one();*/
+        
+        $product = ProductFeature::find()
+            ->joinWith('product')
+            ->joinWith('productPrices')
+            ->where(['product_feature.id' => $productUpdating->id])
+            ->one();
+            
         $cart = new Cart();
 
         Yii::$app->response->format = Response::FORMAT_JSON;
@@ -123,31 +144,31 @@ class DefaultController extends Controller
             ];
         }
 
-        if ($product->orderDate && (strtotime($product->orderDate) + strtotime('1 day', 0)) < time()) {
-            $product->quantity = 0;
-            $cart->update($product, $product->quantity);
+        if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
+            $product->cart_quantity = 0;
+            $cart->update($product, $product->cart_quantity);
 
             return [
                 'success' => false,
                 'message' => sprintf(
                     'Товар недоступен для заказа. Прием заказов закончился "%s"',
-                    Yii::$app->formatter->asDate(strtotime($product->orderDate) + strtotime('1 day', 0), 'long')
+                    Yii::$app->formatter->asDate(strtotime($product->product->orderDate) + strtotime('1 day', 0), 'long')
                 ),
                 'cartInformation' => $cart->information,
-                'productQuantity' => $product->quantity,
+                'productQuantity' => $product->cart_quantity,
                 'productInformation' => $product->formattedCalculatedTotalPrice,
                 'order' => $cart->total != 0,
             ];
         }
 
-        $product->quantity = $productUpdating->quantity;
-        $product->quantity = $cart->update($product, $product->quantity);
+        $product->cart_quantity = $productUpdating->quantity;
+        $product->cart_quantity = $cart->update($product, $product->cart_quantity);
 
         return [
             'success' => true,
             'message' => 'Количество товара в корзине обновлено!',
             'cartInformation' => $cart->information,
-            'productQuantity' => $product->quantity,
+            'productQuantity' => $product->cart_quantity,
             'productInformation' => $product->formattedCalculatedTotalPrice,
             'order' => $cart->total != 0,
         ];

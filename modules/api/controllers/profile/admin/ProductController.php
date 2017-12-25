@@ -43,6 +43,7 @@ class ProductController extends BaseController
         }
 
         $model->visibility = $post['visibility'];
+        $model->scenario = 'apply_product';
 
         Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -64,6 +65,7 @@ class ProductController extends BaseController
         }
 
         $model->published = $post['published'];
+        $model->scenario = 'apply_product';
 
         Yii::$app->response->format = Response::FORMAT_JSON;
 

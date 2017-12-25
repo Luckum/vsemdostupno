@@ -32,7 +32,8 @@ class ProductAddition extends Model
     {
         if (!$this->hasErrors()) {
             $product = Product::find()
-                ->where('id = :id AND visibility != 0', [':id' => $this->id])
+                ->joinWith('productFeatures')
+                ->where('product_feature.id = :id AND visibility != 0', [':id' => $this->id])
                 ->one();
 
             if (!$product) {

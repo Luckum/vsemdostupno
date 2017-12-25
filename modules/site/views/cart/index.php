@@ -47,32 +47,35 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <td class="row">
                                     <div class="col-md-2">
                                         <?= Html::a(
-                                            Html::img($product->thumbUrl),
-                                            $product->url,
+                                            Html::img($product->product->thumbUrl),
+                                            $product->product->url,
                                             ['class' => 'thumbnail']
                                         ) ?>
                                     </div>
                                     <div class="col-md-10">
                                         <p>
-                                            <?= Html::a(Html::encode($product->name), $product->url) ?>
+                                            <?= Html::a(Html::encode($product->product->name), $product->product->url) ?>
+                                        </p>
+                                        <p>
+                                            <?= $product->tare . ', ' . $product->volume . ' ' . $product->measurement; ?>
                                             <?= Html::badge(Html::encode($product->formattedCalculatedPrice)) ?>
                                         </p>
-                                        <?php if ($product->isPurchase()): ?>
+                                        <?php if ($product->product->isPurchase()): ?>
                                             <p>
                                                 <b>Закупка:</b>
                                                 <?= Html::a(
-                                                    $product->purchaseCategory->htmlFormattedPurchaseDate,
-                                                    $product->purchaseCategory->url
+                                                    $product->product->purchaseCategory->htmlFormattedPurchaseDate,
+                                                    $product->product->purchaseCategory->url
                                                 ) ?>
                                             </p>
-                                        <?php endif ?>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                                 <td class="text-center">
                                     <?= SelectizeDropDownList::widget([
                                         'name' => 'quantity',
-                                        'value' => $product->quantity,
-                                        'items' => range(0, $product->currentInventory),
+                                        'value' => $product->cart_quantity,
+                                        'items' => range(0, $product->quantity),
                                         'options' => [
                                             'data-product-id' => $product->id,
                                             'readonly' => true,
@@ -104,7 +107,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 </td>
                                 <td class="text-center" data-product-id="<?= $product->id ?>"><?= Html::encode($product->formattedCalculatedTotalPrice) ?></td>
                             </tr>
-                        <?php endforeach ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>

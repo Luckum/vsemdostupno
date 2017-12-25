@@ -109,6 +109,6 @@ class Member extends \yii\db\ActiveRecord
 
     public function getCityName()
     {
-        return $this->partner->city->name;
+        return isset($this->partner->city->name) ? $this->partner->city->name : '';
     }
 }

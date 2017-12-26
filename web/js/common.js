@@ -112,6 +112,14 @@ $(document).ready(function() {
             }
         });
     });
+    
+    $("#fund_common_price_check").change(function() {
+        if (this.checked) {
+            $("#fund_common_price_input").prop('readonly', true);
+        } else {
+            $("#fund_common_price_input").prop('readonly', false);
+        }
+    });
 });
 
 function toggleCategoriesContainer(status)
@@ -235,37 +243,53 @@ function set_product_data(obj)
 
 function updatePrice()
 {
-    $(".fund_percent_input").each(function() {
+    var el_len = $(".fund_percent_input").length;
+    $(".fund_percent_input").each(function(index, element) {
         $.ajax({
             url: "/admin/product/set-percent",
             type: "POST",
             data: {f_id: $(this).attr('data-feature-id'), fund_id: $(this).attr('data-fund-id'), percent: $(this).val()},
             success: function(response) {
-                
+                if (el_len == index + 1) {
+                    var f_id = $(".fund_percent_input").attr('data-feature-id');
+                    if (!$("#fund_common_price_check").prop("checked")) {
+                        $.ajax({
+                            url: "/admin/product/set-common-price",
+                            type: "POST",
+                            data: {f_id: f_id, price: $("#fund_common_price_input").val()},
+                            success: function(response) {
+                                $.ajax({
+                                    url: "/admin/product/get-prices",
+                                    type: "POST",
+                                    data: {f_id: f_id},
+                                    success: function(response) {
+                                        var data = $.parseJSON(response);
+                                        
+                                        $("[data-f-a-id="+f_id+"]").html(data.price);
+                                        $("[data-f-m-id="+f_id+"]").html(data.member_price);
+                                    }
+                                });
+                                $('#update-price-modal').modal('hide');
+                            }
+                        });
+                    } else {
+                        $.ajax({
+                            url: "/admin/product/get-prices",
+                            type: "POST",
+                            data: {f_id: f_id},
+                            success: function(response) {
+                                var data = $.parseJSON(response);
+                                
+                                $("[data-f-a-id="+f_id+"]").html(data.price);
+                                $("[data-f-m-id="+f_id+"]").html(data.member_price);
+                            }
+                        });
+                        $('#update-price-modal').modal('hide');
+                    }
+                }
             }
         });
     });
-    var f_id = $(".fund_percent_input").attr('data-feature-id');
-    $.ajax({
-        url: "/admin/product/set-common-price",
-        type: "POST",
-        data: {f_id: f_id, price: $("#fund_common_price_input").val()},
-        success: function(response) {
-            $.ajax({
-                url: "/admin/product/get-prices",
-                type: "POST",
-                data: {f_id: f_id},
-                success: function(response) {
-                    var data = $.parseJSON(response);
-                    
-                    $("[data-f-a-id="+f_id+"]").html(data.price);
-                    $("[data-f-m-id="+f_id+"]").html(data.member_price);
-                }
-            });
-            $('#update-price-modal').modal('hide');
-        }
-    });
-    
 }
 
 function transferFundFrom()

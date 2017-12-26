@@ -84,10 +84,10 @@ class Fund extends \yii\db\ActiveRecord
                     }
                 }
                 $percent_member = $product->purchase_price / 100 * $total_percent;
-                $product->member_price = $product->purchase_price + $percent_member;
+                $product->member_price = round($product->purchase_price + $percent_member, 2);
                 $percent_all = $product->member_price / 100 * 40;
                 $common_price = FundCommonPrice::find()->where(['product_feature_id' => $product->product_feature_id])->one();
-                $product->price = $common_price ? $common_price->price : $product->member_price + $percent_all;
+                $product->price = $common_price ? $common_price->price : round($product->member_price + $percent_all, 2);
                 $product->save();
             }
         }
@@ -105,14 +105,14 @@ class Fund extends \yii\db\ActiveRecord
             }
         }
         $percent_member = $price / 100 * $total_percent;
-        return $price + $percent_member;
+        return round($price + $percent_member, 2);
     }
     
     public static function calculateAllPrice($price, $feature_id)
     {
         $percent_all = $price / 100 * 40;
         $common_price = FundCommonPrice::find()->where(['product_feature_id' => $feature_id])->one();
-        return $common_price ? $common_price->price : $price + $percent_all;
+        return $common_price ? $common_price->price : round($price + $percent_all, 2);
     }
     
     public static function setDeductionForOrder($feature_id, $price, $qnt)
@@ -126,7 +126,7 @@ class Fund extends \yii\db\ActiveRecord
                 } else {
                     $deduction = $price / 100 * $common->percent;
                 }
-                $common->deduction_total += $deduction;
+                $common->deduction_total += round($deduction, 2);
                 $common->save();
             }
         }

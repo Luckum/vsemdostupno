@@ -97,10 +97,10 @@ class FundProduct extends \yii\db\ActiveRecord
         $total_percent = $this->getTotalPercentByFeature($feature_id);
         $product_price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
         $percent_member = $product_price->purchase_price / 100 * $total_percent;
-        $product_price->member_price = $product_price->purchase_price + $percent_member;
+        $product_price->member_price = round($product_price->purchase_price + $percent_member, 2);
         $percent_all = $product_price->member_price / 100 * 40;
         $common_price = FundCommonPrice::find()->where(['product_feature_id' => $feature_id])->one();
-        $product_price->price = $common_price ? $common_price->price : $product_price->member_price + $percent_all;
+        $product_price->price = $common_price ? $common_price->price : round($product_price->member_price + $percent_all, 2);
         $product_price->save();
     }
 }

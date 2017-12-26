@@ -208,7 +208,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
     <?php Modal::begin([
         'id' => 'update-price-modal',
         'options' => ['tabindex' => false,],
-        'size' => Modal::SIZE_SMALL,
+        //'size' => Modal::SIZE_SMALL,
         'header' => '<h4>' . 'Фонды' . '</h4>',
         'footer' => '<a class="btn btn-default" data-dismiss="modal" aria-hidden="true">' . 'Закрыть' . '</a>
                      <button id="update-price-btn" class="btn btn-success" type="button" onclick="updatePrice()">' . 'Сохранить' . '</button>',
@@ -226,8 +226,11 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
         <hr>
         <h4>Цена "Для всех"</h4>
         <hr>
+        <input type="checkbox" id="fund_common_price_check" checked>&nbsp;&nbsp;Использовать 40% наценку
+        <br />
+        <br />
         <div class="has-feedback">
-            <input type="text" class="form-control" id="fund_common_price_input" data-feature-id="" value="">
+            <input type="text" class="form-control" id="fund_common_price_input" data-feature-id="" value="" readonly>
             <span class="form-control-feedback">руб.</span>
         </div>
 

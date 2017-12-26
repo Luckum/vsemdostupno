@@ -246,8 +246,11 @@ class ProductController extends BaseController
     public function actionGetCommonPrice()
     {
         $feature_id = $_POST['id'];
-        $common_price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
-        return $common_price->price;
+        $price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
+        $common_price = FundCommonPrice::find()->where(['product_feature_id' => $feature_id])->one();
+        $res['fixed'] = $common_price ? 1 : 0;
+        $res['price'] = $price->price;
+        return json_encode($res);
     }
     
     public function actionSetPercent()
@@ -289,18 +292,25 @@ class ProductController extends BaseController
     {
         $feature_id = $_POST['f_id'];
         $price = $_POST['price'];
+        $fixed = $_POST['fixed'];
+        
         $common_price = FundCommonPrice::find()->where(['product_feature_id' => $feature_id])->one();
         $product_price = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
         if ($common_price) {
-            if ($common_price->price != $price) {
+            if ($fixed == 'true') {
                 $common_price->price = $price;
                 if ($common_price->save()) {
                     $product_price->price = $price;
                     $product_price->save();
                 }
+            } else {
+                $common_price->delete();
+                $product_price->member_price = '';
+                $product_price->price = '';
+                $product_price->save();
             }
         } else {
-            if ($product_price->price != $price) {
+            if ($fixed == 'true') {
                 $common_price = new FundCommonPrice();
                 $common_price->product_feature_id = $feature_id;
                 $common_price->price = $price;
@@ -308,6 +318,10 @@ class ProductController extends BaseController
                     $product_price->price = $price;
                     $product_price->save();
                 }
+            } else {
+                $product_price->member_price = '';
+                $product_price->price = '';
+                $product_price->save();
             }
         }
     }

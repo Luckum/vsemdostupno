@@ -226,7 +226,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
         <hr>
         <h4>Цена "Для всех"</h4>
         <hr>
-        <input type="checkbox" id="fund_common_price_check" checked>&nbsp;&nbsp;Использовать 40% наценку
+        <input type="checkbox" id="fund_common_price_check">&nbsp;&nbsp;Использовать 40% наценку
         <br />
         <br />
         <div class="has-feedback">

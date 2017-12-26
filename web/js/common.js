@@ -108,7 +108,13 @@ $(document).ready(function() {
             data: {id: f_id},
             success: function(response) {
                 var data = $.parseJSON(response);
-                $("#fund_common_price_input").val(data);
+                $("#fund_common_price_input").val(data.price);
+                if (data.fixed == 1) {
+                    $("#fund_common_price_check").prop("checked", false);
+                    $("#fund_common_price_input").prop('readonly', false);
+                } else {
+                    $("#fund_common_price_check").prop("checked", true);
+                }
             }
         });
     });
@@ -252,40 +258,27 @@ function updatePrice()
             success: function(response) {
                 if (el_len == index + 1) {
                     var f_id = $(".fund_percent_input").attr('data-feature-id');
-                    if (!$("#fund_common_price_check").prop("checked")) {
-                        $.ajax({
-                            url: "/admin/product/set-common-price",
-                            type: "POST",
-                            data: {f_id: f_id, price: $("#fund_common_price_input").val()},
-                            success: function(response) {
-                                $.ajax({
-                                    url: "/admin/product/get-prices",
-                                    type: "POST",
-                                    data: {f_id: f_id},
-                                    success: function(response) {
-                                        var data = $.parseJSON(response);
-                                        
-                                        $("[data-f-a-id="+f_id+"]").html(data.price);
-                                        $("[data-f-m-id="+f_id+"]").html(data.member_price);
-                                    }
-                                });
-                                $('#update-price-modal').modal('hide');
-                            }
-                        });
-                    } else {
-                        $.ajax({
-                            url: "/admin/product/get-prices",
-                            type: "POST",
-                            data: {f_id: f_id},
-                            success: function(response) {
-                                var data = $.parseJSON(response);
-                                
-                                $("[data-f-a-id="+f_id+"]").html(data.price);
-                                $("[data-f-m-id="+f_id+"]").html(data.member_price);
-                            }
-                        });
-                        $('#update-price-modal').modal('hide');
-                    }
+                    var fixed = !$("#fund_common_price_check").prop("checked");
+                        
+                    $.ajax({
+                        url: "/admin/product/set-common-price",
+                        type: "POST",
+                        data: {f_id: f_id, price: $("#fund_common_price_input").val(), fixed: fixed},
+                        success: function(response) {
+                            $.ajax({
+                                url: "/admin/product/get-prices",
+                                type: "POST",
+                                data: {f_id: f_id},
+                                success: function(response) {
+                                    var data = $.parseJSON(response);
+                                    
+                                    $("[data-f-a-id="+f_id+"]").html(data.price);
+                                    $("[data-f-m-id="+f_id+"]").html(data.member_price);
+                                }
+                            });
+                            $('#update-price-modal').modal('hide');
+                        }
+                    });
                 }
             }
         });

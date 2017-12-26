@@ -71,10 +71,10 @@ class Fund extends \yii\db\ActiveRecord
     
     public function recalculatePrice()
     {
-        $total_percent = self::find()->sum('percent');
         $products = ProductPrice::find()->all();
         if ($products) {
             foreach ($products as $product) {
+                $total_percent = self::find()->sum('percent');
                 $fund_product = FundProduct::find()->where(['product_feature_id' => $product->product_feature_id])->all();
                 if ($fund_product) {
                     foreach ($fund_product as $f_product) {

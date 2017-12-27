@@ -10,6 +10,7 @@ use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use app\models\User;
+use app\models\Member;
 
 class UserController extends BaseController
 {
@@ -56,6 +57,16 @@ class UserController extends BaseController
 
             $data = [];
             foreach ($userQuery->each() as $user) {
+                $role = $user->roleName;
+                if ($user->role == User::ROLE_PROVIDER) {
+                    $member = Member::find()->where(['user_id' => $user->id])->one();
+                    if ($member) {
+                        $role = 'участник-поставщик';
+                    } else {
+                        continue;
+                    }
+                }
+                
                 $data[] = [
                     'id' => $user->id,
                     'text' => sprintf(
@@ -63,7 +74,7 @@ class UserController extends BaseController
                         $user->lastname,
                         $user->firstname,
                         $user->patronymic,
-                        $user->roleName,
+                        $role,
                         $user->deposit->total
                     ),
                 ];
@@ -79,6 +90,15 @@ class UserController extends BaseController
                 ->andWhere(['IN', 'role', User::getBuyerRoles()])
                 ->one();
             if ($user) {
+                $role = $user->roleName;
+                if ($user->role == User::ROLE_PROVIDER) {
+                    $member = Member::find()->where(['user_id' => $user->id])->one();
+                    if ($member) {
+                        $role = 'участник-поставщик';
+                    } else {
+                        return false;
+                    }
+                }
                 $out['results'] = [
                     [
                         'id' => $user->id,
@@ -87,7 +107,7 @@ class UserController extends BaseController
                             $user->lastname,
                             $user->firstname,
                             $user->patronymic,
-                            $user->roleName
+                            $role
                         ),
                     ],
                 ];

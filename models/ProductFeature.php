@@ -149,4 +149,9 @@ class ProductFeature extends \yii\db\ActiveRecord
     {
         return $this->productPrices[0]->purchase_price;
     }
+    
+    public function getFeatureName()
+    {
+        return $this->tare . ', ' . $this->volume . ' ' . $this->measurement;
+    }
 }

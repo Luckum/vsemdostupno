@@ -271,7 +271,6 @@ class CartController extends BaseController
                     if ($entity->role == User::ROLE_PROVIDER) {
                         ProviderStock::setStockSum($entity->id, $order->paid_total - $paid_for_provider);
                     }
-
                 }
                 
                 Fund::setDeductionForOrder($product->id, $product->purchase_price, $product->cart_quantity);

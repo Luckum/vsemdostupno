@@ -175,3 +175,14 @@ form div.required label.control-label:after {
 	width: 25%;
 	float: right;
 }
+.product-card-feature {
+	height: 25px;
+}
+@media all and (max-width:1200px) and (min-width: 670px){
+	.product-card-description {
+		width: 80%;
+	}
+	.product-card-feature {
+		height: 40px;
+	}
+}

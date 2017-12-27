@@ -369,6 +369,7 @@ class User extends \yii\db\ActiveRecord
         return [
             self::ROLE_MEMBER,
             self::ROLE_PARTNER,
+            self::ROLE_PROVIDER
         ];
     }
 

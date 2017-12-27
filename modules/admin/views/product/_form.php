@@ -125,7 +125,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
             <?php if ($model->productFeatures): ?>
                 <div><label class="control-label">Имеющиеся виды</label></div>
                 <?php foreach ($model->productFeatures as $feat): ?>
-                    <div style="height: 25px;">
+                    <div class="product-card-feature">
                         <div class="product-card-description">
                             <?= '<b>' . $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement . '</b> в количестве <b>' . $feat->quantity . '</b> шт., закупочная цена - <b>' . $feat->productPrices[0]->purchase_price . '</b> руб., цена для участников - <b><span data-f-m-id="' . $feat->id . '">' . $feat->productPrices[0]->member_price . '</span></b> руб., цена для всех - <b><span data-f-a-id="' . $feat->id . '">' . $feat->productPrices[0]->price . '</span></b> руб.'; ?>
                         </div>

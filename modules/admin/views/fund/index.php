@@ -163,7 +163,7 @@ $this->registerJs($script, $this::POS_END);
                                         ]
                                     ],
                                     [
-                                        'label' => 'Перечисление',
+                                        'label' => 'Начисление',
                                         'url' => 'javascript:void(0);',
                                         'options' => [
                                             'data-toggle' => 'modal',
@@ -198,16 +198,6 @@ $this->registerJs($script, $this::POS_END);
     </div>
     
     <div class="form-group">
-        <label for="tare">Списать в</label>
-        <?= Html::dropDownList(
-            'fund-to',
-            '',
-            $funds_select,
-            ['class' => 'form-control', 'id' => 'fund-to-select']
-        ); ?>
-    </div>
-    
-    <div class="form-group">
         <label for="weight">Сумма</label>
         <?= Html::textInput('amount', null, ['class' => 'form-control', 'id' => 'amount-to']); ?>
     </div>
@@ -219,7 +209,7 @@ $this->registerJs($script, $this::POS_END);
     'id' => 'transfer-to-modal',
     'options' => ['tabindex' => false,],
     'size' => Modal::SIZE_SMALL,
-    'header' => '<h4>' . 'Перечисление средств' . '</h4>',
+    'header' => '<h4>' . 'Начисление средств' . '</h4>',
     'footer' => '<a class="btn btn-default" data-dismiss="modal" aria-hidden="true">' . 'Закрыть' . '</a>
                  <button id="transfer-to-btn" class="btn btn-success" type="button" onclick="transferFundTo()">' . 'Перевести' . '</button>',
 ]); ?>
@@ -229,7 +219,7 @@ $this->registerJs($script, $this::POS_END);
     </div>
     
     <div class="form-group">
-        <label for="tare">Перечислить из</label>
+        <label for="tare">Начислить из</label>
         <?= Html::dropDownList(
             'fund-from',
             '',

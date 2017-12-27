@@ -86,16 +86,18 @@ class FundController extends BaseController
     public function actionTransfer()
     {
         $fund_from_id = $_POST['from_id'];
-        $fund_to_id = $_POST['to_id'];
+        $fund_to_id = isset($_POST['to_id']) ? $_POST['to_id'] : 0;
         $amount = $_POST['amount'];
         
         $fund_from = Fund::find()->where(['id' => $fund_from_id])->one();
         if ($amount < $fund_from->deduction_total) {
             $fund_from->deduction_total -= $amount;
             $fund_from->save();
-            $fund_to = Fund::find()->where(['id' => $fund_to_id])->one();
-            $fund_to->deduction_total += $amount;
-            $fund_to->save();
+            if ($fund_to_id != 0) {
+                $fund_to = Fund::find()->where(['id' => $fund_to_id])->one();
+                $fund_to->deduction_total += $amount;
+                $fund_to->save();
+            }
         }
     }
 }

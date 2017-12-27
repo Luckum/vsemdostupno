@@ -290,7 +290,7 @@ function transferFundFrom()
     $.ajax({
         url: "/admin/fund/transfer",
         type: "POST",
-        data: {from_id: $("#amount-from-input").val(), to_id: $("#fund-to-select").val(), amount: $("#amount-to").val()},
+        data: {from_id: $("#amount-from-input").val(), amount: $("#amount-to").val()},
         success: function(response) {
             
         }

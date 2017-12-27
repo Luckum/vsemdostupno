@@ -186,3 +186,7 @@ form div.required label.control-label:after {
 		height: 40px;
 	}
 }
+
+.ui-widget-content {
+	z-index: 1051;
+}

@@ -7,6 +7,8 @@ use yii\widgets\ActiveForm;
 use kartik\date\DatePicker;
 use kartik\select2\Select2;
 use yii\web\JsExpression;
+use yii\jui\AutoComplete;
+use app\models\StockHead;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\StockHead */
@@ -14,6 +16,11 @@ use yii\web\JsExpression;
 $this->title = 'Принять товар';
 $this->params['breadcrumbs'][] = ['label' => 'Поставщики', 'url' => ['/admin/provider']];
 $this->params['breadcrumbs'][] = $this->title;
+
+$listdata = StockHead::find()
+    ->select(['who as value', 'who as label'])
+    ->asArray()
+    ->all();
 
 $script = <<<JS
     $(function () {
@@ -46,7 +53,15 @@ $this->registerJs($script, $this::POS_END);
 ]); ?>
     
     <?php $form = ActiveForm::begin(['id' => 'addProd']); ?>
-        <?= $form->field($model, 'who') ?>
+        
+        <?= $form->field($model, 'who')->widget(AutoComplete::className(), [
+            'clientOptions' => [
+                'source' => $listdata,
+            ],
+            'options'=>[
+                'class'=>'form-control'
+            ]
+        ]) ?>
         
         <?= $form->field($model, 'date')->widget(DatePicker::className(), [
             'type' => DatePicker::TYPE_COMPONENT_APPEND,

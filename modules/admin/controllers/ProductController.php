@@ -178,6 +178,12 @@ class ProductController extends BaseController
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
+        
+        $ref = parse_url(Yii::$app->request->referrer);
+        $path = $ref['path'];
+        if (strpos($path, 'provider') !== false) {
+            return $this->redirect(['provider?' . $ref['query']]);
+        }
 
         return $this->redirect(['index']);
     }

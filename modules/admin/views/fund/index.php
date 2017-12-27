@@ -111,6 +111,8 @@ $script = <<<JS
             $("#amount-to-input").val($(this).attr("data-fund"));
             $("#amount-to").val("");
             $("#amount-from").val("");
+            $("#transfer-from-lbl").html('Из ' + $(this).attr("data-fund-name"));
+            $("#transfer-to-lbl").html('В ' + $(this).attr("data-fund-name"));
         });
     })
 JS;
@@ -156,6 +158,7 @@ $this->registerJs($script, $this::POS_END);
                                             'data-toggle' => 'modal',
                                             'data-target' => '#transfer-from-modal',
                                             'data-fund' => $model->id,
+                                            'data-fund-name' => $model->name,
                                             'class' => 'transfer-open'
                                         ]
                                     ],
@@ -166,6 +169,7 @@ $this->registerJs($script, $this::POS_END);
                                             'data-toggle' => 'modal',
                                             'data-target' => '#transfer-to-modal',
                                             'data-fund' => $model->id,
+                                            'data-fund-name' => $model->name,
                                             'class' => 'transfer-open'
                                         ]
                                     ],
@@ -188,7 +192,11 @@ $this->registerJs($script, $this::POS_END);
     'footer' => '<a class="btn btn-default" data-dismiss="modal" aria-hidden="true">' . 'Закрыть' . '</a>
                  <button id="transfer-from-btn" class="btn btn-success" type="button" onclick="transferFundFrom()">' . 'Перевести' . '</button>',
 ]); ?>
-
+    
+    <div class="form-group">
+        <label id="transfer-from-lbl"></label>
+    </div>
+    
     <div class="form-group">
         <label for="tare">Списать в</label>
         <?= Html::dropDownList(
@@ -216,6 +224,10 @@ $this->registerJs($script, $this::POS_END);
                  <button id="transfer-to-btn" class="btn btn-success" type="button" onclick="transferFundTo()">' . 'Перевести' . '</button>',
 ]); ?>
 
+    <div class="form-group">
+        <label id="transfer-to-lbl"></label>
+    </div>
+    
     <div class="form-group">
         <label for="tare">Перечислить из</label>
         <?= Html::dropDownList(

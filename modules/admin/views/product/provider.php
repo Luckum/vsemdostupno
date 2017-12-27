@@ -8,6 +8,55 @@ use app\models\ProductPrice;
 $this->title = 'Товары поставщика "' . $provider->name . '"';
 $this->params['breadcrumbs'][] = ['label' => 'Поставщики', 'url' => ['/admin/provider']];
 $this->params['breadcrumbs'][] = $this->title;
+
+$updateVisibilityUrl = Url::to(['/api/profile/admin/product/update-visibility']);
+$updatePublishedUrl = Url::to(['/api/profile/admin/product/update-published']);
+$script = <<<JS
+$(function () {
+    $('input[type="checkbox"][class="update-visibility"]').on('change', function () {
+        $.ajax({
+            url: '$updateVisibilityUrl',
+            type: 'POST',
+            data: {
+                id: $(this).attr('data-product-id'),
+                visibility: $(this).is(':checked') ? 1 : 0
+            },
+            success: function (data) {
+                if (!(data && data.success)) {
+                    alert('Ошибка обновления видимости товара');
+                }
+            },
+            error: function () {
+                alert('Ошибка обновления видимости товара');
+            },
+        });
+
+        return false;
+    });
+
+    $('input[type="checkbox"][class="update-published"]').on('change', function () {
+        $.ajax({
+            url: '$updatePublishedUrl',
+            type: 'POST',
+            data: {
+                id: $(this).attr('data-product-id'),
+                published: $(this).is(':checked') ? 1 : 0
+            },
+            success: function (data) {
+                if (!(data && data.success)) {
+                    alert('Ошибка обновления опубликования товара');
+                }
+            },
+            error: function () {
+                alert('Ошибка обновления опубликования товара');
+            },
+        });
+
+        return false;
+    });
+})
+JS;
+$this->registerJs($script, $this::POS_END);
 ?>
 
 <div class="product-index">

@@ -75,15 +75,51 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
         <?php endif; ?>
     <?php else: ?>
         <?php if (isset($model->provider)): ?>
-            <input type="hidden" name="Product[provider_id]" value="<?= $model->provider->id; ?>">
-            <input type="hidden" name="Product[category_id]" value="<?= $model->category->id; ?>">
-            <div class="form-group field-provider-name required">
-                <label class="control-label" for="provider-name">Название организации / ФИО поставщика</label>
-                <input id="provider-name" class="form-control" name="provider_name" value="<?= $model->provider->name . ' / ' . $model->provider->user->fullName; ?>" readonly="" type="text">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="product-change-provider" name="change_provider">
+                    Изменить поставщика
+                </label>
             </div>
-            <div class="form-group field-category-name required">
-                <label class="control-label" for="category-name">Название категории</label>
-                <input id="category-name" class="form-control" name="category_name" value="<?= $model->category->name; ?>" readonly="" type="text">
+            
+            <div id="product-provider-exists-container">
+                <input type="hidden" name="Product[provider_id]" value="<?= $model->provider->id; ?>">
+                <input type="hidden" name="Product[category_id]" value="<?= $model->category->id; ?>">
+                <div class="form-group field-provider-name required">
+                    <label class="control-label" for="provider-name">Название организации / ФИО поставщика</label>
+                    <input id="provider-name" class="form-control" name="provider_name" value="<?= $model->provider->name . ' / ' . $model->provider->user->fullName; ?>" readonly="" type="text">
+                </div>
+                <div class="form-group field-category-name required">
+                    <label class="control-label" for="category-name">Название категории</label>
+                    <input id="category-name" class="form-control" name="category_name" value="<?= $model->category->name; ?>" readonly="" type="text">
+                </div>
+            </div>
+            <div id="product-provider-change-container" style="display: none;">
+                <div class="form-group field-product-provider_id required">
+                <label class="control-label" for="provider_id">ФИО или наименование организации поставщика</label>
+                <?= Select2::widget([
+                    'id' => 'product-provider_id',
+                    'name' => 'Product[provider_id_new]',
+                    'options' => ['placeholder' => 'Введите ФИО или наименование организации поставщика'],
+                    'pluginOptions' => [
+                        'allowClear' => true,
+                        'minimumInputLength' => 1,
+                        'language' => substr(Yii::$app->language, 0, 2),
+                        'ajax' => [
+                            'url' => Url::to(['/api/profile/admin/provider/id-search']),
+                            'dataType' => 'json',
+                            'data' => new JsExpression('function(params) { return {q:params.term}; }')
+                        ],
+                        'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
+                        'templateResult' => new JsExpression('function(user) { return user.text; }'),
+                        'templateSelection' => new JsExpression('function (user) { return user.text; }'),
+                    ],
+                    'pluginEvents' => [
+                        'select2:select' => new JsExpression('function() { toggleCategoriesContainer("show"); }'),
+                        'select2:unselect' => new JsExpression('function() { toggleCategoriesContainer("hide") }'),
+                    ],
+                ]) ?>
+            </div>
             </div>
         <?php else: ?>
             <div class="form-group field-product-provider_id required">
@@ -132,6 +168,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
                         <?php if (count($model_fund) > 0): ?>
                             <div class="product-card-price-btns">
                                 <button type="button" class="btn btn-primary btn-xs update-price-modal" data-id="<?= $feat->id; ?>" data-toggle="modal" data-target="#update-price-modal">Редактировать цену</button>
+                                <a href="<?= Url::to(['/admin/product/delete-feature', 'id' => $feat->id, 'product' => $model->id]); ?>" title="Удалить" data-pjax="0" data-method="post" data-confirm="Вы уверены что хотите удалить этот вид товара?"><span class="glyphicon glyphicon-trash"></span></a>
                             </div>
                         <?php endif; ?>
                     </div>

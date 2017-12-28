@@ -181,8 +181,14 @@ class Product extends \yii\db\ActiveRecord
                     }
                 }
                 
-                $providerHasProduct = ProviderHasProduct::findOne(['product_id' => $this->id, 'provider_id' => $this->provider_id]);
-                if (!$providerHasProduct) {
+                if ($this->provider_id != 0) {
+                    $providerForDel = ProviderHasProduct::findAll(['product_id' => $this->id]);
+                    if ($providerForDel) {
+                        foreach ($providerForDel as $prov) {
+                            $prov->delete();
+                        }
+                    }
+                    
                     $providerHasProduct = new ProviderHasProduct();
                     $providerHasProduct->provider_id = $this->provider_id;
                     $providerHasProduct->product_id = $this->id;
@@ -389,6 +395,7 @@ class Product extends \yii\db\ActiveRecord
             ->joinWith('product.categoryHasProduct.category')
             ->andWhere('product.visibility != 0')
             ->andWhere('product.published != 0')
+            ->andWhere('category.visibility != 0')
             ->andWhere('quantity > 0')
             ->all();
         

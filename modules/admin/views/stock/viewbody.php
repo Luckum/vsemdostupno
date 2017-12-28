@@ -184,11 +184,21 @@ $this->registerJs($script, $this::POS_END);
                             DropdownX::widget([
                                 'items' => [
                                     [
-                                        'label' => 'Удалить',
+                                        'label' => 'Удалить поставку',
                                         'url' => Url::to(['/admin/stock/delete-body', 'id' => $model->id, 'provider' => $model->stockHead->provider_id]),
                                         'linkOptions' => [
                                             'data' => [
                                                 'confirm' => 'Вы уверены что хотите удалить данную поставку?',
+                                                'method' => 'post',
+                                            ],
+                                        ], 
+                                    ],
+                                    [
+                                        'label' => 'Удалить вид товара',
+                                        'url' => Url::to(['/admin/stock/delete-feature', 'id' => $model->id, 'provider' => $model->stockHead->provider_id]),
+                                        'linkOptions' => [
+                                            'data' => [
+                                                'confirm' => 'Вы уверены что хотите удалить этот вид товара?',
                                                 'method' => 'post',
                                             ],
                                         ], 

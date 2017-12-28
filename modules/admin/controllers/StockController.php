@@ -157,6 +157,15 @@ class StockController extends BaseController
         $count = StockBody::find()->where(['stock_head_id' => $model->stock_head_id])->count();
         return $count > 0 ? $this->redirect(['/admin/stock/viewbody?id=' . $model->stock_head_id]) : $this->redirect(['/admin/stock/delete?id=' . $model->stock_head_id . '&provider=' . $provider]);
     }
+    
+    public function actionDeleteFeature($id, $provider)
+    {
+        $model = StockBody::find()->where(['id' => $id])->one();
+        $model_feature = ProductFeature::findOne($model->product_feature_id);
+        $model_feature->delete();
+        $count = StockBody::find()->where(['stock_head_id' => $model->stock_head_id])->count();
+        return $count > 0 ? $this->redirect(['/admin/stock/viewbody?id=' . $model->stock_head_id]) : $this->redirect(['/admin/stock/delete?id=' . $model->stock_head_id . '&provider=' . $provider]);
+    }
 
     protected function findModel($id)
     {

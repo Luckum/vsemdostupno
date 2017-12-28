@@ -126,6 +126,16 @@ $(document).ready(function() {
             $("#fund_common_price_input").prop('readonly', false);
         }
     });
+    
+    $("#product-change-provider").change(function() {
+        if (this.checked) {
+            $("#product-provider-exists-container").hide();
+            $("#product-provider-change-container").show();
+        } else {
+            $("#product-provider-exists-container").show();
+            $("#product-provider-change-container").hide();
+        }
+    });
 });
 
 function toggleCategoriesContainer(status)

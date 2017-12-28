@@ -19,6 +19,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $listdata = StockHead::find()
     ->select(['who as value', 'who as label'])
+    ->groupBy('who')
     ->asArray()
     ->all();
 

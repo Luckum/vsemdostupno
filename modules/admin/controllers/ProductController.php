@@ -20,6 +20,7 @@ use app\models\Fund;
 use app\models\FundProduct;
 use app\models\FundCommonPrice;
 use app\models\ProductPrice;
+use app\models\ProductFeature;
 
 /**
  * ProductController implements the CRUD actions for Product model.
@@ -146,7 +147,10 @@ class ProductController extends BaseController
         $model = Product::getProductModelById($id);
         $model_fund = Fund::find()->all();
 
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+        if ($model->load(Yii::$app->request->post())) {
+            if (isset($_POST['change_provider'])) {
+                $model->provider_id = Yii::$app->request->post('Product')['provider_id_new'];
+            }
             $gallery = UploadedFile::getInstances($model, 'gallery');
             foreach ($gallery as $file) {
                 $photo = Photo::createPhoto(
@@ -330,5 +334,12 @@ class ProductController extends BaseController
                 $product_price->save();
             }
         }
+    }
+    
+    public function actionDeleteFeature($id, $product)
+    {
+        $feature_model = ProductFeature::findOne($id);
+        $feature_model->delete();
+        return $this->redirect(['update?id=' . $product]);
     }
 }

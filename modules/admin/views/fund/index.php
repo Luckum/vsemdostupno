@@ -190,7 +190,7 @@ $this->registerJs($script, $this::POS_END);
     'size' => Modal::SIZE_SMALL,
     'header' => '<h4>' . 'Списание средств' . '</h4>',
     'footer' => '<a class="btn btn-default" data-dismiss="modal" aria-hidden="true">' . 'Закрыть' . '</a>
-                 <button id="transfer-from-btn" class="btn btn-success" type="button" onclick="transferFundFrom()">' . 'Перевести' . '</button>',
+                 <button id="transfer-from-btn" class="btn btn-success" type="button" onclick="transferFundFrom()">' . 'Выполнить' . '</button>',
 ]); ?>
     
     <div class="form-group">
@@ -211,7 +211,7 @@ $this->registerJs($script, $this::POS_END);
     'size' => Modal::SIZE_SMALL,
     'header' => '<h4>' . 'Начисление средств' . '</h4>',
     'footer' => '<a class="btn btn-default" data-dismiss="modal" aria-hidden="true">' . 'Закрыть' . '</a>
-                 <button id="transfer-to-btn" class="btn btn-success" type="button" onclick="transferFundTo()">' . 'Перевести' . '</button>',
+                 <button id="transfer-to-btn" class="btn btn-success" type="button" onclick="transferFundTo()">' . 'Выполнить' . '</button>',
 ]); ?>
 
     <div class="form-group">

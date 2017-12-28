@@ -449,7 +449,7 @@ class Category extends \yii\db\ActiveRecord
     public function getFullName()
     {
         if ($this->formattedPurchaseDate) {
-            return $this->formattedPurchaseDate . ' ' . $this->name;
+            return /*$this->formattedPurchaseDate . ' ' . */$this->name;
         }
 
         return $this->name;

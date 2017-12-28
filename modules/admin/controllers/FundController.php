@@ -90,7 +90,7 @@ class FundController extends BaseController
         $amount = $_POST['amount'];
         
         $fund_from = Fund::find()->where(['id' => $fund_from_id])->one();
-        if ($amount < $fund_from->deduction_total) {
+        if ($amount <= $fund_from->deduction_total) {
             $fund_from->deduction_total -= $amount;
             $fund_from->save();
             if ($fund_to_id != 0) {

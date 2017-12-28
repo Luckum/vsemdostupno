@@ -283,10 +283,8 @@ class Product extends \yii\db\ActiveRecord
     public function getPurchaseCategories()
     {
         $categories = [];
-        foreach ($this->categories as $category) {
-            if ($category->isPurchase() && $category->formattedPurchaseDate) {
-                $categories[$category->orderDate] = $category;
-            }
+        if ($this->category->isPurchase() && $this->category->formattedPurchaseDate) {
+            $categories[$this->category->orderDate] = $this->category;
         }
 
         ksort($categories);

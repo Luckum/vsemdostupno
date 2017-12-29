@@ -101,6 +101,10 @@ $this->registerJs($script, $this::POS_END);
                                     'label' => 'Заявка',
                                     'url' => Url::to(['download-request', 'id' => $model->id]),
                                 ],
+                                [
+                                    'label' => 'Акт возврата паевого взноса',
+                                    'url' => Url::to(['download-return-fee-act', 'id' => $model->id]),
+                                ],
                                 '<li class="divider"></li>',
                                 [
                                     'label' => 'Удалить',

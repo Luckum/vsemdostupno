@@ -103,6 +103,15 @@ class OrderHasProduct extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Order::className(), ['id' => 'order_id']);
     }
+    
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProductFeature()
+    {
+        return $this->hasOne(ProductFeature::className(), ['id' => 'product_feature_id']);
+    }
+
 
     public function getFormattedPrice()
     {

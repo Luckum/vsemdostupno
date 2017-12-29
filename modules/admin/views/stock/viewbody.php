@@ -117,6 +117,10 @@ $this->registerJs($script, $this::POS_END);
                     'label' => 'Договор поставки товара №2',
                     'url' => Url::to(['provider/download-agreement-delivery-2', 'id' => $head->provider_id]),
                 ],
+                [
+                    'label' => 'Акт приёмки паевого взноса',
+                    'url' => Url::to(['provider/download-acceptance-fee-act', 'id' => $head->id]),
+                ],
                 /*[
                     'label' => 'Договор поставки товара №3',
                     'url' => Url::to(['provider/download-agreement-delivery-3', 'id' => $head->provider_id]),

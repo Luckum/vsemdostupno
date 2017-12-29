@@ -834,4 +834,71 @@ class ProviderController extends BaseController
 
         exit();
     }
+    
+    public function actionDownloadAcceptanceFeeAct($id)
+    {
+        $head = StockHead::findOne($id);
+
+        if (!$head) {
+            throw new NotFoundHttpException('Поставка не найдена.');
+        }
+
+        $templateName = preg_replace('/^download-/', '', $this->action->id);
+        $templateFile = Template::getFileByName('provider', $templateName);
+        if (!$templateFile) {
+            throw new NotFoundHttpException('Шаблон не найден.');
+        }
+        
+        $templateExtension = pathinfo($templateFile, PATHINFO_EXTENSION);
+        $attachmentName = sprintf('%s-%d.%s', $templateName, (int) $head->id, $templateExtension);
+
+        $objectReader = \PHPExcel_IOFactory::createReader('Excel5');
+        $objectExcel = $objectReader->load($templateFile);
+        
+        
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', Yii::$app->formatter->asDate($head->date, 'php:d.m.Y'));
+        
+        $body = StockBody::find()->with('product')->where(['stock_head_id' => $head->id])->all();
+        
+        if ($body) {
+            $total_summ = 0;
+            $objectExcel->setActiveSheetIndex(0)->insertNewRowBefore(20, count($body) - 1);
+            foreach ($body as $k => $val) {
+                $objectExcel->setActiveSheetIndex(0)->mergeCells('C' . (19 + $k) . ':G' . (19 + $k));
+                $objectExcel->setActiveSheetIndex(0)->mergeCells('H' . (19 + $k) . ':J' . (19 + $k));
+                $objectExcel->setActiveSheetIndex(0)->mergeCells('Z' . (19 + $k) . ':AC' . (19 + $k));
+                
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('B' . (19 + $k), $k + 1);
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('C' . (19 + $k), $val->product->name);
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('K' . (19 + $k), $val->measurement);
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('M' . (19 + $k), $val->tare);
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('O' . (19 + $k), $val->count);
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('T' . (19 + $k), number_format(sprintf("%01.2f", $val->summ), 2, '.', ' '));
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (19 + $k), number_format(sprintf("%01.2f", $val->count * $val->summ), 2, '.', ' '));
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (19 + $k), number_format(sprintf("%01.2f", $val->count * $val->summ), 2, '.', ' '));
+                $objectExcel->setActiveSheetIndex(0)->setCellValue('Z' . (19 + $k), 'Без НДС');
+                
+                $total_summ += $val->total_summ;
+            }
+        }
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (19 + count($body)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (19 + count($body)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (20 + count($body)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (20 + count($body)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F' . (36 + count($body) - 1), '"' . Yii::$app->formatter->asDate($head->date, 'php:d') . '"');
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('I' . (36 + count($body) - 1), Yii::$app->formatter->asDate($head->date, 'php:Y') . ' года');
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('G' . (36 + count($body) - 1), Yii::$app->formatter->asDate($head->date, 'php:F'));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('B' . (29 + count($body) - 1), Sum::toStr($total_summ));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('E' . (23 + count($body) - 1), Sum::toStr(count($body), false));
+        
+        $objectWriter = \PHPExcel_IOFactory::createWriter($objectExcel, 'Excel5');
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $attachmentName .'"');
+        header('Cache-Control: max-age=0');
+
+        $objectWriter->save('php://output');
+
+        exit();
+    }
 }

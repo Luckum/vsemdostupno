@@ -27,6 +27,7 @@ use app\models\StockBody;
 use app\models\ProductFeature;
 use app\models\Fund;
 use app\modules\admin\models\OrderForm;
+use app\helpers\Sum;
 
 /**
  * OrderController implements the CRUD actions for Order model.
@@ -563,5 +564,67 @@ class OrderController extends BaseController
                 'model' => $model,
             ]);
         }
+    }
+    
+    public function actionDownloadReturnFeeAct($id)
+    {
+        $order = Order::findOne($id);
+
+        if (!$order) {
+            throw new NotFoundHttpException('Заказ не найден.');
+        }
+
+        $templateName = preg_replace('/^download-/', '', $this->action->id);
+        $templateFile = Template::getFileByName('order', $templateName);
+        if (!$templateFile) {
+            throw new NotFoundHttpException('Шаблон не найден.');
+        }
+        $templateExtension = pathinfo($templateFile, PATHINFO_EXTENSION);
+        $attachmentName = sprintf('%s-%d.%s', $templateName, $order->id, $templateExtension);
+
+        $objectReader = \PHPExcel_IOFactory::createReader('Excel5');
+        $objectExcel = $objectReader->load($templateFile);
+
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', Yii::$app->formatter->asDate($order->created_at, 'php:d.m.Y'));
+
+        $total_summ = 0;
+        $objectExcel->setActiveSheetIndex(0)->insertNewRowBefore(20, count($order->orderHasProducts) - 1);
+        foreach ($order->orderHasProducts as $k => $val) {
+            $objectExcel->setActiveSheetIndex(0)->mergeCells('C' . (19 + $k) . ':G' . (19 + $k));
+            $objectExcel->setActiveSheetIndex(0)->mergeCells('H' . (19 + $k) . ':J' . (19 + $k));
+            $objectExcel->setActiveSheetIndex(0)->mergeCells('Z' . (19 + $k) . ':AC' . (19 + $k));
+            
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('B' . (19 + $k), $k + 1);
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('C' . (19 + $k), $val->name);
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('K' . (19 + $k), $val->productFeature->measurement);
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('M' . (19 + $k), $val->productFeature->tare);
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('O' . (19 + $k), $val->quantity);
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('T' . (19 + $k), number_format(sprintf("%01.2f", $val->price), 2, '.', ' '));
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (19 + $k), number_format(sprintf("%01.2f", $val->quantity * $val->price), 2, '.', ' '));
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (19 + $k), number_format(sprintf("%01.2f", $val->quantity * $val->price), 2, '.', ' '));
+            $objectExcel->setActiveSheetIndex(0)->setCellValue('Z' . (19 + $k), 'Без НДС');
+            
+            $total_summ += $val->total;
+        }
+
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (19 + count($order->orderHasProducts)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (19 + count($order->orderHasProducts)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (20 + count($order->orderHasProducts)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (20 + count($order->orderHasProducts)), $total_summ);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F' . (36 + count($order->orderHasProducts) - 1), '"' . Yii::$app->formatter->asDate($order->created_at, 'php:d') . '"');
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('I' . (36 + count($order->orderHasProducts) - 1), Yii::$app->formatter->asDate($order->created_at, 'php:Y') . ' года');
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('G' . (36 + count($order->orderHasProducts) - 1), Yii::$app->formatter->asDate($order->created_at, 'php:F'));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('B' . (29 + count($order->orderHasProducts) - 1), Sum::toStr($total_summ));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('E' . (23 + count($order->orderHasProducts) - 1), Sum::toStr(count($order->orderHasProducts), false));
+        
+        $objectWriter = \PHPExcel_IOFactory::createWriter($objectExcel, 'Excel5');
+
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $attachmentName .'"');
+        header('Cache-Control: max-age=0');
+
+        $objectWriter->save('php://output');
+
+        exit();
     }
 }

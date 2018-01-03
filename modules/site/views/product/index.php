@@ -126,9 +126,10 @@ foreach ($model->productFeatures as $feat) {
                         ],
                     ]) ?>
                 </div>
+                <?php $cnt_show = 1; ?>
                 <?php foreach ($model->productFeatures as $k => $feat): ?>
-                    <?php if($feat->quantity > 0): ?>
-                        <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($k != 0): ?>style="display: none;"<?php endif; ?>>
+                    <?php if ($feat->quantity > 0): ?>
+                        <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($cnt_show != 1): ?>style="display: none;"<?php endif; ?>>
                             <?= SelectizeDropDownList::widget([
                                 'name' => 'quantity',
                                 'value' => Cart::hasQuantity($feat),
@@ -173,6 +174,7 @@ foreach ($model->productFeatures as $feat) {
                                 ],
                             ]) ?>
                         </div>
+                        <?php $cnt_show = 0; ?>
                     <?php endif; ?>
                 <?php endforeach; ?>
                 <div class="col-md-6">

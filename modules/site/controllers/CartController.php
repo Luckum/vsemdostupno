@@ -230,9 +230,9 @@ class CartController extends BaseController
                                     }
                                 }
                             }
-                            $paid_for_provider = $orderHasProduct->quantity * $body->summ;
                             
                             if ($body->deposit == '1') {
+                                $paid_for_provider = $orderHasProduct->quantity * $body->summ;
                                 if (!Account::swap($deposit, $provider_account, $paid_for_provider, 'Произведён обмен паями по заявке №' . $order->id, false)) {
                                     throw new Exception('Ошибка модификации счета пользователя!');
                                 }
@@ -241,8 +241,9 @@ class CartController extends BaseController
                                     'amount' => $paid_for_provider,
                                     'total' => $provider_account->total,
                                 ]);
+                                $total_paid_for_provider += $paid_for_provider;
                             }
-                            $total_paid_for_provider += $paid_for_provider;
+                            
                         }
 
                         $unitContibution = new UnitContibution();

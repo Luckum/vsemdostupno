@@ -107,7 +107,10 @@ class AccountLog extends \yii\db\ActiveRecord
 
     public function getToUserFullName()
     {
-        return implode(' ', [$this->to_lastname, $this->to_firstname, $this->to_patronymic]);
+        $ret = (strpos($this->message, 'Произведён обмен паями') === false) ?
+            (!empty($this->to_lastname) ? implode(' ', [$this->to_lastname, $this->to_firstname, $this->to_patronymic]) : 'В Потребительское общество') :
+            implode(' ', [$this->to_lastname, $this->to_firstname, $this->to_patronymic]) . ' (Обмен между участниками)';
+        return $ret;
     }
 
     public static function record($account, $from, $to, $amount, $message)

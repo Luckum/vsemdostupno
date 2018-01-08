@@ -92,7 +92,7 @@ class CartController extends BaseController
             }
         }
 
-        $paid_for_provider=0;
+        $total_paid_for_provider = 0;
         $model = new OrderForm();
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
@@ -233,7 +233,7 @@ class CartController extends BaseController
                             $paid_for_provider = $orderHasProduct->quantity * $body->summ;
                             
                             if ($body->deposit == '1') {
-                                if (!Account::swap($deposit, $provider_account, $paid_for_provider, 'Перевод пая на счёт', false)) {
+                                if (!Account::swap($deposit, $provider_account, $paid_for_provider, 'Произведён обмен паями по заявке №' . $order->id, false)) {
                                     throw new Exception('Ошибка модификации счета пользователя!');
                                 }
                                 Email::send('account-log', $provider_account->user->email, [
@@ -242,7 +242,7 @@ class CartController extends BaseController
                                     'total' => $provider_account->total,
                                 ]);
                             }
-                            $paid_for_provider = 0;
+                            $total_paid_for_provider += $paid_for_provider;
                         }
 
                         $unitContibution = new UnitContibution();
@@ -260,16 +260,17 @@ class CartController extends BaseController
 
                 if ($order->paid_total > 0) {
                     if ($order->paid_total == $order->total) {
-                        $message = sprintf('Списано по заказу №%s.', $order->id);
+                        //$message = sprintf('Списано по заказу №%s.', $order->id);
                     } else {
-                        $message = sprintf('Частичная списано по заказу №%s.', $order->id);
+                        //$message = sprintf('Частичная списано по заказу №%s.', $order->id);
                     }
+                    $message = 'Членский взнос';
 
-                    if (!Account::swap($deposit, null, $order->paid_total-$paid_for_provider, $message)) {
+                    if (!Account::swap($deposit, null, $order->paid_total - $total_paid_for_provider, $message)) {
                        throw new Exception('Ошибка модификации счета пользователя!');
                     }
                     if ($entity->role == User::ROLE_PROVIDER) {
-                        ProviderStock::setStockSum($entity->id, $order->paid_total - $paid_for_provider);
+                        ProviderStock::setStockSum($entity->id, $order->paid_total);
                     }
                 }
                 

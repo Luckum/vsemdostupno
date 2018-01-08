@@ -73,6 +73,9 @@ class StockHead extends \yii\db\ActiveRecord
                 foreach ($this->stockBody as $body) {
                     $product_feature = ProductFeature::find()->where(['id' => $body->product_feature_id])->one();
                     $product_feature->quantity -= $body->provider_stock->reaminder_rent;
+                    if ($product_feature->quantity < 0) {
+                        $product_feature->quantity = 0;
+                    }
                     $product_feature->save();
                 }
             }

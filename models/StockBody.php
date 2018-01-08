@@ -54,7 +54,7 @@ class StockBody extends \yii\db\ActiveRecord
             'id' => 'ID',
             'stock_head_id' => 'ID приёмки',
             'product_id' => 'Наименование товара',
-            'tare' => 'Тара',
+            'tare' => 'Тара',    
             'weight' => 'Масса',
             'measurement' => 'Ед. измерения',
             'count' => 'Количество',
@@ -105,6 +105,9 @@ class StockBody extends \yii\db\ActiveRecord
         if (parent::beforeDelete()) {
             $product_feature = ProductFeature::find()->where(['id' => $this->product_feature_id])->one();
             $product_feature->quantity -= $this->provider_stock->reaminder_rent;
+            if ($product_feature->quantity < 0) {
+                $product_feature->quantity = 0;
+            }
             $product_feature->save();
             
             return true;

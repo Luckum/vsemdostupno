@@ -352,6 +352,7 @@ class OrderController extends BaseController
     public function actionCreate()
     {
         $model = new OrderForm();
+        $total_paid_for_provider = 0;
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $user = User::findOne($model->user_id);
@@ -504,7 +505,7 @@ class OrderController extends BaseController
                                     'total' => $provider_account->total,
                                 ]);
                             }
-                            $paid_for_provider = 0;
+                            $total_paid_for_provider += $paid_for_provider;
                         }
                     }
                     
@@ -515,12 +516,14 @@ class OrderController extends BaseController
 
                 if ($order->paid_total > 0) {
                     if ($order->paid_total == $order->total) {
-                        $message = sprintf('Списано по заказу №%s.', $order->id);
+                        //$message = sprintf('Списано по заказу №%s.', $order->id);
                     } else {
-                        $message = sprintf('Частичная списано по заказу №%s.', $order->id);
+                        //$message = sprintf('Частичная списано по заказу №%s.', $order->id);
                     }
+                    
+                    $message = 'Членский взнос';
 
-                    if (!Account::swap($user->deposit, null, $order->paid_total, $message)) {
+                    if (!Account::swap($user->deposit, null, $order->paid_total - $total_paid_for_provider, $message)) {
                         throw new Exception('Ошибка модификации счета пользователя!');
                     }
                     if ($user->role == User::ROLE_PROVIDER) {

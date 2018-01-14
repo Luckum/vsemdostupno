@@ -73,41 +73,61 @@ $this->registerJs($script, $this::POS_END);
             [
                 'label' => 'Название',
                 'content' => function ($model) {
-                    return $model->name . ProductFeature::getFeatureByProduct($model->id);
+                    return $model->product->name . ', ' . $model->featureName;
                 }
             ],
             [
                 'label' => 'Цена для участников',
                 'content' => function ($model) {
-                    return ProductPrice::getMemberPriceByProduct($model->id);
+                    return $model->productPrices[0]->member_price;
                 }
             ],
             [
                 'label' => 'Цена для всех',
                 'content' => function ($model) {
-                    return ProductPrice::getAllPriceByProduct($model->id);
+                    return $model->productPrices['0']->price;
                 }
             ],
             [
                 'label' => 'Количество',
                 'content' => function ($model) {
-                    return ProductFeature::getQuantityByProduct($model->id);
+                    return $model->quantity;
                 }
             ],
             [
                 'attribute' => 'visibility',
                 'content' => function ($model) {
-                    return '<input type="checkbox" ' . ($model->visibility ? 'checked' : '') . ' data-product-id="' . $model->id . '" class="update-visibility">';
+                    return '<input type="checkbox" ' . ($model->product->visibility ? 'checked' : '') . ' data-product-id="' . $model->product->id . '" class="update-visibility">';
                 }
             ],
             [
                 'attribute' => 'published',
                 'content' => function ($model) {
-                    return '<input type="checkbox" ' . ($model->published ? 'checked' : '') . ' data-product-id="' . $model->id . '" class="update-published">';
+                    return '<input type="checkbox" ' . ($model->product->published ? 'checked' : '') . ' data-product-id="' . $model->product->id . '" class="update-published">';
                 }
             ],
 
-            ['class' => 'yii\grid\ActionColumn'],
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'template' => '{view} {update} {delete}',
+                'buttons' => [
+                    'view' => function ($url, $model) {
+                        return Html::a(
+                            '<span class="glyphicon glyphicon-eye-open"></span>', 
+                            'view?id=' . $model->product->id);
+                    },
+                    'update' => function ($url, $model) {
+                        return Html::a(
+                            '<span class="glyphicon glyphicon-pencil"></span>', 
+                            'update?id=' . $model->product->id);
+                    },
+                    'delete' => function ($url, $model) {
+                        return Html::a(
+                            '<span class="glyphicon glyphicon-trash"></span>', 
+                            'delete?id=' . $model->product->id);
+                    },
+                ],
+            ],
         ],
     ]); ?>
 </div>

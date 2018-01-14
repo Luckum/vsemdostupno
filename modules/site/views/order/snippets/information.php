@@ -54,7 +54,7 @@ use app\models\User;
                         <?php if ($orderHasProduct->purchaseDate): ?>
                             <?= Html::badge($orderHasProduct->htmlFormattedPurchaseDate) ?>
                         <?php endif ?>
-                        <?= Html::a(Html::encode($orderHasProduct->name), Url::to([$orderHasProduct->product->url]), ['target' => '_blank']) ?>
+                        <?= Html::a(Html::encode($orderHasProduct->name . ', ' . $orderHasProduct->productFeature->featureName), Url::to([$orderHasProduct->product->url]), ['target' => '_blank']) ?>
                     <?php else: ?>
                         <?= Html::encode($orderHasProduct->name) ?>
                     <?php endif ?>

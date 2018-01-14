@@ -166,7 +166,7 @@ class ProductController extends BaseController
 
         return [
             'id' => $product->id,
-            'name' => $product->product->name,
+            'name' => $product->product->name . ', ' . $product->featureName,
             'quantity' => $quantity,
             'price' => $price,
             'total' => $total,

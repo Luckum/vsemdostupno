@@ -30,7 +30,7 @@ use yii\helpers\Html;
 <?php foreach ($model->orderHasProducts as $orderHasProduct): ?>
     <p>
         <?php if ($orderHasProduct->product): ?>
-            <?= Html::a(Html::encode($orderHasProduct->name), Url::to([$orderHasProduct->product->url], true), ['target' => '_blank']) ?>
+            <?= Html::a(Html::encode($orderHasProduct->name . ', ' . $orderHasProduct->productFeature->featureName), Url::to([$orderHasProduct->product->url], true), ['target' => '_blank']) ?>
             <?php if ($orderHasProduct->purchaseDate): ?>
                 (<?= $orderHasProduct->htmlFormattedPurchaseDate ?>)
             <?php endif ?>

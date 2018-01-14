@@ -44,6 +44,7 @@ use app\models\User;
         <?php endif ?>
     </tbody>
 </table>
+
 <table class="table table-hover table-bordered">
     <tbody>
         <?php foreach ($model->orderHasProducts as $orderHasProduct): ?>

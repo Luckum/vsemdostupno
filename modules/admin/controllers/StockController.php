@@ -42,11 +42,16 @@ class StockController extends BaseController
 
     public function actionIndex()
     {
+        $query = ProviderStock::find();
+        $query->joinWith(['stock_body', 'stock_body.stockHead']);
+        $query->orderBy('stock_head.date DESC');
+        
         $dataProvider = new ActiveDataProvider([
-            'query' => ProviderStock::findBySql('SELECT ps.* FROM provider_stock as ps
-              INNER JOIN stock_body as body ON ps.stock_body_id=body.id INNER JOIN stock_head as head ON body.stock_head_id=head.id
-              ORDER BY head.date DESC')->with(['stock_body']),
-            'sort' => false
+            'query' => $query,
+            'sort' => false,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
         ]);
         $model= StockHead::find()->all();
 

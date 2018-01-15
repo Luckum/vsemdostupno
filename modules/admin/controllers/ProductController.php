@@ -222,7 +222,7 @@ class ProductController extends BaseController
     public function actionProvider($id)
     {
         $provider = Provider::findOne($id);
-        $dataProvider = Product::getProductsByProvider($id);
+        $dataProvider = Product::getProductsByProviderView($id);
         
         return $this->render('provider', [
             'provider' => $provider,
@@ -341,5 +341,12 @@ class ProductController extends BaseController
         $feature_model = ProductFeature::findOne($id);
         $feature_model->delete();
         return $this->redirect(['update?id=' . $product]);
+    }
+    
+    public function actionDeleteProviderFeature($id, $provider)
+    {
+        $feature_model = ProductFeature::findOne($id);
+        $feature_model->delete();
+        return $this->redirect(['provider?id=' . $provider]);
     }
 }

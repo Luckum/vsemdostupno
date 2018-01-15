@@ -364,6 +364,20 @@ class Product extends \yii\db\ActiveRecord
     
     public static function getProductsByProvider($provider_id)
     {
+        $query = self::find();
+        $query->joinWith('categoryHasProduct');
+        $query->joinWith('categoryHasProduct.category');
+        $query->joinWith('providerHasProduct')->where(['provider_has_product.provider_id' => $provider_id])->orderBy('category_has_product.category_id');
+        
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+        
+        return $dataProvider;
+    }
+    
+    public static function getProductsByProviderView($provider_id)
+    {
         $query = ProductFeature::find();
         $query->joinWith('product');
         $query->joinWith('product.categoryHasProduct');

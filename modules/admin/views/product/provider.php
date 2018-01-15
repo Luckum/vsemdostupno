@@ -121,10 +121,11 @@ $this->registerJs($script, $this::POS_END);
                             '<span class="glyphicon glyphicon-pencil"></span>', 
                             'update?id=' . $model->product->id);
                     },
-                    'delete' => function ($url, $model) {
+                    'delete' => function ($url, $model) use ($provider) {
                         return Html::a(
                             '<span class="glyphicon glyphicon-trash"></span>', 
-                            'delete?id=' . $model->product->id);
+                            'delete-provider-feature?id=' . $model->id . '&provider=' . $provider->id,
+                            ['data-confirm' => 'Вы уверены что хотите удалить этот вид товара?']);
                     },
                 ],
             ],

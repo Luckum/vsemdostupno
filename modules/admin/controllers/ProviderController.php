@@ -855,8 +855,13 @@ class ProviderController extends BaseController
         $objectReader = \PHPExcel_IOFactory::createReader('Excel5');
         $objectExcel = $objectReader->load($templateFile);
         
+        $parameters = Template::getUserParameters($head->provider->user);
+        $value = $objectExcel->setActiveSheetIndex(0)->getCell('B13')->getValue();
         
         $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', Yii::$app->formatter->asDate($head->date, 'php:d.m.Y'));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('B13', Template::parseTemplate($parameters, $value));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F2', $parameters['fullName']);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F6', $parameters['fullName']);
         
         $body = StockBody::find()->with('product')->where(['stock_head_id' => $head->id])->all();
         

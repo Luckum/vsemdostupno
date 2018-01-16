@@ -584,11 +584,17 @@ class OrderController extends BaseController
         }
         $templateExtension = pathinfo($templateFile, PATHINFO_EXTENSION);
         $attachmentName = sprintf('%s-%d.%s', $templateName, $order->id, $templateExtension);
-
+        
         $objectReader = \PHPExcel_IOFactory::createReader('Excel5');
         $objectExcel = $objectReader->load($templateFile);
 
+        $parameters = Template::getUserParameters($order->user);
+        $value = $objectExcel->setActiveSheetIndex(0)->getCell('B13')->getValue();
+        
         $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', Yii::$app->formatter->asDate($order->created_at, 'php:d.m.Y'));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('B13', Template::parseTemplate($parameters, $value));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F4', $parameters['fullName']);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F6', $parameters['fullName']);
 
         $total_summ = 0;
         $objectExcel->setActiveSheetIndex(0)->insertNewRowBefore(20, count($order->orderHasProducts) - 1);

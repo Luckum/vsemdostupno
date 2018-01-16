@@ -159,6 +159,10 @@ class CartController extends BaseController
 
                     if (isset($product->quantity)) {
                         $product->quantity -= $product->cart_quantity;
+                        
+                        if ($product->quantity < 0) {
+                            throw new Exception('Ошибка обновления количества товара в магазине!');
+                        }
 
                         if (!$product->save()) {
                             throw new Exception('Ошибка обновления количества товара в магазине!');

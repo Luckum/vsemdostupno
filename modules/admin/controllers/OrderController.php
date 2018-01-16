@@ -386,7 +386,7 @@ class OrderController extends BaseController
                 $order->firstname = $user->firstname;
                 $order->lastname = $user->lastname;
                 $order->patronymic = $user->patronymic;
-                $order->comment = 'Заказа сделан через административную панель.';
+                $order->comment = 'Заказ сделан через административную панель.';
                 $order->paid_total = $total;
                 $order->total = $total;
 
@@ -424,6 +424,10 @@ class OrderController extends BaseController
                     if (isset($product->quantity)) {
                         $product->quantity -= $product->cart_quantity;
 
+                        if ($product->quantity < 0) {
+                            throw new Exception('Ошибка обновления количества товара в магазине!');
+                        }
+                        
                         if (!$product->save()) {
                             throw new Exception('Ошибка обновления количества товара в магазине!');
                         }

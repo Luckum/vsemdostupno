@@ -869,7 +869,10 @@ class ProviderController extends BaseController
         
         if ($body) {
             $total_summ = 0;
-            $objectExcel->setActiveSheetIndex(0)->insertNewRowBefore(20, count($body) - 1);
+            if (count($body) > 1) {
+                $objectExcel->setActiveSheetIndex(0)->insertNewRowBefore(20, count($body) - 1);
+            }
+            
             foreach ($body as $k => $val) {
                 $objectExcel->setActiveSheetIndex(0)->mergeCells('C' . (19 + $k) . ':G' . (19 + $k));
                 $objectExcel->setActiveSheetIndex(0)->mergeCells('H' . (19 + $k) . ':J' . (19 + $k));

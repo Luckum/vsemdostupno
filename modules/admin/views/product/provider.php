@@ -96,12 +96,14 @@ $this->registerJs($script, $this::POS_END);
             ],
             [
                 'attribute' => 'visibility',
+                'label' => 'Видимость',
                 'content' => function ($model) {
                     return '<input type="checkbox" ' . ($model->product->visibility ? 'checked' : '') . ' data-product-id="' . $model->product->id . '" class="update-visibility">';
                 }
             ],
             [
                 'attribute' => 'published',
+                'label' => 'Опубликованный',
                 'content' => function ($model) {
                     return '<input type="checkbox" ' . ($model->product->published ? 'checked' : '') . ' data-product-id="' . $model->product->id . '" class="update-published">';
                 }

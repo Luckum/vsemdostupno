@@ -856,10 +856,12 @@ class ProviderController extends BaseController
         $objectExcel = $objectReader->load($templateFile);
         
         $parameters = Template::getUserParameters($head->provider->user);
-        $value = $objectExcel->setActiveSheetIndex(0)->getCell('B13')->getValue();
+        $value_b13 = $objectExcel->setActiveSheetIndex(0)->getCell('B13')->getValue();
+        $value_f8 = $objectExcel->setActiveSheetIndex(0)->getCell('F8')->getValue();
         
         $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', Yii::$app->formatter->asDate($head->date, 'php:d.m.Y'));
-        $objectExcel->setActiveSheetIndex(0)->setCellValue('B13', Template::parseTemplate($parameters, $value));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('B13', Template::parseTemplate($parameters, $value_b13));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F8', Template::parseTemplate($parameters, $value_f8));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F2', $parameters['fullName']);
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F6', $parameters['fullName']);
         
@@ -895,6 +897,7 @@ class ProviderController extends BaseController
         $objectExcel->setActiveSheetIndex(0)->setCellValue('G' . (36 + count($body) - 1), Yii::$app->formatter->asDate($head->date, 'php:F'));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('B' . (29 + count($body) - 1), Sum::toStr($total_summ));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('E' . (23 + count($body) - 1), Sum::toStr(count($body), false));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (33 + count($body) - 1), $parameters['shortName']);
         
         $objectWriter = \PHPExcel_IOFactory::createWriter($objectExcel, 'Excel5');
 

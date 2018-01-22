@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Html;
 use yii\helpers\Url;
+use app\models\ProductFeature;
 
 $this->title = 'Детали заказа';
 $this->params['breadcrumbs'][] = ['label' => 'Заказы поставщикам', 'url' => '/admin/provider-order'];
@@ -15,10 +16,10 @@ $total_price = $total_qnt = 0;
         <thead>
             <th>Поставщик</th>
             <th>Наименование товаров</th>
-            <th>Ед. измерения</th>
             <th>№ п/п</th>
             <th>Ф.И.О. участников заказавших товар</th>
             <th>№ заявки</th>
+            <th>Вид</th>
             <th>Цена за ед. товара</th>
             <th>Количество</th>
             <th>На сумму</th>
@@ -29,10 +30,10 @@ $total_price = $total_qnt = 0;
                 <tr>
                     <td><?= $provider->name; ?></td>
                     <td><?= $product->name; ?></td>
-                    <td><?= $product->packing; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
                     <td><?= $details[0]['id']; ?></td>
+                    <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
                     <td><?= number_format($details[0]['quantity']); ?></td>
                     <td><b><?= $details[0]['total']; ?></b></td>
@@ -43,10 +44,10 @@ $total_price = $total_qnt = 0;
                 <tr>
                     <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $provider->name; ?></td>
                     <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $product->name; ?></td>
-                    <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $product->packing; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
                     <td><?= $details[0]['id']; ?></td>
+                    <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
                     <td><?= number_format($details[0]['quantity']); ?></td>
                     <td><b><?= $details[0]['total']; ?></b></td>
@@ -59,6 +60,7 @@ $total_price = $total_qnt = 0;
                             <td><?= $k + 1 ?></td>
                             <td><?= $detail['fio']; ?></td>
                             <td><?= $detail['id']; ?></td>
+                            <td><?= ProductFeature::getFeatureNameById($detail['product_feature_id']); ?></td>
                             <td><?= $detail['price']; ?></td>
                             <td><?= number_format($detail['quantity']); ?></td>
                             <td><b><?= $detail['total']; ?></b></td>

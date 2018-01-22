@@ -287,6 +287,7 @@ class Order extends \yii\db\ActiveRecord
                 'order_has_product.quantity',
                 'order_has_product.price',
                 'order_has_product.total',
+                'order_has_product.product_feature_id',
                 'IF (order.partner_id IS NULL, partner.id, order.partner_id) AS p_id'
             ])
             ->from('order')

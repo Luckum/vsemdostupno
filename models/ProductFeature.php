@@ -154,4 +154,10 @@ class ProductFeature extends \yii\db\ActiveRecord
     {
         return $this->tare . ', ' . $this->volume . ' ' . $this->measurement;
     }
+    
+    public static function getFeatureNameById($id)
+    {
+        $feature = self::findOne($id);
+        return $feature->tare . ', ' . $feature->volume . ' ' . $feature->measurement;
+    }
 }

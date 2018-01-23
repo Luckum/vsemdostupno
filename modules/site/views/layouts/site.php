@@ -208,6 +208,7 @@ if ($purchase) {
             </div>
         </div>
             <div class="wrap">
+<!--                <div class="top-season-decor"></div>-->
                 <?= $this->renderFile('@app/modules/site/views/layouts/snippets/top-nav.php', [
                     'cart' => new Cart(),
                 ]) ?>

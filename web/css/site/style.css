@@ -271,3 +271,10 @@ div.required > label::after {
 .policy-label {
 	display: inline;
 }
+.top-season-decor {
+	background: url(../../images/new_year.gif);
+	height: 84px;
+	position: fixed;
+	width: 100%;
+	
+}

@@ -364,6 +364,8 @@ class Order extends \yii\db\ActiveRecord
                 'IF (order.partner_id IS NULL, partner.id, order.partner_id) AS p_id',
                 'order_has_product.name AS product_name',
                 'order_has_product.product_id',
+                'order_has_product.product_feature_id AS product_feature',
+                'CONCAT(product_feature.tare, ", ", product_feature.volume, " ", product_feature.measurement) AS product_feature_name',
                 'SUM(order_has_product.quantity) AS quantity',
                 'SUM(order_has_product.total) AS total'
             ])
@@ -371,10 +373,11 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->join('LEFT JOIN', 'product', 'order_has_product.product_id=product.id')
+            ->join('LEFT JOIN', 'product_feature', 'order_has_product.product_feature_id=product_feature.id')
             ->where(['order_has_product.provider_id' => $provider_id])
             ->andWhere(['between', 'created_at', $date['start'], $date['end']])
             ->andWhere(['product.auto_send' => '1'])
-            ->groupBy('product_name')
+            ->groupBy('product_feature')
             ->having(['p_id' => $partner_id]);
             
         $command = $query->createCommand();

@@ -16,27 +16,27 @@ $total_price = 0;
         <tr>
             <td><?= $partner->name . "<br />" . $partner->address; ?></td>
             <td><?= 1 ?></td>
-            <td><?= $details[0]['product_name']; ?></td>
+            <td><?= $details[0]['product_name'] . ", " . $details[0]['product_feature_name']; ?></td>
             <td><?= number_format($details[0]['quantity']); ?></td>
-            <td><?= $details[0]['total']; ?></td>
+            <td><?= number_format($details[0]['total'], 2, ".", " "); ?></td>
         </tr>
         <?php $total_price += $details[0]['total']; ?>
     <?php else: ?>
         <tr>
             <td rowspan="<?= $rowspan; ?>"><?= $partner->name . "<br />" . $partner->address; ?></td>
             <td><?= 1 ?></td>
-            <td><?= $details[0]['product_name']; ?></td>
+            <td><?= $details[0]['product_name'] . ", " . $details[0]['product_feature_name']; ?></td>
             <td><?= number_format($details[0]['quantity']); ?></td>
-            <td><?= $details[0]['total']; ?></td>
+            <td><?= number_format($details[0]['total'], 2, ".", " "); ?></td>
         </tr>
         <?php $total_price += $details[0]['total']; ?>
         <?php foreach ($details as $k => $detail): ?>
             <?php if ($k != 0): ?>
                 <tr>
                     <td><?= $k + 1 ?></td>
-                    <td><?= $detail['product_name']; ?></td>
+                    <td><?= $detail['product_name'] . ", " . $detail['product_feature_name']; ?></td>
                     <td><?= number_format($detail['quantity']); ?></td>
-                    <td><?= $detail['total']; ?></td>
+                    <td><?= number_format($detail['total'], 2, ".", " "); ?></td>
                 </tr>
                 <?php $total_price += $detail['total']; ?>
             <?php endif; ?>

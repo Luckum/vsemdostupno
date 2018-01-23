@@ -36,7 +36,6 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/png', 'href' => '/imag
         <?php $this->head() ?>
     </head>
     <body>
-    
         <?php Scrollup::widget([
             'theme' => Scrollup::THEME_PILLS,
             'pluginOptions' => [

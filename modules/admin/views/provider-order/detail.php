@@ -29,7 +29,7 @@ $total_price = $total_qnt = 0;
             <?php if ($rowspan == 1): ?>
                 <tr>
                     <td><?= $provider->name; ?></td>
-                    <td><?= $product->name; ?></td>
+                    <td><?= $details[0]['name']; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
                     <td><?= $details[0]['id']; ?></td>
@@ -43,7 +43,7 @@ $total_price = $total_qnt = 0;
             <?php else: ?>
                 <tr>
                     <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $provider->name; ?></td>
-                    <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $product->name; ?></td>
+                    <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $details[0]['name']; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
                     <td><?= $details[0]['id']; ?></td>

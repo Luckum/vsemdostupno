@@ -99,6 +99,7 @@ class PartnerController extends BaseController
                 $user->skills = $model->skills ? $model->skills : null;
                 $user->number = $model->number ? $model->number : (int) User::find()->max('number') + 1;
                 $user->recommender_id = $model->recommender_id ? $model->recommender_id : null;
+                $user->scenario = 'admin_creation';
 
                 if (!$user->save()) {
                     throw new Exception('Ошибка создания пользователя!');

@@ -3,6 +3,7 @@ use kartik\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\GridView;
 use app\helpers\NumberColumn;
+use app\models\ProductFeature;
 
 $this->title = 'Заказы поставщикам';
 $this->params['breadcrumbs'] = [$this->title];
@@ -24,7 +25,7 @@ $this->params['breadcrumbs'] = [$this->title];
             [
                 'label' => 'Наименование товаров', 
                 'value' => function ($data) {
-                    return $data['product_name'];
+                    return $data['product_name'] . ', ' . ProductFeature::getFeatureNameById($data['product_feature_id']);
                 },
                 'footerOptions' => ['style' => 'display: none;']
             ],
@@ -40,7 +41,7 @@ $this->params['breadcrumbs'] = [$this->title];
                 'format' => 'raw',
                 'contentOptions' => ['style' => 'font-weight: 600;'],
                 'value' => function ($data) use ($date) {
-                    return Html::a(number_format($data['quantity']), Url::to(['/profile/provider/order/detail', 'id' => $data['product_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]), ['style' => 'text-decoration: underline;']);
+                    return Html::a(number_format($data['quantity']), Url::to(['/profile/provider/order/detail', 'id' => $data['product_feature_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]), ['style' => 'text-decoration: underline;']);
                 },
                 'footerOptions' => ['style' => 'display: none;']
             ],

@@ -23,7 +23,7 @@ $total_price = 0;
         <td>Поставщик уведомлен</td>
     </tr>
     <?php foreach ($models as $k => $val): ?>
-        <?php $orders = Order::getOrderByProduct($val['product_name'], $date); ?>
+        <?php $orders = Order::getOrderByProduct($val['product_feature_id'], $date); ?>
         <?php $rowspan = count($orders); ?>
         <?php if ($rowspan == 1): ?>
             <tr>
@@ -33,7 +33,7 @@ $total_price = 0;
                 <td><?= $orders[0]['p_name']; ?></td>
                 <td><?= number_format($orders[0]['quantity']); ?></td>
                 <td><b><?= $orders[0]['total']; ?></b></td>
-                <td><?= $val['packing']; ?></td>
+                <td><?= $val['product_feature_name']; ?></td>
                 <td><?= number_format($val['total_qnt']); ?></td>
                 <td><b><?= $val['total_price']; ?></b></td>
                 <td>
@@ -54,7 +54,7 @@ $total_price = 0;
                 <td><?= $orders[0]['p_name']; ?></td>
                 <td><?= number_format($orders[0]['quantity']); ?></td>
                 <td><b><?= $orders[0]['total']; ?></b></td>
-                <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $val['packing']; ?></td>
+                <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $val['product_feature_name']; ?></td>
                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= number_format($val['total_qnt']); ?></td>
                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><b><?= $val['total_price']; ?></b></td>
                 <td rowspan="<?= $rowspan; ?>" class="td-v-align">

@@ -56,12 +56,12 @@ class ProviderOrderController extends BaseController
         $dateEnd = date('Y-m-d 21:00:00', $dateInit);
         $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
         $partner = Partner::findOne($pid);
-        $product = Product::findOne($id);
+        //$product = Product::findOne($id);
         $provider = Provider::findOne($prid);
         $details = Order::getProviderOrderDetails($id, ['start' => $dateStart, 'end' => $dateEnd], $pid);
         return $this->render('detail', [
             'partner' => $partner,
-            'product' => $product,
+            //'product' => $product,
             'provider' => $provider,
             'date' => $date,
             'details' => $details,

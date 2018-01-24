@@ -15,7 +15,7 @@ $total_price = 0;
     <?php foreach ($models as $k => $rec): ?>
         <tr>
             <td><?= $k + 1; ?></td>
-            <td><?= $rec['product_name']; ?></td>
+            <td><?= $rec['product_name'] . ', ' . $rec['product_feature_name']; ?></td>
             <td><?= $rec['provider_name']; ?></td>
             <td><?= number_format($rec['quantity']); ?></td>
             <td><?= $rec['total']; ?></td>

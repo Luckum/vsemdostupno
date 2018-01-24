@@ -6,6 +6,7 @@ use yii\helpers\ArrayHelper;
 use app\models\Order;
 use app\models\ProviderNotification;
 use app\models\Provider;
+use app\models\ProductFeature;
 
 
 /* @var $this yii\web\View */
@@ -43,7 +44,7 @@ die();*/
                 </thead>
                 <tbody>
                     <?php foreach ($models as $k => $val): ?>
-                        <?php $orders = Order::getOrderByProduct($val['product_name'], $dates[$i]); ?>
+                        <?php $orders = Order::getOrderByProduct($val['product_feature_id'], $dates[$i]); ?>
                         <?php $rowspan = count($orders); ?>
                         <?php if ($rowspan == 1): ?>
                             <tr>
@@ -51,9 +52,9 @@ die();*/
                                 <td><?= $val['product_name']; ?></td>
                                 <td><?= $val['provider_name']; ?></td>
                                 <td><?= $orders[0]['p_name']; ?></td>
-                                <td><a href="<?= Url::to(['/admin/provider-order/detail', 'id' => $val['id'], 'pid' => $orders[0]['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]); ?>" style="text-decoration: underline;"><?= number_format($orders[0]['quantity']); ?></a></td>
+                                <td><a href="<?= Url::to(['/admin/provider-order/detail', 'id' => $val['product_feature_id'], 'pid' => $orders[0]['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]); ?>" style="text-decoration: underline;"><?= number_format($orders[0]['quantity']); ?></a></td>
                                 <td><b><?= $orders[0]['total']; ?></b></td>
-                                <td><?= $val['packing']; ?></td>
+                                <td><?= ProductFeature::getFeatureNameById($val['product_feature_id']); ?></td>
                                 <td><?= number_format($val['total_qnt']); ?></td>
                                 <td><b><?= $val['total_price']; ?></b></td>
                                 <td>
@@ -72,9 +73,9 @@ die();*/
                                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $val['product_name']; ?></td>
                                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $val['provider_name']; ?></td>
                                 <td><?= $orders[0]['p_name']; ?></td>
-                                <td><a href="<?= Url::to(['/admin/provider-order/detail', 'id' => $val['id'], 'pid' => $orders[0]['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]); ?>" style="text-decoration: underline;"><?= number_format($orders[0]['quantity']); ?></a></td>
+                                <td><a href="<?= Url::to(['/admin/provider-order/detail', 'id' => $val['product_feature_id'], 'pid' => $orders[0]['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]); ?>" style="text-decoration: underline;"><?= number_format($orders[0]['quantity']); ?></a></td>
                                 <td><b><?= $orders[0]['total']; ?></b></td>
-                                <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $val['packing']; ?></td>
+                                <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= ProductFeature::getFeatureNameById($val['product_feature_id']); ?></td>
                                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= number_format($val['total_qnt']); ?></td>
                                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><b><?= $val['total_price']; ?></b></td>
                                 <td rowspan="<?= $rowspan; ?>" class="td-v-align">
@@ -89,7 +90,7 @@ die();*/
                                 <?php if ($y != 0): ?>
                                     <tr>
                                         <td><?= $order['p_name']; ?></td>
-                                        <td><a href="<?= Url::to(['/admin/provider-order/detail', 'id' => $val['id'], 'pid' => $order['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]); ?>" style="text-decoration: underline;"><?= number_format($order['quantity']); ?></a></td>
+                                        <td><a href="<?= Url::to(['/admin/provider-order/detail', 'id' => $val['product_feature_id'], 'pid' => $order['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]); ?>" style="text-decoration: underline;"><?= number_format($order['quantity']); ?></a></td>
                                         <td><b><?= $order['total']; ?></b></td>
                                     </tr>
                                 <?php endif; ?>

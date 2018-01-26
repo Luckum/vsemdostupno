@@ -29,7 +29,7 @@ class DefaultController extends Controller
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             if (!Yii::$app->user->isGuest &&
-                                in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN])) {
+                                in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_SUPERADMIN])) {
                                 throw new ForbiddenHttpException('Действие не разрешено.');
                             }
 

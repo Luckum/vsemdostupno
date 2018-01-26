@@ -59,7 +59,7 @@ class DefaultController extends Controller
                     ':email' => $userSearching->search,
                     ':number' => $userSearching->search,
                 ])
-                ->andWhere(['NOT IN', 'id', [User::ROLE_ADMIN]])
+                ->andWhere(['NOT IN', 'id', [User::ROLE_ADMIN, User::ROLE_SUPERADMIN]])
                 ->one();
 
             if (!$user) {

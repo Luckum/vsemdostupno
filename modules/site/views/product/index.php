@@ -45,7 +45,7 @@ $enableCart = false;
 if (Yii::$app->user->isGuest) {
     $enableCart = true;
 } else {
-    if (!in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_PROVIDER])) {
+    if (!in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_PROVIDER, User::ROLE_SUPERADMIN])) {
         $enableCart = true;
     }
     if (Yii::$app->user->identity->role == User::ROLE_PROVIDER) {

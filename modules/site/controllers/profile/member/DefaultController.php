@@ -42,7 +42,7 @@ class DefaultController extends BaseController
                         ],
                         'roles' => ['@'],
                         'matchCallback' => function ($rule, $action) use ($enableOrder) {
-                            if (in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN])) {
+                            if (in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_SUPERADMIN])) {
                                 $action->controller->redirect('/admin')->send();
                                 exit();
                             }

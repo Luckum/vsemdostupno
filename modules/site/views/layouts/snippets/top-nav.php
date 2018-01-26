@@ -12,7 +12,7 @@ NavBar::begin([
     ],
 ]);
 
-$profile = Yii::$app->user->isGuest ? 'default' : Yii::$app->user->identity->role;
+$profile = Yii::$app->user->isGuest ? 'default' : (Yii::$app->user->identity->role == User::ROLE_SUPERADMIN ? User::ROLE_ADMIN : Yii::$app->user->identity->role);
 echo $this->renderFile('@app/modules/site/views/layouts/snippets/profile/' . $profile . '/top-nav.php', [
     'cart' => $cart,
 ]);

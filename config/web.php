@@ -8,7 +8,10 @@ $config = [
     'charset' => 'UTF-8',
     'timeZone' => 'Europe/Moscow',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => [
+        'log',
+        'app\components\ModuleManager'
+    ],
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
@@ -84,7 +87,7 @@ $config = [
     'controllerMap' => [
         'elfinder' => [
             'class' => 'app\modules\site\controllers\ElfinderController',
-            'access' => ['admin'],
+            'access' => ['admin', 'superadmin'],
             'root' => [
                 'baseUrl' => '@web',
                 'basePath'=>'@webroot',

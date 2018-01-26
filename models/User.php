@@ -67,6 +67,7 @@ class User extends \yii\db\ActiveRecord
     const ROLE_MEMBER = 'member';
     const ROLE_PARTNER = 'partner';
     const ROLE_PROVIDER = 'provider';
+    const ROLE_SUPERADMIN = 'superadmin';
 
     const SUBSCRIBER_MONTHS_INTERVAL = 3;
 
@@ -89,7 +90,7 @@ class User extends \yii\db\ActiveRecord
     {
         return [
             [['role', 'phone', 'firstname', 'lastname', 'patronymic', 'created_ip', 'auth_key', 'access_token', 'password', 'email'], 'required'],
-            [['citizen', 'registration', 'passport', 'passport_department'], 'required', 'when' => function ($model) {return $model->role != self::ROLE_ADMIN && $model->role != self::ROLE_PROVIDER;}],
+            [['citizen', 'registration', 'passport', 'passport_department'], 'required', 'when' => function ($model) {return $model->role != self::ROLE_ADMIN && $model->role != self::ROLE_PROVIDER && $model->role != self::ROLE_SUPERADMIN;}],
             [['re_captcha'], 'required', 'except' => 'admin_creation'],
             [['role', 'skills'], 'string'],
             [['disabled', 'number', 'recommender_id'], 'integer'],
@@ -429,6 +430,7 @@ class User extends \yii\db\ActiveRecord
             self::ROLE_MEMBER => 'участник',
             self::ROLE_PARTNER => 'партнер',
             self::ROLE_PROVIDER => 'поставщик',
+            self::ROLE_SUPERADMIN => 'суперадминистратор'
         ];
 
         return isset($roleNames[$this->role]) ? $roleNames[$this->role] : 'нет роли';

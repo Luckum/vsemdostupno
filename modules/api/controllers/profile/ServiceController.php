@@ -29,7 +29,7 @@ class ServiceController extends Controller
                         'roles' => ['@'],
                         'matchCallback' => function ($rule, $action) {
                             if (Yii::$app->user->identity->entity->disabled ||
-                            in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN])) {
+                            in_array(Yii::$app->user->identity->role, [User::ROLE_ADMIN, User::ROLE_SUPERADMIN])) {
                                 throw new ForbiddenHttpException('Действие не разрешено.');
                             }
 

@@ -3,46 +3,41 @@
 namespace app\modules\admin\controllers;
 
 use Yii;
+use app\models\CandidateGroup;
 use yii\data\ActiveDataProvider;
-use yii\web\Controller;
+use app\modules\admin\controllers\BaseController;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use yii\helpers\ArrayHelper;
-use app\models\Email;
-use app\models\User;
 
 /**
- * EmailController implements the CRUD actions for Email model.
+ * CandidateController implements the CRUD actions for Candidate model.
  */
-class EmailController extends BaseController
+class CandidateGroupController extends BaseController
 {
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
-        return ArrayHelper::merge(parent::behaviors(), [
+        return [
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['post'],
+                    'delete' => ['POST'],
                 ],
             ],
-        ]);
+        ];
     }
 
     /**
-     * Lists all Email models.
+     * Lists all Candidate models.
      * @return mixed
      */
     public function actionIndex()
     {
-        if (Yii::$app->user->identity->role == User::ROLE_SUPERADMIN) {
-            $dataProvider = new ActiveDataProvider([
-                'query' => Email::find(),
-            ]);
-        } else {
-            $dataProvider = new ActiveDataProvider([
-                'query' => Email::find()->where(['<>', 'name', 'register-candidate']),
-            ]);
-        }
+        $dataProvider = new ActiveDataProvider([
+            'query' => Candidate::find(),
+        ]);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,
@@ -50,7 +45,7 @@ class EmailController extends BaseController
     }
 
     /**
-     * Displays a single Email model.
+     * Displays a single Candidate model.
      * @param integer $id
      * @return mixed
      */
@@ -62,16 +57,16 @@ class EmailController extends BaseController
     }
 
     /**
-     * Creates a new Email model.
+     * Creates a new Candidate model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new Email();
+        $model = new CandidateGroup();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['/admin/candidate']);
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -80,7 +75,7 @@ class EmailController extends BaseController
     }
 
     /**
-     * Updates an existing Email model.
+     * Updates an existing Candidate model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
@@ -99,7 +94,7 @@ class EmailController extends BaseController
     }
 
     /**
-     * Deletes an existing Email model.
+     * Deletes an existing Candidate model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
@@ -112,15 +107,15 @@ class EmailController extends BaseController
     }
 
     /**
-     * Finds the Email model based on its primary key value.
+     * Finds the Candidate model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return Email the loaded model
+     * @return Candidate the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Email::findOne($id)) !== null) {
+        if (($model = CandidateGroup::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

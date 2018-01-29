@@ -190,3 +190,6 @@ form div.required label.control-label:after {
 .ui-widget-content {
 	z-index: 1051;
 }
+.navbar-brand {
+	font-size: 15px;
+}

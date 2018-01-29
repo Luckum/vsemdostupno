@@ -3,6 +3,7 @@
 return [
     'name' => 'Стол заказов - Будь здоров!',
     'adminEmail' => 'p-o-n@list.ru',
+    'superadminEmail' => 'p-o-n@list.ru',
     'fromEmail' => 'info@vsemdostupno.ru',
     'devEmail' => 'naumenko@naumenko.org',
     'defaultPartnerEmail' => 'partner@vsemdostupno.ru',

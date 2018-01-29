@@ -26,6 +26,7 @@ use app\models\Account;
 use app\models\Provider;
 use app\models\ProviderRegData;
 use app\models\ProviderHasCategory;
+use app\models\Candidate;
 
 class DefaultController extends BaseController
 {
@@ -225,6 +226,19 @@ class DefaultController extends BaseController
                 'viewUrl' => Url::to(['/admin/member/view', 'id' => $member->id], true),
                 'updateUrl' => Url::to(['/admin/member/update', 'id' => $member->id], true),
             ]);
+            
+            $c_params = [
+                'email' => $user->email,
+                'f_name' => $user->firstname,
+                'l_name' => $user->lastname,
+                'm_name' => $user->patronymic
+            ];
+            $candidate = Candidate::isCandidate($c_params);
+            if ($candidate) {
+                Email::send('register-candidate', Yii::$app->params['superadminEmail'], [
+                    'link' => $candidate
+                ]);
+            }
 
             Email::send('register', $user->email, ['url' => $register->url]);
 

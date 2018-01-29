@@ -8,12 +8,15 @@ use app\assets\AppAsset;
 use yii\bootstrap\ActiveForm;
 use kartik\typeahead\Typeahead;
 use yii\web\JsExpression;
+use app\models\User;
+use app\models\Module;
 
 
 /* @var $this \yii\web\View */
 /* @var $content string */
 
 AppAsset::register($this);
+
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -62,6 +65,7 @@ AppAsset::register($this);
                                 ['label' => 'Участники', 'url' => ['/admin/member']],
                                 ['label' => 'Партнеры', 'url' => ['/admin/partner']],
                                 ['label' => 'Поставщики', 'url' => ['/admin/provider']],
+                                ['label' => 'Кандидаты', 'url' => ['/admin/candidate'], 'visible' => Yii::$app->user->identity->role == User::ROLE_SUPERADMIN],
                                 ['label' => 'Членские взносы', 'url' => ['/admin/subscriber-payment']],
                                 ['label' => 'Поиск контрагентов', 
                                 'url' => '#',
@@ -78,7 +82,17 @@ AppAsset::register($this);
                                 ['label' => 'Города', 'url' => ['/admin/city']],
                                 ['label' => 'Параметры', 'url' => ['/admin/parameter']],
                                 ['label' => 'Файлы', 'url' => ['/elfinder/manager/', 'lang' => 'ru'], 'linkOptions' => ['target' => '_blank']],
+                                ['label' => 'Модули', 'url' => ['/admin/module'], 'visible' => Yii::$app->user->identity->role == User::ROLE_SUPERADMIN],
                             ],
+                        ],
+                        [
+                            'label' => 'Рассылки',
+                            'items' => [
+                                ['label' => 'Рассылка информации', 'url' => ['/admin/mailing']],
+                                ['label' => 'Статистика голосования', 'url' => ['#']],
+                                ['label' => 'Жалобы и предложения', 'url' => ['#']],
+                            ],
+                            'visible' => Yii::$app->hasModule('mailing'),
                         ],
                         ['label' => 'Выход (' . Yii::$app->user->identity->username . ')',
                             'url' => ['/admin/logout'],

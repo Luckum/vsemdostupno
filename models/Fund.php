@@ -126,7 +126,7 @@ class Fund extends \yii\db\ActiveRecord
                 } else {
                     $deduction = $price / 100 * $common->percent;
                 }
-                $common->deduction_total += round($deduction, 2);
+                $common->deduction_total += round($deduction * $qnt, 2);
                 $common->save();
             }
         }

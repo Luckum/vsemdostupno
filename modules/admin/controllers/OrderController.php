@@ -119,6 +119,23 @@ class OrderController extends BaseController
 
         return $this->redirect($url);
     }
+    
+    public function actionDeleteReturn($id)
+    {
+        $order = Order::findOne($id);
+
+        if (!$order->partner_id) {
+            $url = 'partner';
+        } elseif ($order->partner_id && $order->user_id) {
+            $url = 'member';
+        } else {
+            $url = 'guest';
+        }
+
+        $order->deleteReturn();
+
+        return $this->redirect($url);
+    }
 
     public function actionDownloadOrder($id)
     {

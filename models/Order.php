@@ -4,6 +4,11 @@ namespace app\models;
 
 use Yii;
 use app\models\Account;
+use app\models\Provider;
+use app\models\Fund;
+use app\models\ProductFeature;
+use app\models\ProviderStock;
+use app\models\StockBody;
 use yii\db\Query;
 use yii\data\SqlDataProvider;
 use yii\data\ActiveDataProvider;
@@ -101,26 +106,6 @@ class Order extends \yii\db\ActiveRecord
             'htmlFormattedInformation' => 'Информация',
             'htmlEmailFormattedInformation' => 'Информация',
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function beforeDelete()
-    {
-        if (parent::beforeDelete()) {
-            if ($this->paid_total) {
-                $message = sprintf('Возврат за заказ №%d', $this->id);
-                if (Account::swap(null, $this->user->deposit, $this->paid_total, $message)) {
-                    $this->paid_total = 0;
-                    $this->save();
-                }
-            }
-
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -435,5 +420,65 @@ class Order extends \yii\db\ActiveRecord
     {
         //return self::updateAll(['hide' => 1], 'created_at BETWEEN "' . $date['start'] . '" AND "' . $date['end'] . '"');
         return self::deleteAll('created_at BETWEEN "' . $date['start'] . '" AND "' . $date['end'] . '"');
+    }
+    
+    public function deleteReturn()
+    {
+        if ($this->paid_total) {
+            $message = sprintf('Возврат за заказ №%d', $this->id);
+            Account::swap(null, $this->user->deposit, $this->paid_total, $message);
+            $message = sprintf('Возврат заказа №%d', $this->id);
+            foreach ($this->orderHasProducts as $product) {
+                $provider = Provider::findOne($product->provider_id);
+                Fund::setDeductionForOrder($product->product_feature_id, -$product->purchase_price, $product->quantity);
+                $feature = ProductFeature::findOne($product->product_feature_id);
+                $feature->quantity += $product->quantity;
+                $feature->save();
+                
+                $stock_provider = ProviderStock::getCurrentStockReturn($product->product_feature_id, $product->provider_id);
+                if ($stock_provider) {
+                    if ($stock_provider->reaminder_rent + $product->quantity <= $stock_provider->total_rent) {
+                        $stock_provider->reaminder_rent += $product->quantity;
+                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                        $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                        $paid_for_provider = $product->quantity * $body->summ;
+                        $stock_provider->summ_on_deposit -= $paid_for_provider;
+                        $stock_provider->save();
+                    } else {
+                        $rest = $product->quantity - $stock_provider->total_rent;
+                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                        $stock_provider->summ_on_deposit = 0;
+                        $stock_provider->reaminder_rent = $stock_provider->total_rent;
+                        $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                        $stock_provider->save();
+                        
+                        while ($rest > 0) {
+                            $stock_provider = ProviderStock::getCurrentStockReturn($product->product_feature_id, $product->provider_id);
+                            
+                            if ($stock_provider->reaminder_rent + $rest <= $stock_provider->total_rent) {
+                                $stock_provider->reaminder_rent += $rest;
+                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                $paid_for_provider = $rest * $body->summ;
+                                $stock_provider->summ_on_deposit -= $paid_for_provider;
+                                $stock_provider->save();
+                                $rest = 0;
+                            } else {
+                                $rest -= $stock_provider->total_rent;
+                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                $stock_provider->summ_on_deposit = 0;
+                                $stock_provider->reaminder_rent = $stock_provider->total_rent;
+                                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                $stock_provider->save();
+                            }
+                        }
+                    }
+                    if ($body->deposit == 1) {
+                        Account::swap(null, $provider->user->deposit, -$product->purchase_price * $product->quantity, $message);
+                    }
+                }
+            }
+            $this->delete();
+        }
     }
 }

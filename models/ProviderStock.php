@@ -123,6 +123,19 @@ class ProviderStock extends \yii\db\ActiveRecord
         )->one();
     }
     
+    public static function getCurrentStockReturn($product_id, $provider_id)
+    {
+        return ProviderStock::findBySql(
+            'SELECT ps.* FROM provider_stock as ps 
+                INNER JOIN stock_body as body ON ps.stock_body_id=body.id 
+                INNER JOIN stock_head as head ON body.stock_head_id=head.id 
+            WHERE body.product_feature_id =' . $product_id . ' 
+                AND head.provider_id =' . $provider_id . '
+                AND ps.reaminder_rent < total_rent
+            ORDER BY head.date DESC'
+        )->one();
+    }
+    
     public static function getCurrentStockSum($provider_id)
     {
         return self::find()

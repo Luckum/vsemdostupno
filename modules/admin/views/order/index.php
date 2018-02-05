@@ -116,6 +116,16 @@ $this->registerJs($script, $this::POS_END);
                                         ],
                                     ]
                                 ],
+                                [
+                                    'label' => 'Сделать возврат и удалить',
+                                    'url' => Url::to(['delete-return', 'id' => $model->id]),
+                                    'linkOptions' => [
+                                        'data' => [
+                                            'confirm' => 'Вы уверены, что хотите сделать возврат и удалить этот заказ?',
+                                            'method' => 'post',
+                                        ],
+                                    ]
+                                ],
                             ],
                         ]) .
                         Html::endTag('div');

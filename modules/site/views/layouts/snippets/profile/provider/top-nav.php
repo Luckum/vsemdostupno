@@ -46,6 +46,7 @@ echo Nav::widget([
         [
             'label' => Icon::show('user') . ' ' . Html::encode(Yii::$app->user->identity->entity->shortName),
             'url' => Url::to(['/profile']),
+            'options' => ['id' => 'user-menu-lnk'],
             'items' => [
                 /*[
                     'label' => Icon::show('list-alt') . ' Мои товары',
@@ -71,6 +72,23 @@ echo Nav::widget([
                 [
                     'label' => Icon::show('pencil-square-o') . ' Личные данные',
                     'url' => Url::to(['/profile/provider/personal']),
+                ],
+                [
+                    'label' => Icon::show('envelope-o') . 'Настройка рассылки',
+                    'url' => 'javascript:void(0)',
+                    'visible' => Yii::$app->hasModule('mailing'),
+                    'options' => ['data-toggle' => 'modal', 'data-target' => '#mailing-settings'],
+                ],
+                [
+                    'label' => Icon::show('check-square-o') . 'Проголосуйте',
+                    'url' => Url::to(['/mailing/vote']),
+                    'visible' => Yii::$app->hasModule('mailing'),
+                    'options' => ['id' => 'vote-menu-lnk'],
+                ],
+                [
+                    'label' => Icon::show('comments') . 'Жалобы, предложения',
+                    'url' => Url::to(['/mailing/message']),
+                    'visible' => Yii::$app->hasModule('mailing'),
                 ],
                 /*[
                     'label'=>'Учёт товаров/остатки',

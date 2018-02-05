@@ -19,6 +19,10 @@ use yii\web\JsExpression;
 use app\models\User;
 use yii\bootstrap\Alert;
 
+use app\modules\mailing\models\MailingCategory;
+use app\modules\mailing\models\MailingUser;
+use app\modules\mailing\models\MailingVote;
+
 
 /* @var $this \yii\web\View */
 /* @var $content string */
@@ -207,6 +211,46 @@ if ($purchase) {
 
             </div>
         </div>
+        
+        <?php if (Yii::$app->hasModule('mailing')): ?>
+            <?php $this->registerJsFile('/js/mailing/common.js',  ['position' => $this::POS_END, 'depends' => [\yii\web\JqueryAsset::className()]]); ?>
+            <div class="modal fade" id="mailing-settings" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Настройте для себя информационные категории сообщений</h4>
+                        </div>
+                        <div class="modal-body">
+                            <?php $form = ActiveForm::begin(['id' => 'update-mailing-frm']); ?>
+                                <?php $cats = MailingCategory::find()->where(['<>', 'id', 5])->all(); ?>
+                                <?php if ($cats): ?>
+                                    <?php foreach ($cats as $cat): ?>
+                                        <?php $signed = MailingUser::find()->where(['user_id' => Yii::$app->user->id, 'mailing_category_id' => $cat->id])->exists(); ?>
+                                        <div class="form-group">
+                                            <?= Html::checkbox(
+                                                'm_category[' . $cat->id . ']', 
+                                                $cat->id == 1 ? true : ($signed ? true : false), 
+                                                ['id' => 'm-id-' . $cat->id, 'disabled' => $cat->id == 1 ? true : false]
+                                            ); ?>
+                                            <label for="m-id-<?= $cat->id; ?>"><?= $cat->name; ?></label>
+                                        </div>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                                <input type="hidden" name="user_id" id="user-id" value="<?= Yii::$app->user->id; ?>">
+                                <p>Наличие галочки в окне категорий свидетельствует о согласии получать информацию.</p>
+                            <?php ActiveForm::end(); ?>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                            <?= Html::a('Сохранить', 'javascript:void(0)',['class'=>'btn btn-primary', 'id' => 'update-mailing-btn']); ?>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <input type="hidden" id="vote-active" value="<?= MailingVote::existsActiveVote(Yii::$app->user->id); ?>">
+        <?php endif; ?>
             <div class="wrap">
 <!--                <div class="top-season-decor"></div>-->
                 <?= $this->renderFile('@app/modules/site/views/layouts/snippets/top-nav.php', [

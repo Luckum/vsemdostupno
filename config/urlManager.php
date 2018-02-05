@@ -31,7 +31,7 @@ return [
         'profile/<_c:[\w\-]+>/<_a:[\w\-]+>' => 'site/profile/<_c>/<_a>',
         'profile/<_c:[\w\-]+>' => 'site/profile/<_c>/index',
         'profile/<_u:[\w\-]+>/<_c:[\w\-]+>/<_a:[\w\-]+>' => 'site/profile/<_u>/<_c>/<_a>',
-        '<_m:[\w\-]+>' => '<_m>/default/index',
+        //'<_m:[\w\-]+>' => '<_m>/default/index',
         '<_c:[\w\-]+>/<id:\d+>' => '<_c>/default/view',
     ],
 ];

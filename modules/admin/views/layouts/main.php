@@ -89,8 +89,8 @@ AppAsset::register($this);
                             'label' => 'Рассылки',
                             'items' => [
                                 ['label' => 'Рассылка информации', 'url' => ['/admin/mailing']],
-                                ['label' => 'Статистика голосования', 'url' => ['#']],
-                                ['label' => 'Жалобы и предложения', 'url' => ['#']],
+                                ['label' => 'Статистика голосования', 'url' => ['/admin/mailing/vote']],
+                                ['label' => 'Жалобы и предложения', 'url' => ['/admin/mailing/message']],
                             ],
                             'visible' => Yii::$app->hasModule('mailing'),
                         ],

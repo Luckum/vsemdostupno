@@ -312,6 +312,11 @@ class User extends \yii\db\ActiveRecord
     {
         return implode(' ', [$this->lastname, $this->firstname, $this->patronymic]);
     }
+    
+    public function getRespectedName()
+    {
+        return implode(' ', [$this->firstname, $this->patronymic]);
+    }
 
     public function beforeValidate()
     {

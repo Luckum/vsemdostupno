@@ -282,7 +282,9 @@ class ProviderController extends BaseController
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             Account::swap(null, $provider->user->getAccount($model->account_type), $model->amount, $model->message);
-            ProviderStock::setStockSum($provider->user->id, $model->amount);
+            if ($model->amount < 0) {
+                ProviderStock::setStockSum($provider->user->id, $model->amount);
+            }
             
             return $this->redirect(['account', 'id' => $id, 'type' => $model->account_type]);
         }

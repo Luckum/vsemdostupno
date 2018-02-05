@@ -17,6 +17,7 @@ use app\models\AccountLog;
 use app\models\Template;
 use app\models\Parameter;
 use app\modules\admin\models\AccountForm;
+use app\models\ProviderStock;
 use app\helpers\Html;
 
 /**
@@ -267,6 +268,9 @@ class UserController extends BaseController
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             Account::swap(null, $user->getAccount($model->account_type), $model->amount, $model->message);
+            if (isset($user->provider) && $model->amount < 0) {
+                ProviderStock::setStockSum($user->id, $model->amount);
+            }
 
             return $this->redirect(['account', 'id' => $id, 'type' => $model->account_type]);
         }

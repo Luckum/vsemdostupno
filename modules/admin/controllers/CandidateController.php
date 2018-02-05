@@ -9,6 +9,8 @@ use yii\data\ActiveDataProvider;
 use app\modules\admin\controllers\BaseController;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
+use yii\web\Response;
 
 /**
  * CandidateController implements the CRUD actions for Candidate model.
@@ -68,14 +70,21 @@ class CandidateController extends BaseController
     public function actionCreate()
     {
         $model = new Candidate();
+        $groups = CandidateGroup::find()->all();
+        
+        $request = Yii::$app->getRequest();
+        if ($request->isAjax && $model->load($request->post())) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
         }
+        return $this->renderAjax('_form-modal', [
+            'modelCandidate' => $model,
+            'groups' => $groups
+        ]);
     }
 
     /**
@@ -126,5 +135,18 @@ class CandidateController extends BaseController
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+    
+    public function actionUpdateBlocking()
+    {
+        $post = Yii::$app->request->post();
+        $model = Candidate::findOne($post['id']);
+        
+        $model->block_mailing = $post['block'];
+        
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        return [
+            'success' => $model->save(),
+        ];
     }
 }

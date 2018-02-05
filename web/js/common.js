@@ -136,6 +136,10 @@ $(document).ready(function() {
             $("#product-provider-change-container").hide();
         }
     });
+    
+    $("#add-candidate-btn").click(function() {
+        $("#add-candidate-modal .modal-dialog .modal-content .modal-body").load($(this).attr("href"));
+    });
 });
 
 function toggleCategoriesContainer(status)

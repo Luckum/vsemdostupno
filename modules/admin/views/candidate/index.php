@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 use yii\data\ActiveDataProvider;
 use yii\grid\GridView;
 use kartik\tabs\TabsX;
@@ -17,6 +18,33 @@ use app\models\Candidate;
 $this->title = 'Кандидаты';
 $this->params['breadcrumbs'][] = $this->title;
 
+$updateBlockingUrl = Url::to(['/admin/candidate/update-blocking']);
+$script = <<<JS
+$(function () {
+    $('input[type="checkbox"][class="update-block-mailing"]').on('change', function () {
+        $.ajax({
+            url: '$updateBlockingUrl',
+            type: 'POST',
+            data: {
+                id: $(this).attr('data-candidate-id'),
+                block: $(this).is(':checked') ? 1 : 0
+            },
+            success: function (data) {
+                if (!(data && data.success)) {
+                    alert('Ошибка обновления блокировки');
+                }
+            },
+            error: function () {
+                alert('Ошибка обновления блокировки');
+            },
+        });
+
+        return false;
+    });
+})
+JS;
+$this->registerJs($script, $this::POS_END);
+
 $dd_items = $items = [];
 if (count($groups)) {
     $dd_items = ArrayHelper::map($groups, 'id', 'name');
@@ -31,7 +59,13 @@ if (count($groups)) {
                 'columns' => [
                     ['class' => 'yii\grid\SerialColumn'],
                     'email',
-                    'fullName',
+                    'fio',
+                    [
+                        'attribute' => 'block_mailing',
+                        'content' => function ($model) {
+                            return '<input type="checkbox" ' . ($model->block_mailing ? 'checked' : '') . ' data-candidate-id="' . $model->id . '" class="update-block-mailing">';
+                        }
+                    ],
 
                     ['class' => 'yii\grid\ActionColumn'],
                 ],
@@ -46,7 +80,12 @@ if (count($groups)) {
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Добавить кандидата', ['create'], ['class' => 'btn btn-success', 'data-toggle' => 'modal', 'data-target' => '#add-candidate-modal']) ?>
+        <?= Html::a('Добавить кандидата', ['create'], [
+            'id' => 'add-candidate-btn',
+            'class' => 'btn btn-success',
+            'data-toggle' => 'modal',
+            'data-target' => '#add-candidate-modal',
+            ]); ?>
         <?= Html::a('Добавить группу', ['/admin/candidate-group/create'], ['class' => 'btn btn-success', 'data-toggle' => 'modal', 'data-target' => '#add-group-modal']) ?>
     </p>
     <br />
@@ -83,40 +122,5 @@ if (count($groups)) {
     'options' => ['tabindex' => false,],
     'header' => '<h4>' . 'Добавить кандидата' . '</h4>',
 ]); ?>
-    
-    <?php $form = ActiveForm::begin(['action' => ['/admin/candidate/create']]); ?>
-    
-        <?= $form->field($modelCandidate, 'group_id')->dropDownList($dd_items) ?>
-        
-        <?= $form->field($modelCandidate, 'email')->textInput(['maxlength' => true]) ?>
 
-        <?= $form->field($modelCandidate, 'firstname')->textInput(['maxlength' => true]) ?>
-
-        <?= $form->field($modelCandidate, 'lastname')->textInput(['maxlength' => true]) ?>
-
-        <?= $form->field($modelCandidate, 'patronymic')->textInput(['maxlength' => true]) ?>
-
-        <?= $form->field($modelCandidate, 'birthdate')->widget(DatePicker::className(), [
-            'type' => DatePicker::TYPE_COMPONENT_APPEND,
-            'readonly' => true,
-            'layout' => '{input}{picker}',
-            'pluginOptions' => [
-                'autoclose' => true,
-                'format' => 'yyyy-mm-dd',
-            ],
-        ]) ?>
-
-        <?= $form->field($modelCandidate, 'phone')->widget(
-            MaskedInput::className(), [
-            'mask' => '+7 (999)-999-9999',
-        ]) ?>
-
-        <?= $form->field($modelCandidate, 'block_mailing')->checkbox() ?>
-        
-        <div class="form-group" style="text-align: right;">
-            <?= Html::button('Закрыть', ['class' => 'btn btn-default', 'data-dismiss' => 'modal', 'aria-hidden' => 'true']) ?>
-            <?= Html::submitButton('Добавить', ['class' => 'btn btn-success']) ?>
-        </div>
-    
-    <?php ActiveForm::end(); ?>
 <?php Modal::end(); ?>

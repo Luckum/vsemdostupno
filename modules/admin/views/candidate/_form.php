@@ -21,11 +21,7 @@ $dd_items = ArrayHelper::map($groups, 'id', 'name');
     
     <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'firstname')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'lastname')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'patronymic')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'fio')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'birthdate')->widget(DatePicker::className(), [
         'type' => DatePicker::TYPE_COMPONENT_APPEND,

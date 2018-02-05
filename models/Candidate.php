@@ -37,10 +37,9 @@ class Candidate extends \yii\db\ActiveRecord
             [['birthdate'], 'safe'],
             [['block_mailing'], 'integer'],
             [['email'], 'string', 'max' => 100],
-            [['firstname', 'lastname', 'patronymic'], 'string', 'max' => 255],
+            [['fio'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 20],
             [['email'], 'unique'],
-            [['firstname', 'lastname', 'patronymic'], 'unique', 'targetAttribute' => ['firstname', 'lastname', 'patronymic']],
             [['group_id'], 'exist', 'skipOnError' => true, 'targetClass' => CandidateGroup::className(), 'targetAttribute' => ['group_id' => 'id']],
         ];
     }
@@ -53,13 +52,10 @@ class Candidate extends \yii\db\ActiveRecord
         return [
             'id' => 'Идентификатор',
             'email' => 'Email',
-            'firstname' => 'Имя',
-            'lastname' => 'Фамилия',
-            'patronymic' => 'Отчество',
+            'fio' => 'ФИО',
             'birthdate' => 'Дата рождения',
             'phone' => 'Телефон',
             'block_mailing' => 'Блокировать рассылку',
-            'fullName' => 'ФИО',
             'group_id' => 'Группа',
         ];
     }
@@ -72,18 +68,10 @@ class Candidate extends \yii\db\ActiveRecord
         return $this->hasOne(CandidateGroup::className(), ['id' => 'group_id']);
     }
     
-    public function getFullName()
-    {
-        return implode(' ', [$this->lastname, $this->firstname, $this->patronymic]);
-    }
-    
     public static function isCandidate($params)
     {
         $res = self::find()->where([
             'email' => $params['email'], 
-            'firstname' => $params['f_name'],
-            'lastname' => $params['l_name'],
-            'patronymic' => $params['m_name']
         ])->one();
         
         if ($res) {

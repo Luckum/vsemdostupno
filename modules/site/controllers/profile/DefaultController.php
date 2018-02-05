@@ -229,9 +229,6 @@ class DefaultController extends BaseController
             
             $c_params = [
                 'email' => $user->email,
-                'f_name' => $user->firstname,
-                'l_name' => $user->lastname,
-                'm_name' => $user->patronymic
             ];
             $candidate = Candidate::isCandidate($c_params);
             if ($candidate) {
@@ -432,6 +429,16 @@ class DefaultController extends BaseController
                             //Yii::$app->session->setFlash('profile-message', 'profile-register-fail');
                             //return $this->redirect('/profile/message');
                             throw new ForbiddenHttpException($e->getMessage());
+                        }
+                        
+                        $c_params = [
+                            'email' => $model_user->email,
+                        ];
+                        $candidate = Candidate::isCandidate($c_params);
+                        if ($candidate) {
+                            Email::send('register-candidate', Yii::$app->params['superadminEmail'], [
+                                'link' => $candidate
+                            ]);
                         }
                         
                         Email::send('notify-registered-new-provider', Yii::$app->params['adminEmail'], [

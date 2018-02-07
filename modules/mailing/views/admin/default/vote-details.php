@@ -1,12 +1,13 @@
 <?php
 use yii\helpers\Html;
+use app\helpers\UtilsHelper;
 use app\modules\mailing\models\MailingVoteStat;
 
 $t_text = empty($vote_text) ? " (все проголосовавшие)" : " (проголосовавшие '" . $vote_text . "')";
 
 $this->title = $vote_model->subject . $t_text;
 $this->params['breadcrumbs'][] = ['label' => 'Статистика голосования', 'url' => ['vote']];
-$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = UtilsHelper::cutStr($this->title, 100);
 ?>
 
 <div class="mailing-vote-details">
@@ -20,9 +21,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
                     <td><?= MailingVoteStat::getVoteText($vote->vote); ?></td>
                 </tr>
-                
-            
-            
             <?php endforeach; ?>
         </table>
     <?php endif; ?>

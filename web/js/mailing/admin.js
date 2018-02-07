@@ -5,9 +5,13 @@ $(document).ready(function() {
             $("#candidates").prop('checked', false);
             $("#candidates-groups").hide();
             $("#message-container").hide();
+            $("#subject-container").hide();
+            $("#subject-vote-container").show();
         } else {
             $("#candidates").prop('disabled', false);
             $("#message-container").show();
+            $("#subject-container").show();
+            $("#subject-vote-container").hide();
         }
     })
     
@@ -80,13 +84,6 @@ $(document).ready(function() {
                 $("#mailing-info-btn").show();
             }
             
-            if ($("#subject").val() == "") {
-                $("#modal-title-empty-subject").show();
-                $("#mailing-info-btn").hide();
-            } else {
-                $("#modal-title-empty-subject").hide();
-                $("#mailing-info-btn").show();
-            }
             
             if ($("[name=category]:checked").val() != 5) {
                 if ($("#message").val() == "") {
@@ -94,6 +91,21 @@ $(document).ready(function() {
                     $("#mailing-info-btn").hide();
                 } else {
                     $("#modal-title-empty-message").hide();
+                    $("#mailing-info-btn").show();
+                }
+                if ($("#subject").val() == "") {
+                    $("#modal-title-empty-subject").show();
+                    $("#mailing-info-btn").hide();
+                } else {
+                    $("#modal-title-empty-subject").hide();
+                    $("#mailing-info-btn").show();
+                }
+            } else {
+                if ($("#subject-vote").val() == "") {
+                    $("#modal-title-empty-subject").show();
+                    $("#mailing-info-btn").hide();
+                } else {
+                    $("#modal-title-empty-subject").hide();
                     $("#mailing-info-btn").show();
                 }
             }

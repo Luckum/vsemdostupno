@@ -71,26 +71,6 @@ class MailingMessage extends \yii\db\ActiveRecord
         return $this->hasOne(User::className(), ['id' => 'user_id']);
     }
     
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        
-        if ($this->isNewRecord) {
-            $body = "Пользователь " . $this->user->fullName . " (" . $this->user->email . ", " . $this->user->phone . ") оставил сообщение:";
-            $body .= "<br><br>";
-            $body .= $this->getCategoryText($this->category);
-            $body .= "<br>";
-            $body .= $this->message;
-            $mail = Yii::$app->mailer->compose()
-                ->setFrom([Yii::$app->params['fromEmail'] => Yii::$app->params['name']])
-                ->setTo(Yii::$app->params['adminEmail'])
-                ->setSubject("Сообщение от пользователя")
-                ->setHtmlBody($body);
-            
-            $mail->send();
-        }
-    }
-    
     public static function getCategoryText($cat)
     {
         $catsText = [

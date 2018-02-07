@@ -22,6 +22,7 @@ use app\models\User;
 use app\models\StockHead;
 use app\models\StockBody;
 use app\models\ProviderStock;
+use app\models\Candidate;
 use app\modules\admin\models\AccountForm;
 use app\modules\admin\models\ProviderForm;
 use app\helpers\Html;
@@ -110,8 +111,11 @@ class ProviderController extends BaseController
                 $user->skills = $model->skills ? $model->skills : null;
                 $user->number = $model->number ? $model->number : (int) User::find()->max('number') + 1;
                 $user->recommender_id = $model->recommender_id ? $model->recommender_id : null;
+                $user->scenario = 'admin_creation';
 
                 if (!$user->save()) {
+                    print_r($user);
+                    die();
                     throw new Exception('Ошибка создания пользователя!');
                 }
 
@@ -150,6 +154,16 @@ class ProviderController extends BaseController
                 throw new ForbiddenHttpException($e->getMessage());
             }
 
+            $c_params = [
+                'email' => $user->email,
+            ];
+            $candidate = Candidate::isCandidate($c_params);
+            if ($candidate) {
+                Email::send('register-candidate', Yii::$app->params['superadminEmail'], [
+                    'link' => $candidate
+                ]);
+            }
+            
             Email::send('forgot', $user->email, ['url' => $forgot->url]);
 
             return $this->redirect(['view', 'id' => $model->id]);

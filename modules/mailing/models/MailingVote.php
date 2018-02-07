@@ -4,6 +4,7 @@ namespace app\modules\mailing\models;
 
 use Yii;
 use yii\helpers\Url;
+use app\helpers\UtilsHelper;
 use app\models\Member;
 use app\models\Provider;
 use app\models\User;
@@ -38,7 +39,8 @@ class MailingVote extends \yii\db\ActiveRecord
             [['for_members', 'for_providers'], 'integer'],
             [['subject'], 'required'],
             [['sent_date'], 'safe'],
-            [['subject', 'attachment'], 'string', 'max' => 255],
+            [['attachment'], 'string', 'max' => 255],
+            [['subject'], 'string'],
         ];
     }
 
@@ -92,11 +94,13 @@ class MailingVote extends \yii\db\ActiveRecord
         
         if (count($send_to)) {
             foreach ($send_to as $to) {
-                $body = 'Уважаемый/ая ' . $to['name'] . ', просим Вас высказать своё мнение по вопросам работы Потребительского общества, предложите, пожалуйста, в <a href="' . Url::to('profile/login', true) . '">личном кабинете</a> вариант своего решения.';
+                $body = 'Уважаемый/ая ' . $to['name'] . ', просим Вас высказать своё мнение по работе Потребительского общества через участие в голосовании из <a href="' . Url::to('profile/login', true) . '">личного кабинета</a>.';
+                $body .= '<br><br>';
+                $body .= 'На это письмо отвечать не нужно, рассылка произведена автоматически.';
                 $mail = Yii::$app->mailer->compose()
                     ->setFrom([Yii::$app->params['fromEmail'] => Yii::$app->params['name']])
                     ->setTo($to['email'])
-                    ->setSubject($data['subject'])
+                    ->setSubject(UtilsHelper::cutStr($data['subject'], 150))
                     ->setHtmlBody($body);
                 if (count($data['files'])) {
                     foreach ($data['files'] as $file) {

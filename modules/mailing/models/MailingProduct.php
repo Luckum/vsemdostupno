@@ -84,6 +84,6 @@ class MailingProduct extends \yii\db\ActiveRecord
     
     public static function getForSend()
     {
-        return self::find()->where('NOW() > sent_date + INTERVAL 1 HOUR')->all();
+        return self::find()->where('NOW() > sent_date')->all();
     }
 }

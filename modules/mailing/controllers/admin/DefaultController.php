@@ -24,9 +24,8 @@ class DefaultController extends BaseController
      */
     public function actionIndex()
     {
-        if (isset($_POST['subject'])) {
+        if (isset($_POST['message'])) {
             $data = [];
-            $data['subject'] = htmlspecialchars($_POST['subject']);
             $data['body'] = $_POST['message'];
             $category = $_POST['category'];
             $data['for_members'] = isset($_POST['members']) ? true : false; 
@@ -54,8 +53,10 @@ class DefaultController extends BaseController
             }
             
             if ($category == 1) {
+                $data['subject'] = htmlspecialchars($_POST['subject']);
                 MailingNews::sendMailing($data);
             } elseif ($category == 5) {
+                $data['subject'] = htmlspecialchars($_POST['subject_vote']);
                 MailingVote::sendMailing($data);
             }
         }

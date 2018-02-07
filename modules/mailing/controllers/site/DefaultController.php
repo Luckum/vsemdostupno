@@ -83,7 +83,21 @@ class DefaultController extends BaseController
             $model->user_id = Yii::$app->user->id;
             $model->subject = $_POST['subject'];
             $model->message = $_POST['message'];
+            
             if ($model->save()) {
+                $body = "Пользователь " . $model->user->fullName . " (" . $model->user->email . ", " . $model->user->phone . ") оставил сообщение:";
+                $body .= "<br><br>";
+                $body .= $model->getCategoryText($model->category);
+                $body .= "<br>";
+                $body .= $model->message;
+                $mail = Yii::$app->mailer->compose()
+                    ->setFrom([Yii::$app->params['fromEmail'] => Yii::$app->params['name']])
+                    ->setTo(Yii::$app->params['adminEmail'])
+                    ->setSubject("Сообщение от пользователя")
+                    ->setHtmlBody($body);
+                
+                $mail->send();
+                
                 Yii::$app->response->format = Response::FORMAT_JSON;
                 return [
                     'success' => true,

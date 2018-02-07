@@ -51,10 +51,17 @@ $this->params['breadcrumbs'][] = $this->title;
             <?= Html::radio('category', false, ['value' => '5', 'label' => 'Голосования']); ?>
         </div>
         
-        <div class="form-group row">
+        <div class="form-group row" id="subject-container">
             <div class="col-md-7">
                 <label for="subject">Тема</label>
                 <?= Html::textInput('subject', null, ['class' => 'form-control', 'id' => 'subject']); ?>
+            </div>
+        </div>
+        
+        <div class="form-group row" id="subject-vote-container" style="display: none;">
+            <div class="col-md-7">
+                <label for="subject">Тема</label>
+                <?= Html::textarea('subject_vote', null, ['class' => 'form-control', 'id' => 'subject-vote', 'rows' => 10]); ?>
             </div>
         </div>
         
@@ -64,6 +71,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?= CKEditor::widget([
                     'name' => 'message',
                     'id' => 'message',
+                    'value' => '<br><br>На это письмо отвечать не нужно, рассылка произведена автоматически.',
                     'editorOptions' => [
                         'preset' => 'full',
                         'inline' => false,

@@ -22,6 +22,7 @@ use app\models\User;
 use app\modules\admin\models\MemberForm;
 use yii\db\Query;
 use app\models\Provider;
+use app\models\Candidate;
 
 
 /**
@@ -149,6 +150,16 @@ class MemberController extends BaseController
                 throw new ForbiddenHttpException($e->getMessage());
             }
 
+            $c_params = [
+                'email' => $user->email,
+            ];
+            $candidate = Candidate::isCandidate($c_params);
+            if ($candidate) {
+                Email::send('register-candidate', Yii::$app->params['superadminEmail'], [
+                    'link' => $candidate
+                ]);
+            }
+            
             Email::send('forgot', $user->email, ['url' => $forgot->url]);
 
             return $this->redirect(['view', 'id' => $model->id]);

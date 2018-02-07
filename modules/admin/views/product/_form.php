@@ -88,6 +88,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
                             <?= CKEditor::widget([
                                 'name' => 'message',
                                 'id' => 'message',
+                                'value' => '<br>На это письмо отвечать не нужно, рассылка произведена автоматически.',
                                 'editorOptions' => [
                                     'preset' => 'basic',
                                     'inline' => false,

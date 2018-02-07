@@ -39,6 +39,7 @@ class Candidate extends \yii\db\ActiveRecord
             [['email'], 'string', 'max' => 100],
             [['fio'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 20],
+            [['comment'], 'string'],
             [['email'], 'unique'],
             [['group_id'], 'exist', 'skipOnError' => true, 'targetClass' => CandidateGroup::className(), 'targetAttribute' => ['group_id' => 'id']],
         ];
@@ -57,6 +58,7 @@ class Candidate extends \yii\db\ActiveRecord
             'phone' => 'Телефон',
             'block_mailing' => 'Блокировать рассылку',
             'group_id' => 'Группа',
+            'comment' => 'Примечание',
         ];
     }
     

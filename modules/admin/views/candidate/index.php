@@ -60,6 +60,7 @@ if (count($groups)) {
                     ['class' => 'yii\grid\SerialColumn'],
                     'email',
                     'fio',
+                    'comment',
                     [
                         'attribute' => 'block_mailing',
                         'content' => function ($model) {

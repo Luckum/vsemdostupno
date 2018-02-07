@@ -37,6 +37,8 @@ $dd_items = ArrayHelper::map($groups, 'id', 'name');
         MaskedInput::className(), [
         'mask' => '+7 (999)-999-9999',
     ]) ?>
+    
+    <?= $form->field($model, 'comment')->textArea(); ?>
 
     <?= $form->field($model, 'block_mailing')->checkbox() ?>
 

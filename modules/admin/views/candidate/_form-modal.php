@@ -33,6 +33,8 @@ if (count($groups)) {
         MaskedInput::className(), [
         'mask' => '+7 (999)-999-9999',
     ]) ?>
+    
+    <?= $form->field($modelCandidate, 'comment')->textArea(); ?>
 
     <?= $form->field($modelCandidate, 'block_mailing')->checkbox() ?>
     

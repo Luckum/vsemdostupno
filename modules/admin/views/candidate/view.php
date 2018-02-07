@@ -38,6 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'fio',
             'birthdate',
             'phone',
+            'comment',
             'block_mailing',
         ],
     ]) ?>

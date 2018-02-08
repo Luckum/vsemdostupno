@@ -118,7 +118,8 @@ class Photo extends \yii\db\ActiveRecord
         if (!file_exists(dirname($thumbName))) {
             mkdir(dirname($thumbName), 0777, true);
         }
-        imagine\Image::thumbnail($file, $width, $height, \Imagine\Image\ManipulatorInterface::THUMBNAIL_INSET)->save($thumbName);
+        //imagine\Image::thumbnail($file, $width, $height, \Imagine\Image\ManipulatorInterface::THUMBNAIL_INSET)->save($thumbName);
+        imagine\Image::thumbnail($file, $width, $height, \Imagine\Image\ManipulatorInterface::THUMBNAIL_OUTBOUND)->save($thumbName);
 
         return $this;
     }

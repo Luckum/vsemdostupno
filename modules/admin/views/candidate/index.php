@@ -54,7 +54,12 @@ if (count($groups)) {
         ]);
         $items[] = [
             'label' => $val['name'],
-            'content' => GridView::widget([
+            'content' => 
+            Html::a('Изменить группу', ['/admin/candidate-group/update', 'id' => $val->id], ['class' => 'btn btn-success update-group-btn', 'data-toggle' => 'modal', 'data-target' => '#update-group-modal', 'data-id' => $val->id, 'data-name' => $val->name]) .
+            '&nbsp;&nbsp;&nbsp;' .
+            Html::a('Удалить группу', ['/admin/candidate-group/delete', 'id' => $val->id], ['class' => 'btn btn-danger', 'data-pjax' => 0, 'data-method' => 'post', 'data-confirm' => "Вы уверены что хотите удалить группу и всех кандидатов в ней?"]) .
+            '<br><br>' .
+            GridView::widget([
                 'dataProvider' => $dataProvider,
                 'columns' => [
                     ['class' => 'yii\grid\SerialColumn'],
@@ -86,7 +91,7 @@ if (count($groups)) {
             'class' => 'btn btn-success',
             'data-toggle' => 'modal',
             'data-target' => '#add-candidate-modal',
-            ]); ?>
+        ]); ?>
         <?= Html::a('Добавить группу', ['/admin/candidate-group/create'], ['class' => 'btn btn-success', 'data-toggle' => 'modal', 'data-target' => '#add-group-modal']) ?>
     </p>
     <br />
@@ -119,9 +124,31 @@ if (count($groups)) {
 <?php Modal::end(); ?>
 
 <?php Modal::begin([
+    'id' => 'update-group-modal',
+    'options' => ['tabindex' => false,],
+    'header' => '<h4>' . 'Изменить группу кандидатов' . '</h4>',
+]); ?>
+    
+    <?php $form = ActiveForm::begin(['action' => ['/admin/candidate-group/update'], 'id' => 'update-group-frm']); ?>
+    
+    <?= $form->field($modelGroup, 'name')->textInput(['maxlength' => true, 'id' => 'update-group-name-txt']) ?>
+    
+    <div class="form-group" style="text-align: right;">
+        <?= Html::button('Закрыть', ['class' => 'btn btn-default', 'data-dismiss' => 'modal', 'aria-hidden' => 'true']) ?>
+        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
+    </div>
+    
+    <?php ActiveForm::end(); ?>
+<?php Modal::end(); ?>
+
+<?php Modal::begin([
     'id' => 'add-candidate-modal',
     'options' => ['tabindex' => false,],
     'header' => '<h4>' . 'Добавить кандидата' . '</h4>',
+    'clientOptions' => [
+        'backdrop' => 'static',
+        'keyboard' => false
+    ],
 ]); ?>
 
 <?php Modal::end(); ?>

@@ -140,6 +140,11 @@ $(document).ready(function() {
     $("#add-candidate-btn").click(function() {
         $("#add-candidate-modal .modal-dialog .modal-content .modal-body").load($(this).attr("href"));
     });
+    
+    $(".update-group-btn").click(function() {
+        $("#update-group-name-txt").val($(this).attr('data-name'));
+        $("#update-group-frm").attr('action', '/admin/candidate-group/update?id=' + $(this).attr('data-id'));
+    })
 });
 
 function toggleCategoriesContainer(status)

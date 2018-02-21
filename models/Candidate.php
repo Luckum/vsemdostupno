@@ -81,4 +81,11 @@ class Candidate extends \yii\db\ActiveRecord
         }
         return false;
     }
+    
+    public static function getLastInserted()
+    {
+        $last_id = self::find()->max('id');
+        $res = self::findOne($last_id);
+        return $res;
+    }
 }

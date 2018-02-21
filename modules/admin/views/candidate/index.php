@@ -9,6 +9,7 @@ use kartik\tabs\TabsX;
 use yii\bootstrap\Modal;
 use yii\widgets\ActiveForm;
 use yii\widgets\MaskedInput;
+use yii\widgets\Pjax;
 use kartik\date\DatePicker;
 use app\models\Candidate;
 
@@ -48,11 +49,24 @@ $this->registerJs($script, $this::POS_END);
 $dd_items = $items = [];
 if (count($groups)) {
     $dd_items = ArrayHelper::map($groups, 'id', 'name');
-    foreach ($groups as $val) {
+    foreach ($groups as $key => $val) {
+        $idx = "dp-tab";
+        $active = false;
+        
+        if (isset($_GET[$idx]) && $_GET[$idx] == $key) {
+            $active = true;
+        }
+        
         $dataProvider = new ActiveDataProvider([
             'query' => Candidate::find()->where(['group_id' => $val['id']]),
+            'pagination' => [
+                'params' => array_merge($_GET, ['dp-tab' => $key]),
+                'route' => '/admin/candidate/index',
+            ],
         ]);
+        
         $items[] = [
+            'active' => $active,
             'label' => $val['name'],
             'content' => 
             Html::a('Изменить группу', ['/admin/candidate-group/update', 'id' => $val->id], ['class' => 'btn btn-success update-group-btn', 'data-toggle' => 'modal', 'data-target' => '#update-group-modal', 'data-id' => $val->id, 'data-name' => $val->name]) .
@@ -78,6 +92,7 @@ if (count($groups)) {
             ])
         ];
     }
+    //print_r($items);
 }
 
 ?>

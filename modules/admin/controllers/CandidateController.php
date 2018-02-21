@@ -72,6 +72,8 @@ class CandidateController extends BaseController
         $model = new Candidate();
         $groups = CandidateGroup::find()->all();
         
+        $last_candidate = Candidate::getLastInserted();
+        
         $request = Yii::$app->getRequest();
         if ($request->isAjax && $model->load($request->post())) {
             Yii::$app->response->format = Response::FORMAT_JSON;
@@ -83,7 +85,8 @@ class CandidateController extends BaseController
         }
         return $this->renderAjax('_form-modal', [
             'modelCandidate' => $model,
-            'groups' => $groups
+            'groups' => $groups,
+            'last_candidate' => $last_candidate,
         ]);
     }
 

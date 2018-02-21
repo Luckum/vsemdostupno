@@ -9,11 +9,12 @@ use yii\widgets\MaskedInput;
 $dd_items = [];
 if (count($groups)) {
     $dd_items = ArrayHelper::map($groups, 'id', 'name');
+    $dd_param = ['options' => [$last_candidate->group_id => ['selected' => true]]];
 }
 ?>
 <?php $form = ActiveForm::begin(['id' => 'add-candidate-frm', 'enableAjaxValidation' => true]); ?>
     
-    <?= $form->field($modelCandidate, 'group_id')->dropDownList($dd_items) ?>
+    <?= $form->field($modelCandidate, 'group_id')->dropDownList($dd_items, $dd_param) ?>
     
     <?= $form->field($modelCandidate, 'email')->textInput(['maxlength' => true]) ?>
 

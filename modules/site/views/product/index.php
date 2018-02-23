@@ -58,7 +58,7 @@ if (Yii::$app->user->isGuest) {
 
 $features = [];
 foreach ($model->productFeatures as $feat) {
-    if ($feat->quantity > 0) {
+    if ($feat->quantity > 0 || $model->isPurchase()) {
         $features[$feat->id] = $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement;
     }
 }
@@ -128,14 +128,15 @@ foreach ($model->productFeatures as $feat) {
                 </div>
                 <?php $cnt_show = 1; ?>
                 <?php foreach ($model->productFeatures as $k => $feat): ?>
-                    <?php if ($feat->quantity > 0): ?>
+                    <?php if ($feat->quantity > 0 || $model->isPurchase()): ?>
+                        <?php $f_quantity = $model->isPurchase() ? 100 : $feat->quantity; ?>
                         <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($cnt_show != 1): ?>style="display: none;"<?php endif; ?>>
                             <?= SelectizeDropDownList::widget([
                                 'name' => 'quantity',
                                 'value' => Cart::hasQuantity($feat),
                                 'items' => array_combine(
-                                    range(1, $feat->quantity),
-                                    range(1, $feat->quantity)
+                                    range(1, $f_quantity),
+                                    range(1, $f_quantity)
                                 ),
                                 'options' => [
                                     'data-product-id' => $feat->id,

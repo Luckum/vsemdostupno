@@ -201,15 +201,15 @@ function acceptProduct() {
 		alert("Ошибка заполнения полей!");
 		return false;
 	}
-        var html = $.ajax({
-            url: "/admin/stock/add-product",
-            async: false,
-            type: "POST",
-            data: $('#addProd').serialize()
-        }).responseText;
-        if (html) {
-            $("#stock-list").html(html);
-        }
+    var html = $.ajax({
+        url: "/admin/stock/add-product",
+        async: false,
+        type: "POST",
+        data: $('#addProd').serialize()
+    }).responseText;
+    if (html) {
+        $("#stock-list").html(html);
+    }
 	$('#accept-product-modal').modal('hide');
 }
 
@@ -336,4 +336,67 @@ function transferFundTo()
     $('#transfer-to-modal').on('hidden.bs.modal', function (e) {
         $.pjax.reload({container:"#fund-deduction-pjax"});
     });
+}
+
+function detalization()
+{
+    if ($("#purchase-details-btn").hasClass("closed")) {
+        var html = $.ajax({
+            url: "/admin/provider-order/get-detalization",
+            async: false,
+            type: "POST",
+            data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
+        }).responseText;
+        if (html) {
+            $("#purchase-details-btn").removeClass("closed");
+            $("#purchase-details-btn").addClass("opened");
+            $("#purchase-details-btn").text('Свернуть');
+            $("#purchase-details-container").html(html);
+            $("#purchase-details-container").slideDown(500);
+        }
+    } else {
+        $("#purchase-details-btn").removeClass("opened");
+        $("#purchase-details-btn").addClass("closed");
+        $("#purchase-details-btn").text('Детализация');
+        //$("#purchase-details-container").html("");
+        $("#purchase-details-container").slideUp();
+        $.ajax({
+            url: "/admin/provider-order/show-all",
+            type: "POST",
+            data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()},
+            success: function(response) {
+                
+            }
+        });
+    }
+}
+
+function hideOrder(obj)
+{
+    var html = $.ajax({
+        url: "/admin/provider-order/hide",
+        async: false,
+        type: "POST",
+        data: {o_id: $(obj).attr("data-order-id"), date_e: $(obj).attr("data-date-e"), date_s: $(obj).attr("data-date-s")}
+    }).responseText;
+    if (html) {
+        $("#purchase-details-container").html(html);
+    }
+}
+
+function setPageView()
+{
+    var html = $.ajax({
+        url: "/admin/provider-order/set-view",
+        async: false,
+        type: "POST",
+        data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
+    }).responseText;
+    if (html) {
+        $("#purchase-details-btn").removeClass("closed");
+        $("#purchase-details-btn").addClass("opened");
+        $("#purchase-details-btn").text('Свернуть');
+        $("#purchase-details-container").html(html);
+        $("#purchase-details-container").slideDown(500);
+    }
 }

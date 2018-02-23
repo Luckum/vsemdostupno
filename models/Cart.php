@@ -99,11 +99,14 @@ class Cart extends Model
                 ->joinWith('product')
                 ->andWhere(['IN', 'product_feature.id', array_keys($cart)])
                 ->andWhere('product.visibility != 0')
-                ->andWhere('quantity > 0')
+                //->andWhere('quantity > 0')
                 ->orderBy(['name' => SORT_ASC])
                 ->all();
-
+                
             foreach ($products as $index => $product) {
+                if ($products[$index]->product->isPurchase()) {
+                    $products[$index]->quantity = 100;
+                }
                 if ($cart[$product->id]['quantity'] > $products[$index]->quantity) {
                     $products[$index]->cart_quantity = $products[$index]->quantity;
                 } else {

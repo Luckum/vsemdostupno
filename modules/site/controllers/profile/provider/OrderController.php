@@ -58,7 +58,7 @@ class OrderController extends BaseController
         $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m'), date('d') - 1, date('Y')));
         
         $partner = Partner::getByUserId(Yii::$app->user->identity->id);
-        $dataProvider = Order::getProviderOrderByPartner($partner->id, ['start' => $dateStart, 'end' => $dateEnd]);
+        $dataProvider = Order::getProviderOrderByPartner($partner->id, ['start' => $dateStart, 'end' => $dateEnd], 1);
         
         return $this->render('index', [
             'date' => ['start' => $dateStart, 'end' => $dateEnd],

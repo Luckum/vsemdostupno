@@ -10,6 +10,7 @@ use app\models\Product;
 use app\models\ProductFeature;
 use app\models\ProductPrice;
 use app\models\Cart;
+use app\models\Category;
 
 class ProductController extends BaseController
 {
@@ -18,12 +19,24 @@ class ProductController extends BaseController
         $model = Product::find()
             ->joinWith('productFeatures')
             ->joinWith('productFeatures.productPrices')
+            ->joinWith('categoryHasProduct')
+            ->joinWith('categoryHasProduct.category')
             ->andWhere('product.id = :id', [':id' => $id])
-            ->andWhere('visibility != 0')
+            ->andWhere('product.visibility != 0')
+            ->andWhere('published != 0')
+            ->one();
+
+        if (!$model->isPurchase()) {
+            $model = Product::find()
+            ->joinWith('productFeatures')
+            ->joinWith('productFeatures.productPrices')
+            ->andWhere('product.id = :id', [':id' => $id])
+            ->andWhere('product.visibility != 0')
             ->andWhere('published != 0')
             ->andWhere('product_feature.quantity > 0')
             ->one();
-
+        }
+        
         if (!$model) {
             throw new NotFoundHttpException('Страница не найдена.');
         }

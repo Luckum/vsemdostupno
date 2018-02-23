@@ -9,21 +9,21 @@ use app\models\Provider;
 use app\models\ProviderNotification;
 use app\models\User;
 
-class OrdernotificationController extends Controller
+class OrderNotificationController extends Controller
 {
     public function actionIndex()
     {
         $dateEnd = date('Y-m-d 21:00:00');
         $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m'), date('d') - 1, date('Y')));
         
-        $providers = Order::getProviderIdByDate(['start' => $dateStart, 'end' => $dateEnd]);
+        $providers = Order::getProviderIdByDate(['start' => $dateStart, 'end' => $dateEnd], 1);
         if ($providers) {
             foreach ($providers as $provider) {
                 if ($provider['provider_id'] != 0) {
-                    $partners = Order::getPartnerIdByProvider(['start' => $dateStart, 'end' => $dateEnd], $provider['provider_id']);
+                    $partners = Order::getPartnerIdByProvider(['start' => $dateStart, 'end' => $dateEnd], $provider['provider_id'], 1);
                     if ($partners) {
                         foreach ($partners as $partner) {
-                            $details = Order::getOrderDetailsByProviderPartner(['start' => $dateStart, 'end' => $dateEnd], $provider['provider_id'], $partner['partner_id']);
+                            $details = Order::getOrderDetailsByProviderPartner(['start' => $dateStart, 'end' => $dateEnd], $provider['provider_id'], $partner['partner_id'], 1);
                             if ($details) {
                                 $this->sendEmailToProvider($details, $provider['provider_id'], $partner['partner_id'], $dateEnd);
                                 foreach ($details as $detail) {
@@ -41,13 +41,13 @@ class OrdernotificationController extends Controller
                 }
             }
         }
-        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd);
+        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1);
         $this->sendEmailToAdmin($dataProvider, ['start' => $dateStart, 'end' => $dateEnd]);
         
-        $partners = Order::getPartnerIdByDate(['start' => $dateStart, 'end' => $dateEnd]);
+        $partners = Order::getPartnerIdByDate(['start' => $dateStart, 'end' => $dateEnd], 1);
         if ($partners) {
             foreach ($partners as $partner) {
-                $dataProvider = Order::getProviderOrderByPartner($partner['partner_id'], ['start' => $dateStart, 'end' => $dateEnd]);
+                $dataProvider = Order::getProviderOrderByPartner($partner['partner_id'], ['start' => $dateStart, 'end' => $dateEnd], 1);
                 $this->sendEmailToPartner($dataProvider, ['start' => $dateStart, 'end' => $dateEnd], $partner['partner_id']);
             }
         }
@@ -73,11 +73,12 @@ class OrdernotificationController extends Controller
         $admin = User::find()->where(['role' => 'admin'])->one();
         Yii::$app->mailer->compose('admin/order', [
                 'dataProvider' => $dataProvider,
-                'date' => $date
+                'date' => $date,
+                'link' => 'http://vsemdostupno.dev' . '/admin/provider-order/date?' . 'date_e=' . date('Y-m-d', strtotime($date['end'])) . '&date_s=' . date('Y-m-d', strtotime($date['start']))
             ])
             ->setFrom(Yii::$app->params['fromEmail'])
             ->setTo($admin->email)
-            ->setSubject('Заявка на поставку товаров с сайта "' . Yii::$app->params['name'] . '"')
+            ->setSubject('Завершён сбор заявок на поставку с сайта "' . Yii::$app->params['name'] . '"')
             ->send();
     }
     
@@ -90,7 +91,7 @@ class OrdernotificationController extends Controller
             ])
             ->setFrom(Yii::$app->params['fromEmail'])
             ->setTo($partner->user->email)
-            ->setSubject('Заявка на поставку товаров с сайта "' . Yii::$app->params['name'] . '"')
+            ->setSubject('Завершён сбор заявок на поставку с сайта "' . Yii::$app->params['name'] . '"')
             ->send();
     }
 }

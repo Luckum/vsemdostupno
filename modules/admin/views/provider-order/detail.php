@@ -4,7 +4,8 @@ use yii\helpers\Url;
 use app\models\ProductFeature;
 
 $this->title = 'Детали заказа';
-$this->params['breadcrumbs'][] = ['label' => 'Заказы поставщикам', 'url' => '/admin/provider-order'];
+$this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/admin/provider-order'];
+$this->params['breadcrumbs'][] = ['label' => 'Заявка на поставку товаров на ' . date('d.m.Y', strtotime($date)), 'url' => '/admin/provider-order/date?date_e=' . date('Y-m-d', strtotime($date)) . '&date_s=' . date('Y-m-d', strtotime($date_s))];
 $this->params['breadcrumbs'][] = $this->title;
 $total_price = $total_qnt = 0;
 ?>

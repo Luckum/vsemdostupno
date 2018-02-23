@@ -231,14 +231,22 @@ class Category extends \yii\db\ActiveRecord
         $categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
         $categoryIds = array_merge([$this->id], $categoryIds);
 
+        $where = ['>', 'product_feature.quantity', 0];
+        if ($this->isPurchase()) {
+            $where = [];
+        }
+        
         $query = new Query();
         $productIds = $query->select('DISTINCT {{%product}}.id')
             ->from('{{%product}}')
             ->join('LEFT JOIN', '{{%category_has_product}}', '{{%category_has_product}}.product_id = {{%product}}.id')
             ->join('LEFT JOIN', 'product_feature', 'product_feature.product_id = {{%product}}.id')
+            ->join('LEFT JOIN', 'product_price', 'product_feature.id = product_price.product_feature_id')
             ->where(['IN', '{{%category_has_product}}.category_id', $categoryIds])
-            ->andWhere(['>', 'product_feature.quantity', 0])
+            ->andWhere('product_price.purchase_price IS NOT NULL')
+            ->andWhere($where)
             ->all();
+        
         $productIds = ArrayHelper::getColumn($productIds, 'id');
 
         return Product::find()
@@ -495,4 +503,5 @@ class Category extends \yii\db\ActiveRecord
         }
         return false;
     }
+    
 }

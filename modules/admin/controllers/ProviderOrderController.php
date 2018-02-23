@@ -1,10 +1,14 @@
 <?php
 namespace app\modules\admin\controllers;
 use Yii;
+use yii\data\ActiveDataProvider;
 use app\models\Order;
+use app\models\OrderHasProduct;
 use app\models\Partner;
 use app\models\Product;
 use app\models\Provider;
+use app\models\User;
+use app\models\OView;
 
 class ProviderOrderController extends BaseController
 {
@@ -17,7 +21,7 @@ class ProviderOrderController extends BaseController
                 $dateInit = strtotime($date['order_date']);
                 $dateEnd = date('Y-m-d 21:00:00', $dateInit);
                 $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
-                $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd);
+                $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
                 $dataProviderAll[] = $dataProvider;
                 $dates[] = ['start' => $dateStart, 'end' => $dateEnd];
                 
@@ -27,7 +31,7 @@ class ProviderOrderController extends BaseController
                     if ($datesDiff > 1) {
                         $dateStart = date('Y-m-d 21:00:00', $dateInit);
                         $dateEnd = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) + 1, date('Y', $dateInit)));
-                        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd);
+                        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
                         $dataProviderAll[] = $dataProvider;
                         $dates[] = ['start' => $dateStart, 'end' => $dateEnd];
                     }
@@ -64,17 +68,168 @@ class ProviderOrderController extends BaseController
             //'product' => $product,
             'provider' => $provider,
             'date' => $date,
+            'date_s' => $dateStart,
             'details' => $details,
         ]);
     }
     
-    public function actionHide($date_e, $date_s)
+    public function actionHide()
+    {
+        $order_id = $_POST['o_id'];
+        $dateStart = $_POST['date_s'];
+        $dateEnd = $_POST['date_e'];
+        
+        $order = Order::findOne($order_id);
+        $order->hide = 1;
+        $order->save();
+        
+        $dataProvider = Order::getDetalization($dateStart, $dateEnd, 1);
+        return $this->renderPartial('_detail', [
+            'dataProvider' => $dataProvider,
+            'date_e' => $dateEnd,
+            'date_s' => $dateStart,
+        ]);
+    }
+    
+    public function actionDate($date_e, $date_s)
     {
         $dateEnd = date('Y-m-d 21:00:00', strtotime($date_e));
         $dateStart = date('Y-m-d 21:00:00', strtotime($date_s));
         
-        $orders = Order::hideOrdersByDate(['start' => $dateStart, 'end' => $dateEnd]);
-        return $this->redirect(['index']);
+        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1);
+        $date = ['start' => $dateStart, 'end' => $dateEnd];
+        
+        return $this->render('date', [
+            'date' => $date,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+    
+    public function actionGetDetalization()
+    {
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->entity->id,
+            'section' => 'po',
+            'dts' => date('Y-m-d', strtotime($_POST['date_s'])),
+            'dte' => date('Y-m-d', strtotime($_POST['date_e'])) 
+        ])->one();
+        
+        if (!$view_model) {
+            $view_model = new OView;
+            $view_model->user_id = Yii::$app->user->identity->entity->id;
+            $view_model->section = 'po';
+            $view_model->dts = $_POST['date_s'];
+            $view_model->dte = $_POST['date_e'];
+        }
+        
+        $view_model->detail = 'opened';
+        $view_model->save();
+        
+        $dateEnd = date('Y-m-d 21:00:00', strtotime($_POST['date_e']));
+        $dateStart = date('Y-m-d 21:00:00', strtotime($_POST['date_s']));
+        
+        $dataProvider = Order::getDetalization($dateStart, $dateEnd, 1);
+        return $this->renderPartial('_detail', [
+            'dataProvider' => $dataProvider,
+            'date_e' => $dateEnd,
+            'date_s' => $dateStart,
+        ]);
+    }
+    
+    public function actionShowAll()
+    {
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->entity->id,
+            'section' => 'po',
+            'dts' => date('Y-m-d', strtotime($_POST['date_s'])),
+            'dte' => date('Y-m-d', strtotime($_POST['date_e'])) 
+        ])->one();
+        
+        if (!$view_model) {
+            $view_model = new OView;
+            $view_model->user_id = Yii::$app->user->identity->entity->id;
+            $view_model->section = 'po';
+            $view_model->dts = $_POST['date_s'];
+            $view_model->dte = $_POST['date_e'];
+        }
+        
+        $view_model->detail = 'closed';
+        $view_model->save();
+        
+        $dateEnd = date('Y-m-d 21:00:00', strtotime($_POST['date_e']));
+        $dateStart = date('Y-m-d 21:00:00', strtotime($_POST['date_s']));
+        $dataProvider = Order::getDetalization($dateStart, $dateEnd, 1, 1);
+        $models = $dataProvider->getModels();
+        foreach ($models as $model) {
+            $model->hide = 0;
+            $model->save();
+        }
+        return true;
+    }
+    
+    public function actionAdminDelete($date)
+    {
+        $dateInit = strtotime($date);
+        $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1);
+        $models = $dataProvider->getModels();
+        while (count($models)) {
+            foreach ($models as $model) {
+                $ohp = OrderHasProduct::findOne($model['ohp_id']);
+                $ohp->deleted = 1;
+                $ohp->save();
+            }
+            $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1);
+            $models = $dataProvider->getModels();
+        }
+        
+        
+        $this->redirect(['index']);
+    }
+    
+    public function actionDelete($date)
+    {
+        $dateInit = strtotime($date);
+        $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1, -1);
+        $models = $dataProvider->getModels();
+        while (count($models)) {
+            foreach ($models as $model) {
+                $ohp = OrderHasProduct::findOne($model['ohp_id']);
+                $ohp->delete();
+            }
+            $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1, -1);
+            $models = $dataProvider->getModels();
+        }
+        
+        $this->redirect(['index']);
+    }
+    
+    public function actionSetView()
+    {
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->entity->id,
+            'section' => 'po',
+            'dts' => date('Y-m-d', strtotime($_POST['date_s'])),
+            'dte' => date('Y-m-d', strtotime($_POST['date_e'])) 
+        ])->one();
+        
+        if ($view_model) {
+            if ($view_model->detail == 'opened') {
+                $dateEnd = date('Y-m-d 21:00:00', strtotime($_POST['date_e']));
+                $dateStart = date('Y-m-d 21:00:00', strtotime($_POST['date_s']));
+                
+                $dataProvider = Order::getDetalization($dateStart, $dateEnd, 1);
+                return $this->renderPartial('_detail', [
+                    'dataProvider' => $dataProvider,
+                    'date_e' => $dateEnd,
+                    'date_s' => $dateStart,
+                ]);
+            }
+        }
+        
+        return false;
     }
 }
-?>

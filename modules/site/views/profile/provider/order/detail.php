@@ -4,7 +4,7 @@ use yii\helpers\Url;
 use app\models\ProductFeature;
 
 $this->title = 'Детали заказа';
-$this->params['breadcrumbs'][] = ['label' => 'Заказы поставщикам', 'url' => '/profile/provider/order/index'];
+$this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/profile/provider/order/index'];
 $this->params['breadcrumbs'][] = $this->title;
 $total_price = $total_qnt = 0;
 ?>

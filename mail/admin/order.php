@@ -82,3 +82,5 @@ $total_price = 0;
         <td colspan="2"><b><?= number_format($total_price, 2, ".", ""); ?></b></td>
     </tr>
 </table>
+
+<a href="<?= $link ?>">Посмотреть в админ панели</a>

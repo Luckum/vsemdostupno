@@ -277,12 +277,10 @@ class Product extends \yii\db\ActiveRecord
 
     public function isPurchase()
     {
-        foreach ($this->categories as $category) {
-            if ($category->isPurchase()) {
-                return true;
-            }
+        if ($this->category->isPurchase()) {
+            return true;
         }
-
+        
         return false;
     }
 

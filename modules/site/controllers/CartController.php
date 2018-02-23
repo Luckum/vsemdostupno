@@ -157,7 +157,7 @@ class CartController extends BaseController
                         throw new Exception('Товар нельзя заказать!');
                     }
 
-                    if (isset($product->quantity)) {
+                    if (!$product->product->isPurchase()) {
                         $product->quantity -= $product->cart_quantity;
                         
                         if ($product->quantity < 0) {
@@ -183,6 +183,7 @@ class CartController extends BaseController
                     $orderHasProduct->fraternity_price = 0;
                     $orderHasProduct->product_feature_id = $product->id;
                     $orderHasProduct->group_price = 0;
+                    $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
                     
                     $orderHasProduct->quantity = $product->cart_quantity;
                     $orderHasProduct->total = $product->calculatedTotalPrice;
@@ -197,7 +198,7 @@ class CartController extends BaseController
                         $provider_model = Provider::findOne(['id' => $provider_id]);
                         $provider_account = Account::findOne(['user_id' => $provider_model->user_id]);
 
-                        if ($stock_provider) {
+                        if ($stock_provider && !$product->product->isPurchase()) {
                             if ($stock_provider->reaminder_rent >= $orderHasProduct->quantity) {
                                 $stock_provider->reaminder_rent -= $orderHasProduct->quantity;
                                 $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
@@ -249,13 +250,6 @@ class CartController extends BaseController
                             }
                             
                         }
-
-                        $unitContibution = new UnitContibution();
-                        $unitContibution->order_id=$orderHasProduct->order_id;
-                        $unitContibution->provider_stock_id=$stock_provider->id;
-                        $unitContibution->on_deposit=$stock_provider->total_sum-$stock_provider->summ_reminder;
-
-                        $unitContibution->save();
                     }
                     if (!$orderHasProduct->save()) {
                         throw new Exception('Ошибка сохранения товара в заказе!');

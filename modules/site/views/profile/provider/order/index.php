@@ -5,7 +5,7 @@ use yii\grid\GridView;
 use app\helpers\NumberColumn;
 use app\models\ProductFeature;
 
-$this->title = 'Заказы поставщикам';
+$this->title = 'Коллективная закупка';
 $this->params['breadcrumbs'] = [$this->title];
 ?>
 

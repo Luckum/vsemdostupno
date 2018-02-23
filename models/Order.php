@@ -34,6 +34,7 @@ use yii\data\ActiveDataProvider;
  * @property string $comment
  * @property string $paid_total
  * @property integer $order_status_id
+ * @property integer $hide
  *
  * @property User $user
  * @property City $city
@@ -65,7 +66,7 @@ class Order extends \yii\db\ActiveRecord
     {
         return [
             [['created_at'], 'safe'],
-            [['city_id', 'partner_id', 'user_id', 'order_status_id'], 'integer'],
+            [['city_id', 'partner_id', 'user_id', 'order_status_id', 'hide'], 'integer'],
             [['city_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic', 'total', 'order_status_id'], 'required'],
             [['role', 'address', 'comment'], 'string'],
             [['total', 'paid_total'], 'number'],
@@ -223,12 +224,15 @@ class Order extends \yii\db\ActiveRecord
         return $this->hasOne(UnitContibution::className(),['order_id'=>'id']);
     }
     
-    public static function getProvidersOrder($dateStart, $dateEnd)
+    public static function getProvidersOrder($dateStart, $dateEnd, $isPurchase = -1, $deleted = 0)
     {
         $count = Yii::$app->db->createCommand('SELECT COUNT(*) FROM `order` WHERE created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"')->queryScalar();
         $count = 0;
+        $where = $isPurchase == -1 ? '1' : 'ohp.purchase = ' . $isPurchase;
+        $whereD = $deleted == -1 ? '1' : 'ohp.deleted = ' . $deleted;
         $dataProvider = new SqlDataProvider([
-            'sql' => 'SELECT pr.id, 
+            'sql' => 'SELECT pr.id,
+                            ohp.id AS ohp_id, 
                             o.partner_id AS pid, 
                             o.partner_name,
                             ohp.quantity, 
@@ -248,6 +252,8 @@ class Order extends \yii\db\ActiveRecord
                         LEFT JOIN `product` pr ON ohp.product_id = pr.id
                         LEFT JOIN `product_feature` pf ON ohp.product_feature_id = pf.id
                         WHERE `o`.created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"
+                            AND ' . $whereD . '
+                            AND ' . $where . '
                         GROUP BY product_feature_id',
             'totalCount' => $count,
             'pagination' => [
@@ -301,8 +307,9 @@ class Order extends \yii\db\ActiveRecord
         return $command->queryAll();
     }
     
-    public static function getProviderOrderByPartner($partner_id, $date)
+    public static function getProviderOrderByPartner($partner_id, $date, $isPurchase = -1)
     {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
         $query = new Query;
         $query->select([
                 'order_has_product.product_id',
@@ -321,6 +328,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'provider', 'order_has_product.provider_id=provider.id')
             ->join('LEFT JOIN', 'product_feature', 'order_has_product.product_feature_id=product_feature.id')
             ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere($where)
             ->groupBy('product_feature_id, p_id')
             ->having(['p_id' => $partner_id]);
         
@@ -330,22 +338,25 @@ class Order extends \yii\db\ActiveRecord
         
         return $dataProvider;
     }
-    public static function getProviderIdByDate($date)
+    public static function getProviderIdByDate($date, $isPurchase = -1)
     {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
         $query = new Query;
         $query->select([
                 'DISTINCT(order_has_product.provider_id)'
             ])
             ->from('order')
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
-            ->where(['between', 'created_at', $date['start'], $date['end']]);
+            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere($where);
             
         $command = $query->createCommand();
         return $command->queryAll();
     }
     
-    public static function getPartnerIdByProvider($date, $provider_id)
+    public static function getPartnerIdByProvider($date, $provider_id, $isPurchase = -1)
     {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
         $query = new Query;
         $query->select([
                 'DISTINCT(IF (order.partner_id IS NULL, partner.id, order.partner_id)) AS partner_id',
@@ -354,14 +365,16 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->where(['order_has_product.provider_id' => $provider_id])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']]);
+            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere($where);
         
         $command = $query->createCommand();
         return $command->queryAll();
     }
     
-    public static function getOrderDetailsByProviderPartner($date, $provider_id, $partner_id)
+    public static function getOrderDetailsByProviderPartner($date, $provider_id, $partner_id, $isPurchase = -1)
     {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
         $query = new Query;
         $query->select([
                 'IF (order.partner_id IS NULL, partner.id, order.partner_id) AS p_id',
@@ -380,6 +393,7 @@ class Order extends \yii\db\ActiveRecord
             ->where(['order_has_product.provider_id' => $provider_id])
             ->andWhere(['between', 'created_at', $date['start'], $date['end']])
             ->andWhere(['product.auto_send' => '1'])
+            ->andWhere($where)
             ->groupBy('product_feature, p_id')
             ->having(['p_id' => $partner_id]);
             
@@ -387,15 +401,18 @@ class Order extends \yii\db\ActiveRecord
         return $command->queryAll();
     }
     
-    public static function getPartnerIdByDate($date)
+    public static function getPartnerIdByDate($date, $isPurchase = -1)
     {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
         $query = new Query;
         $query->select([
                 'DISTINCT(IF (order.partner_id IS NULL, partner.id, order.partner_id)) AS partner_id',
             ])
             ->from('order')
+            ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
-            ->where(['between', 'created_at', $date['start'], $date['end']]);
+            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere($where);
         
         $command = $query->createCommand();
         return $command->queryAll();
@@ -480,5 +497,33 @@ class Order extends \yii\db\ActiveRecord
             }
             $this->delete();
         }
+    }
+    
+    public static function getDetalization($date_s, $date_e, $isPurchase = -1, $hide = 0)
+    {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
+        
+        $query = self::find();
+        $query->joinWith('orderHasProducts');
+        $query->where(['between', 'created_at', $date_s, $date_e]);
+        $query->andWhere(['hide' => $hide]);
+        $query->andWhere($where);
+            
+            
+            
+        /*$query = new Query;
+        $query->select([
+                'order.*'
+            ])
+            ->from('order')
+            ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
+            ->where(['between', 'created_at', $date_s, $date_e])
+            ->andWhere($where);*/
+        
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query
+        ]);
+        
+        return $dataProvider;
     }
 }

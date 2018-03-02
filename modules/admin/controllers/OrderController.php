@@ -170,9 +170,9 @@ class OrderController extends BaseController
         $objectExcel->setActiveSheetIndex(0)
             ->setCellValue('A25', $parameters['message'])
             ->setCellValue('AM21', $order->total)
-            ->setCellValue('AR15', sprintf('%05d', $order->id))
+            ->setCellValue('AR15', sprintf('%05d', $order->order_id))
             ->setCellValue('BB15', $parameters['currentDate'])
-            ->setCellValue('BQ10', sprintf('к приходному кассовому ордеру № %05d', $order->id))
+            ->setCellValue('BQ10', sprintf('к приходному кассовому ордеру № %05d', $order->order_id))
             ->setCellValue('BQ12', sprintf('от %s г.', $parameters['currentDate']))
             ->setCellValue('BQ14', $parameters['fullName'])
             ->setCellValue('BQ16', $parameters['message'])
@@ -632,6 +632,7 @@ class OrderController extends BaseController
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F8', Template::parseTemplate($parameters, $value_f8));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F4', $parameters['fullName']);
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F6', $parameters['fullName']);
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('N11', sprintf('%05d', $order->order_id));
 
         $total_summ = 0;
         if (count($order->orderHasProducts) > 1) {

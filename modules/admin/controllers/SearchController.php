@@ -143,7 +143,6 @@ class SearchController extends BaseController
             $query->select(['LPAD(`order_id`, 5, "0") as `order_id`'])
                 ->from('order')
                 ->where('LPAD(order_id, 5, "0") LIKE "%' . $order_numb .'%"')
-                //->orWhere('purchase_order_id LIKE "%' . $order_numb .'%"')
                 ->orderBy('order_id');
             $command = $query->createCommand();
             $data = $command->queryAll();

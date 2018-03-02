@@ -37,7 +37,6 @@ use yii\data\ActiveDataProvider;
  * @property integer $order_status_id
  * @property integer $hide
  * @property integer $order_id
- * @property integer $purchase_order_id
  *
  * @property User $user
  * @property City $city
@@ -68,7 +67,7 @@ class Order extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['created_at', 'order_id', 'purchase_order_id'], 'safe'],
+            [['created_at', 'order_id'], 'safe'],
             [['city_id', 'partner_id', 'user_id', 'order_status_id', 'hide'], 'integer'],
             [['city_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic', 'total', 'order_status_id'], 'required'],
             [['role', 'address', 'comment'], 'string'],
@@ -109,7 +108,6 @@ class Order extends \yii\db\ActiveRecord
             'shortName' => 'ФИО',
             'htmlFormattedInformation' => 'Информация',
             'htmlEmailFormattedInformation' => 'Информация',
-            'purchase_order_id' => 'Идентификатор',
             'order_id' => 'Идентификатор',
         ];
     }
@@ -292,7 +290,7 @@ class Order extends \yii\db\ActiveRecord
     {
         $query = new Query;
         $query->select([
-                'order.purchase_order_id as id',
+                'order.order_id as id',
                 'CONCAT(order.lastname, " ", order.firstname, " ", order.patronymic) AS fio',
                 'order_has_product.quantity',
                 'order_has_product.price',
@@ -697,5 +695,25 @@ class Order extends \yii\db\ActiveRecord
         ]);
         
         return $dataProvider;
+    }
+    
+        /**
+     * @inheritdoc
+     */
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            
+            $order_id = self::find()->where('YEAR(created_at) = "' . date('Y') . '"')->max('order_id');
+            if ($order_id) {
+                $this->order_id = $order_id + 1;
+            } else {
+                $this->order_id = 1;
+            }
+
+            return true;
+        } else {
+            return false;
+        }
     }
 }

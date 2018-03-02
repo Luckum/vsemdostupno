@@ -7,6 +7,7 @@ use yii\grid\GridView;
 use yii\web\JsExpression;
 use kartik\dropdown\DropdownX;
 use app\models\OrderStatus;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -43,9 +44,9 @@ $this->registerJs($script, $this::POS_END);
             ['class' => 'yii\grid\SerialColumn'],
 
             [
-                'attribute' => 'purchase_order_id',
+                'attribute' => 'order_id',
                 'content' => function($model) {
-                    return empty($model->role) ? sprintf("%'.05d\n", $model->purchase_order_id) . " От Гостя" : sprintf("%'.05d\n", $model->purchase_order_id) . " От Участника";
+                    return empty($model->role) ? sprintf("%'.05d\n", $model->order_id) . " От Гостя" : sprintf("%'.05d\n", $model->order_id) . " От Участника";
                 },
             ],
             'created_at',
@@ -109,7 +110,8 @@ $this->registerJs($script, $this::POS_END);
                                             'order-id' => $model->id
                                         ],
                                         'onclick' => 'deleteOrder(this);',
-                                    ]
+                                    ],
+                                    'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
                                 ],
                                 [
                                     'label' => 'Сделать возврат и удалить',
@@ -119,7 +121,8 @@ $this->registerJs($script, $this::POS_END);
                                             'order-id' => $model->id
                                         ],
                                         'onclick' => 'deleteReturnOrder(this);',
-                                    ]
+                                    ],
+                                    'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
                                 ],
                             ],
                         ]) .

@@ -7,6 +7,7 @@ use yii\grid\GridView;
 use yii\web\JsExpression;
 use kartik\dropdown\DropdownX;
 use app\models\OrderStatus;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -109,7 +110,8 @@ $this->registerJs($script, $this::POS_END);
                                             'order-id' => $model->id
                                         ],
                                         'onclick' => 'deleteOrderStock(this);',
-                                    ]
+                                    ],
+                                    'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
                                 ],
                                 [
                                     'label' => 'Сделать возврат и удалить',
@@ -119,7 +121,8 @@ $this->registerJs($script, $this::POS_END);
                                             'order-id' => $model->id
                                         ],
                                         'onclick' => 'deleteReturnOrderStock(this);',
-                                    ]
+                                    ],
+                                    'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
                                 ],
                             ],
                         ]) .

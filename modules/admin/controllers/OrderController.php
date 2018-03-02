@@ -569,7 +569,7 @@ class OrderController extends BaseController
 
             $orderId = $order->id;
             $order = Order::findOne($orderId);
-            $orderId = !empty($order->order_id) ? sprintf("%'.05d\n", $order->order_id) : sprintf("%'.05d\n", $order->purchase_order_id);
+            $orderId = sprintf("%'.05d\n", $order->order_id);
             
             Email::send('order-customer', Yii::$app->params['adminEmail'], [
                 'id' => $orderId,

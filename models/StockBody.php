@@ -37,7 +37,7 @@ class StockBody extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['stock_head_id', 'product_id', 'tare', 'weight', 'measurement', 'count', 'summ', 'total_summ', 'deposit', 'product_feature_id'], 'required'],
+            [['stock_head_id', 'product_id', 'weight', 'measurement', 'count', 'summ', 'total_summ', 'deposit', 'product_feature_id'], 'required'],
             [['stock_head_id', 'product_id', 'count', 'deposit'], 'integer'],
             [['weight', 'total_summ', 'summ'], 'number'],
             [['comment'], 'string'],

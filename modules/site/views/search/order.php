@@ -21,7 +21,12 @@ $this->params['breadcrumbs'] = [$this->title];
         'dataProvider' => $dataProvider,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-            'id',
+            [
+                'attribute' => 'id',
+                'content' => function($model) {
+                    return sprintf("%'.05d\n", $model->order_id);
+                },
+            ],
             'created_at',
             'htmlFormattedInformation:raw',
         ],

@@ -50,7 +50,12 @@ $this->registerJs($script, $this::POS_END);
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'id',
+            [
+                'attribute' => 'id',
+                'content' => function($model) {
+                    return sprintf("%'.05d\n", $model->order_id);
+                },
+            ],
             'created_at',
 
             [

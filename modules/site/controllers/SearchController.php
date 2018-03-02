@@ -96,7 +96,7 @@ class SearchController extends BaseController
          if($fio==null && $discount_number==null && $order_number!=null){
             
             $dataProvider = new ActiveDataProvider([
-            'query' => Order::find()->where('partner_id = :partner_id', [':partner_id' => $this->identity->entity->partner->id])->andWhere('id=:id',[':id'=>$order_number]),
+            'query' => Order::find()->where('partner_id = :partner_id', [':partner_id' => $this->identity->entity->partner->id])->andWhere('order_id=:id',[':id'=>$order_number]),
             'sort' => ['defaultOrder' => ['created_at' => SORT_DESC]],
         ]);
             return $this->render('order', [
@@ -145,23 +145,21 @@ class SearchController extends BaseController
     echo Json::encode($out);
     }
     
-    if ($order_numb !=null){
-     $query = new Query;
-     $query->select('id')
-        ->from('order')
-        ->where('id LIKE "%' . $order_numb .'%"')
-        ->andWhere('role != "admin"')
-        ->andWhere('role != "superadmin"')
-        ->orderBy('id');
-    $command = $query->createCommand();
-    $data = $command->queryAll();
-    $out = [];
-    foreach ($data as $d) {
-        $out[] = ['value' => $d['id']];
-    }
-    echo Json::encode($out);
-    }
+        if ($order_numb != null) {
+            $query = new Query;
+            $query->select(['LPAD(`order_id`, 5, "0") as `order_id`'])
+                ->from('order')
+                ->where('LPAD(order_id, 5, "0") LIKE "%' . $order_numb .'%"')
+                //->orWhere('purchase_order_id LIKE "%' . $order_numb .'%"')
+                ->orderBy('order_id');
+            $command = $query->createCommand();
+            $data = $command->queryAll();
+            $out = [];
+            foreach ($data as $d) {
+                $out[] = ['value' => $d['order_id']];
+            }
+            echo Json::encode($out);
+        }
     
+    }
 }
-}
-?>

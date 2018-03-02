@@ -32,20 +32,17 @@ die();*/
             <th></th>
         </thead>
         <tbody>
-            <?php foreach ($dataProviderAll as $i => $dataProvider): ?>
-                <?php $models = $dataProvider->getModels(); ?>
-                <?php if (count($models) > 0): ?>
-                    <tr>
-                        <td>
-                            <a href="<?= Url::to(['/admin/provider-order/date', 'date_e' => date('Y-m-d', strtotime($dates[$i]['end'])), 'date_s' => date('Y-m-d', strtotime($dates[$i]['start']))]); ?>"><?= date('d.m.Y', strtotime($dates[$i]['end'])); ?></a>
-                        </td>
-                        <td>
-                            <a href="<?= Url::to([$delete_action, 'date' => date('Y-m-d', strtotime($dates[$i]['end']))]) ?>" title="Удалить" data-pjax="0" data-method="post" data-confirm="Вы уверены что хотите удалить закупку?">
-                                <span class="glyphicon glyphicon-trash"></span>
-                            </a>
-                        </td>
-                    </tr>
-                <?php endif; ?>
+            <?php foreach ($purchases_date as $date): ?>
+                <tr>
+                    <td>
+                        <a href="<?= Url::to(['/admin/provider-order/date', 'date' => date('Y-m-d', strtotime($date['purchase_date']))]); ?>"><?= date('d.m.Y', strtotime($date['purchase_date'])); ?></a>
+                    </td>
+                    <td>
+                        <a href="<?= Url::to([$delete_action, 'date' => date('Y-m-d', strtotime($date['purchase_date']))]) ?>" title="Удалить" data-pjax="0" data-method="post" data-confirm="Вы уверены что хотите удалить закупку?">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </a>
+                    </td>
+                </tr>
             <?php endforeach; ?>
         </tbody>
     </table>

@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\db\Query;
+use app\models\Order;
 
 /**
  * This is the model class for table "order_has_product".
@@ -177,5 +178,31 @@ class OrderHasProduct extends \yii\db\ActiveRecord
     public function setOrderDate($value)
     {
         $this->order_timestamp = $value ? $value : date('Y-m-d H:i:s');
+    }
+    
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        if ($this->purchase == 1) {
+            $purchase_id = Order::find()->where('YEAR(created_at) = "' . date('Y') . '"')->max('purchase_order_id');
+            if ($purchase_id) {
+                $this->order->purchase_order_id = $purchase_id + 1;
+                $this->order->save();
+            } else {
+                $this->order->purchase_order_id = 1;
+                $this->order->save();
+            }
+        }
+        if ($this->purchase == 0) {
+            $order_id = Order::find()->where('YEAR(created_at) = "' . date('Y') . '"')->max('order_id');
+            if ($order_id) {
+                $this->order->order_id = $order_id + 1;
+                $this->order->save();
+            } else {
+                $this->order->order_id = 1;
+                $this->order->save();
+            }
+            
+        }
     }
 }

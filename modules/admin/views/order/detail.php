@@ -3,9 +3,9 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use app\models\ProductFeature;
 
-$this->title = 'Детали заказа';
-$this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/admin/provider-order'];
-$this->params['breadcrumbs'][] = ['label' => 'Заявка на поставку товаров на ' . date('d.m.Y', strtotime($date)), 'url' => '/admin/provider-order/date?date=' . date('Y-m-d', strtotime($date))];
+$this->title = 'Детали заявки';
+$this->params['breadcrumbs'][] = ['label' => 'Заказы на склад', 'url' => '/admin/order'];
+$this->params['breadcrumbs'][] = ['label' => 'Сбор заявок за ' . date('d.m.Y', strtotime($date)), 'url' => '/admin/order/date?date=' . date('Y-m-d', strtotime($date))];
 $this->params['breadcrumbs'][] = $this->title;
 $total_price = $total_qnt = 0;
 ?>

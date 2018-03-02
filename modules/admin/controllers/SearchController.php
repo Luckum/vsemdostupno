@@ -53,7 +53,9 @@ class SearchController extends BaseController
                 ->select('user.id')
                 ->from('user', ['INNER JOIN', 'member', 'user.id=member.user_id'], ['INNER JOIN', 'partner', 'user.id=partner.user_id'])
                 ->Where('user.lastname=:p1', [':p1' => $temp_fio[0]])
-                ->andWhere('user.firstname=:p2',[':p2'=>$temp_fio[1]]);
+                ->andWhere('user.firstname=:p2',[':p2'=>$temp_fio[1]])
+                ->andWhere('role != "admin"')
+                ->andWhere('role != "superadmin"');
             $command = $query->createCommand();
             $query = $command->queryAll();
             $res_query= new Query();
@@ -66,7 +68,7 @@ class SearchController extends BaseController
                 ->createCommand('SELECT COUNT(*) FROM user WHERE user.id IN ('.$res_sql.')')
                 ->queryScalar();
             $dataProvider = new SqlDataProvider([
-                'sql' => 'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.patronymic, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where u.id in ('.$res_sql.')',
+                'sql' => 'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.patronymic, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where role != "admin" AND role != "superadmin" AND u.id in ('.$res_sql.')',
                 'totalCount' => $count,
                 'pagination' => [
                     'pageSize' => 20,
@@ -76,7 +78,7 @@ class SearchController extends BaseController
          if($fio==null && $discount_number!=null && $order_number==null){
             $count= Yii::$app->db->createCommand('SELECT COUNT(*) from user WHERE user.number='.$discount_number.'')->queryScalar();
             $dataProvider= new SqlDataProvider ([
-                'sql'=>'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where u.number = ('.$discount_number.')',
+                'sql'=>'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where role != "admin" AND role != "superadmin" u.number = ('.$discount_number.')',
                 'totalCount'=>$count,
                 'pagination'=> [
                     'pageSize'=>10,
@@ -107,7 +109,8 @@ class SearchController extends BaseController
         ->distinct(true)
         ->from('user')
         ->where('lastname LIKE "%' . $temp_name[0] .'%"')
-
+        ->andWhere('role != "admin"')
+        ->andWhere('role != "superadmin"')
         ->orderBy('lastname');
     $command = $query->createCommand();
     $data = $command->queryAll();
@@ -123,6 +126,8 @@ class SearchController extends BaseController
      $query->select('number')
         ->from('user')
         ->where('number LIKE "%' . $disc_number .'%"')
+        ->andWhere('role != "admin"')
+        ->andWhere('role != "superadmin"')
         ->orderBy('number');
     $command = $query->createCommand();
     $data = $command->queryAll();
@@ -138,6 +143,8 @@ class SearchController extends BaseController
      $query->select('id')
         ->from('order')
         ->where('id LIKE "%' . $order_numb .'%"')
+        ->andWhere('role != "admin"')
+        ->andWhere('role != "superadmin"')
         ->orderBy('id');
     $command = $query->createCommand();
     $data = $command->queryAll();

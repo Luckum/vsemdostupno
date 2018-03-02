@@ -32,7 +32,7 @@ class OView extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['user_id', 'section', 'dts', 'dte', 'detail'], 'required'],
+            [['user_id', 'section', 'dts', 'detail'], 'required'],
             [['user_id'], 'integer'],
             [['section', 'detail'], 'string'],
             [['dts', 'dte'], 'safe'],

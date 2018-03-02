@@ -8,7 +8,7 @@ $models = $dataProvider->getModels();
 $total_price = 0;
 
 ?>
-<h4>Заявка на поставку товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
+<h4>Завершён рабочий период сбора заявок на <?= date('d.m.Y', strtotime($date['end'])); ?></h4>
 <table border="1">
     <tr>
         <td>№ п/п</td>
@@ -20,10 +20,9 @@ $total_price = 0;
         <td>Ед. измерения</td>
         <td>Общее количество</td>
         <td>На общую сумму</td>
-        <td>Поставщик уведомлен</td>
     </tr>
     <?php foreach ($models as $k => $val): ?>
-        <?php $orders = Order::getOrderByProduct($val['product_feature_id'], $date); ?>
+        <?php $orders = Order::getOrderByProductStock($val['product_feature_id'], $date); ?>
         <?php $rowspan = count($orders); ?>
         <?php if ($rowspan == 1): ?>
             <tr>
@@ -36,15 +35,6 @@ $total_price = 0;
                 <td><?= $val['product_feature_name']; ?></td>
                 <td><?= number_format($val['total_qnt']); ?></td>
                 <td><b><?= $val['total_price']; ?></b></td>
-                <td>
-                    <?php if (ProviderNotification::find()->where(['order_date' => date('Y-m-d', strtotime($date)), 'provider_id' => $val['provider_id'], 'product_id' => $val['id']])->exists()): ?>
-                        Да
-                    <?php else: ?>
-                        Нет<br />
-                        <?php $provider = Provider::find()->where(['id' => $val['provider_id']])->with('user')->one(); ?>
-                        <?= $provider->user->phone; ?>
-                    <?php endif; ?>
-                </td>
             </tr>
         <?php else: ?>
             <tr>
@@ -57,13 +47,6 @@ $total_price = 0;
                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $val['product_feature_name']; ?></td>
                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= number_format($val['total_qnt']); ?></td>
                 <td rowspan="<?= $rowspan; ?>" class="td-v-align"><b><?= $val['total_price']; ?></b></td>
-                <td rowspan="<?= $rowspan; ?>" class="td-v-align">
-                    <?php if (ProviderNotification::find()->where(['order_date' => date('Y-m-d', strtotime($date)), 'provider_id' => $val['provider_id'], 'product_id' => $val['id']])->exists()): ?>
-                        Да
-                    <?php else: ?>
-                        Нет
-                    <?php endif; ?>
-                </td>
             </tr>
             <?php foreach ($orders as $y => $order): ?>
                 <?php if ($y != 0): ?>

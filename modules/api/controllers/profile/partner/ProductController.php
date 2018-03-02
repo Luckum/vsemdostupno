@@ -12,6 +12,7 @@ use yii\filters\VerbFilter;
 use app\modules\api\models\profile\admin\ProductAddition;
 use app\models\User;
 use app\models\Product;
+use app\models\ProductFeature;
 
 class ProductController extends BaseController
 {
@@ -42,18 +43,19 @@ class ProductController extends BaseController
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         if (!is_null($q)) {
-            $productQuery = Product::find()
+            $productQuery = ProductFeature::find()
+                ->joinWith('product')
                 ->orWhere('name like :q', [':q' => '%' . $q . '%'])
-                ->andWhere('inventory != 0 OR inventory IS NULL')
+                ->andWhere('quantity != 0')
                 ->andWhere('visibility != 0')
                 ->orderBy(['name' => SORT_ASC]);
-
+            
             $data = [];
             foreach ($productQuery->each() as $product) {
-                if ($product->inventory) {
-                    $text = sprintf('%s (%s)', $product->name, $product->inventory);
+                if ($product->quantity) {
+                    $text = sprintf('%s (%s)', $product->product->name . ', ' . $product->featureName, $product->quantity);
                 } else {
-                    $text = $product->name;
+                    $text = $product->product->name;
                 }
                 $data[] = [
                     'id' => $product->id,
@@ -65,16 +67,18 @@ class ProductController extends BaseController
                 $out['results'] = $data;
             }
         } elseif ($id > 0) {
-            $product = Product::find()
-                ->andWhere('id = :id', [':id' => $id])
-                ->andWhere('inventory != 0 OR inventory IS NULL')
+            $productQuery = ProductFeature::find()
+                ->joinWith('product')
+                ->andWhere('product.id = :id', [':id' => $id])
+                ->andWhere('quantity != 0')
                 ->andWhere('visibility != 0')
                 ->one();
+            
             if ($product) {
-                if ($product->inventory) {
-                    $text = sprintf('%s (%s)', $product->name, $product->inventory);
+                if ($product->quantity) {
+                    $text = sprintf('%s (%s)', $product->product->name . ', ' . $product->featureName, $product->quantity);
                 } else {
-                    $text = $product->name;
+                    $text = $product->product->name;
                 }
                 $out['results'] = [
                     [
@@ -96,22 +100,27 @@ class ProductController extends BaseController
         }
 
         $user = User::findOne($productAddition->user_id);
-        $product = Product::findOne($productAddition->product_id);
+        //$product = Product::find()->andWhere('name LIKE :q',[':q'=>'%'.$productAddition->product_id.'%'])->one();
+        $product = ProductFeature::find()
+            ->joinWith('product')
+            ->joinWith('productPrices')
+            ->where(['product_feature.id' => $productAddition->product_id])
+            ->one();
 
-        if (!$user || $user->disabled || !$product || !$product->visibility) {
+        if (!$user || $user->disabled || !$product) {
             throw new ForbiddenHttpException('Действие не разрешено.');
         }
 
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $quantity = $product->inventory && $product->inventory < $productAddition->quantity ?
-            $product->inventory : $productAddition->quantity;
-        $price = $product->getPriceByRole($user->role);
+        $quantity = $product->quantity && $product->quantity < $productAddition->quantity ?
+            $product->quantity : $productAddition->quantity;
+        $price = $product->productPrices[0]->member_price;
         $total = sprintf('%.2f', $quantity * $price);
 
         return [
             'id' => $product->id,
-            'name' => $product->name,
+            'name' => $product->product->name . ', ' . $product->featureName,
             'quantity' => $quantity,
             'price' => $price,
             'total' => $total,

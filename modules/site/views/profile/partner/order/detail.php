@@ -1,18 +1,17 @@
 <?php
-use yii\helpers\Html;
+use kartik\helpers\Html;
 use yii\helpers\Url;
 use app\models\ProductFeature;
 
 $this->title = 'Детали заказа';
-$this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/admin/provider-order'];
-$this->params['breadcrumbs'][] = ['label' => 'Заявка на поставку товаров на ' . date('d.m.Y', strtotime($date)), 'url' => '/admin/provider-order/date?date=' . date('Y-m-d', strtotime($date))];
+$this->params['breadcrumbs'][] = ['label' => 'Заказы на склад', 'url' => '/profile/partner/order/index'];
 $this->params['breadcrumbs'][] = $this->title;
 $total_price = $total_qnt = 0;
 ?>
 
-<div class="member-index">
-    <h1><?= Html::encode($this->title) ?></h1>
-    <h4>Заявка от участников <?= $partner->name; ?> для поставки товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
+<?= Html::pageHeader(Html::encode($this->title)) ?>
+<h4>Заказы от участников <?= $partner->name; ?> на <?= date('d.m.Y', strtotime($date)); ?></h4>
+<div class="order-index">
     <table class="table table-bordered">
         <thead>
             <th>Поставщик</th>
@@ -60,7 +59,7 @@ $total_price = $total_qnt = 0;
                         <tr>
                             <td><?= $k + 1 ?></td>
                             <td><?= $detail['fio']; ?></td>
-                            <td><?= sprintf("%'.05d\n", $detail['id']); ?></td>
+                            <td><?= sprintf("%'.05d\n", $details[0]['id']); ?></td>
                             <td><?= ProductFeature::getFeatureNameById($detail['product_feature_id']); ?></td>
                             <td><?= $detail['price']; ?></td>
                             <td><?= number_format($detail['quantity']); ?></td>

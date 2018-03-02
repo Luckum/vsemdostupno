@@ -5,14 +5,13 @@ use yii\grid\GridView;
 use app\helpers\NumberColumn;
 use app\models\ProductFeature;
 
-$this->title = 'Коллективная закупка';
+$this->title = 'Заказы на склад';
 $this->params['breadcrumbs'] = [$this->title];
 ?>
 
 <?= Html::pageHeader(Html::encode($this->title)) ?>
-<h4>Заявка на поставку товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
+<h4>Сбор заявок за <?= date('d.m.Y', strtotime($date['end'])); ?></h4>
 <div class="order-index">
-<!--    <a href="<?//= Url::to(['/profile/provider/order/hide', 'date' => date('Y-m-d', strtotime($date))]); ?>">Удалить заявку</a>-->
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
@@ -41,7 +40,7 @@ $this->params['breadcrumbs'] = [$this->title];
                 'format' => 'raw',
                 'contentOptions' => ['style' => 'font-weight: 600;'],
                 'value' => function ($data) use ($date) {
-                    return Html::a(number_format($data['quantity']), Url::to(['/profile/provider/order/detail', 'id' => $data['product_feature_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date))]), ['style' => 'text-decoration: underline;']);
+                    return Html::a(number_format($data['quantity']), Url::to(['/profile/partner/order/detail', 'id' => $data['product_feature_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]), ['style' => 'text-decoration: underline;']);
                 },
                 'footerOptions' => ['style' => 'display: none;']
             ],

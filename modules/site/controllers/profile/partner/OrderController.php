@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\site\controllers\profile\provider;
+namespace app\modules\site\controllers\profile\partner;
 
 use Yii;
 use app\modules\site\controllers\BaseController;
@@ -54,23 +54,26 @@ class OrderController extends BaseController
     
     public function actionIndex()
     {
-        $date = date('Y-m-d');
-        
+        $dateEnd = date('Y-m-d 21:00:00');
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m'), date('d') - 1, date('Y')));
+                
         $partner = Partner::getByUserId(Yii::$app->user->identity->id);
-        $dataProvider = Order::getProviderOrderByPartner($partner->id, $date, 1);
+        $dataProvider = Order::getProviderOrderByPartnerStock($partner->id, ['start' => $dateStart, 'end' => $dateEnd], 0);
         
         return $this->render('index', [
-            'date' => $date,
+            'date' => ['start' => $dateStart, 'end' => $dateEnd],
             'dataProvider' => $dataProvider,
         ]);
     }
     
     public function actionDetail($id, $prid, $date)
     {
+        $dateEnd = date('Y-m-d 21:00:00');
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m'), date('d') - 1, date('Y')));
         $partner = Partner::getByUserId(Yii::$app->user->identity->id);
         //$product = Product::findOne($id);
         $provider = Provider::findOne($prid);
-        $details = Order::getProviderOrderDetails($id, $date, $partner->id);
+        $details = Order::getProviderOrderDetailsStock($id, ['start' => $dateStart, 'end' => $dateEnd], $partner->id);
         return $this->render('detail', [
             'partner' => $partner,
             //'product' => $product,

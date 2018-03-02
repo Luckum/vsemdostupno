@@ -345,7 +345,7 @@ function detalization()
             url: "/admin/provider-order/get-detalization",
             async: false,
             type: "POST",
-            data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
+            data: {date: $("#details-date").val()}
         }).responseText;
         if (html) {
             $("#purchase-details-btn").removeClass("closed");
@@ -363,6 +363,39 @@ function detalization()
         $.ajax({
             url: "/admin/provider-order/show-all",
             type: "POST",
+            data: {date: $("#details-date").val()},
+            success: function(response) {
+                
+            }
+        });
+    }
+}
+
+function detalizationStock()
+{
+    if ($("#purchase-details-btn").hasClass("closed")) {
+        var html = $.ajax({
+            url: "/admin/order/get-detalization",
+            async: false,
+            type: "POST",
+            data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
+        }).responseText;
+        if (html) {
+            $("#purchase-details-btn").removeClass("closed");
+            $("#purchase-details-btn").addClass("opened");
+            $("#purchase-details-btn").text('Свернуть');
+            $("#purchase-details-container").html(html);
+            $("#purchase-details-container").slideDown(500);
+        }
+    } else {
+        $("#purchase-details-btn").removeClass("opened");
+        $("#purchase-details-btn").addClass("closed");
+        $("#purchase-details-btn").text('Детализация');
+        //$("#purchase-details-container").html("");
+        $("#purchase-details-container").slideUp();
+        $.ajax({
+            url: "/admin/order/show-all",
+            type: "POST",
             data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()},
             success: function(response) {
                 
@@ -375,6 +408,19 @@ function hideOrder(obj)
 {
     var html = $.ajax({
         url: "/admin/provider-order/hide",
+        async: false,
+        type: "POST",
+        data: {o_id: $(obj).attr("data-order-id"), date: $(obj).attr("data-date")}
+    }).responseText;
+    if (html) {
+        $("#purchase-details-container").html(html);
+    }
+}
+
+function hideOrderStock(obj)
+{
+    var html = $.ajax({
+        url: "/admin/order/hide",
         async: false,
         type: "POST",
         data: {o_id: $(obj).attr("data-order-id"), date_e: $(obj).attr("data-date-e"), date_s: $(obj).attr("data-date-s")}
@@ -390,6 +436,23 @@ function setPageView()
         url: "/admin/provider-order/set-view",
         async: false,
         type: "POST",
+        data: {date: $("#details-date").val()}
+    }).responseText;
+    if (html) {
+        $("#purchase-details-btn").removeClass("closed");
+        $("#purchase-details-btn").addClass("opened");
+        $("#purchase-details-btn").text('Свернуть');
+        $("#purchase-details-container").html(html);
+        $("#purchase-details-container").slideDown(500);
+    }
+}
+
+function setPageViewStock()
+{
+    var html = $.ajax({
+        url: "/admin/order/set-view",
+        async: false,
+        type: "POST",
         data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
     }).responseText;
     if (html) {
@@ -398,5 +461,93 @@ function setPageView()
         $("#purchase-details-btn").text('Свернуть');
         $("#purchase-details-container").html(html);
         $("#purchase-details-container").slideDown(500);
+    }
+}
+
+function deleteOrder(obj)
+{
+    if (confirm('Вы уверены, что хотите удалить этот заказ?')) {
+        $.ajax({
+            url: "/admin/order/delete",
+            type: "POST",
+            data: {id: $(obj).attr('data-order-id')},
+            success: function(response) {
+                var html = $.ajax({
+                    url: "/admin/provider-order/get-detalization",
+                    async: false,
+                    type: "POST",
+                    data: {date: $("#details-date").val()}
+                }).responseText;
+                if (html) {
+                    $("#purchase-details-container").html(html);
+                }
+            }
+        });
+    }
+}
+
+function deleteReturnOrder(obj)
+{
+    if (confirm('Вы уверены, что хотите сделать возврат и удалить этот заказ?')) {
+        $.ajax({
+            url: "/admin/order/delete-return",
+            type: "POST",
+            data: {id: $(obj).attr('data-order-id')},
+            success: function(response) {
+                var html = $.ajax({
+                    url: "/admin/provider-order/get-detalization",
+                    async: false,
+                    type: "POST",
+                    data: {date: $("#details-date").val()}
+                }).responseText;
+                if (html) {
+                    $("#purchase-details-container").html(html);
+                }
+            }
+        });
+    }
+}
+
+function deleteOrderStock(obj)
+{
+    if (confirm('Вы уверены, что хотите удалить этот заказ?')) {
+        $.ajax({
+            url: "/admin/order/delete",
+            type: "POST",
+            data: {id: $(obj).attr('data-order-id')},
+            success: function(response) {
+                var html = $.ajax({
+                    url: "/admin/order/get-detalization",
+                    async: false,
+                    type: "POST",
+                    data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
+                }).responseText;
+                if (html) {
+                    $("#purchase-details-container").html(html);
+                }
+            }
+        });
+    }
+}
+
+function deleteReturnOrderStock(obj)
+{
+    if (confirm('Вы уверены, что хотите сделать возврат и удалить этот заказ?')) {
+        $.ajax({
+            url: "/admin/order/delete-return",
+            type: "POST",
+            data: {id: $(obj).attr('data-order-id')},
+            success: function(response) {
+                var html = $.ajax({
+                    url: "/admin/order/get-detalization",
+                    async: false,
+                    type: "POST",
+                    data: {date_e: $("#details-date-end").val(), date_s: $("#details-date-start").val()}
+                }).responseText;
+                if (html) {
+                    $("#purchase-details-container").html(html);
+                }
+            }
+        });
     }
 }

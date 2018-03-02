@@ -56,6 +56,10 @@ echo Nav::widget([
                     'url' => Url::to(['/profile/provider/order/index']),
                 ],
                 [
+                    'label' => Icon::show('bars') . ' Заказы на склад',
+                    'url' => Url::to(['/profile/partner/order/index']),
+                ],
+                [
                     'label' => Icon::show('briefcase') . ' Мои услуги',
                     'url' => Url::to(['/profile/service']),
                 ],

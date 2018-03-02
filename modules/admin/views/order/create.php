@@ -7,7 +7,6 @@ use yii\web\JsExpression;
 use kartik\select2\Select2;
 
 $this->title = 'Добавить заказ';
-$this->params['breadcrumbs'][] = ['label' => 'Участники', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $addProductUrl = Url::to(['/api/profile/admin/product/add']);

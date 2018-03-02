@@ -3,7 +3,7 @@ $models = $dataProvider->getModels();
 $total_price = 0;
 ?>
 
-<h4>Заявка на поставку товаров на <?= date('d.m.Y', strtotime($date['end'])); ?></h4>
+<h4>Заявка на поставку товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
 <table border="1">
     <tr>
         <th>№ п/п</th>

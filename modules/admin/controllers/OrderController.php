@@ -26,6 +26,8 @@ use app\models\Provider;
 use app\models\StockBody;
 use app\models\ProductFeature;
 use app\models\Fund;
+use app\models\OView;
+use app\models\Partner;
 use app\modules\admin\models\OrderForm;
 use app\helpers\Sum;
 
@@ -103,38 +105,39 @@ class OrderController extends BaseController
      * @param integer $id
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete()
     {
-        $order = Order::findOne($id);
+        $order = Order::findOne($_POST['id']);
 
-        if (!$order->partner_id) {
+        /*if (!$order->partner_id) {
             $url = 'partner';
         } elseif ($order->partner_id && $order->user_id) {
             $url = 'member';
         } else {
             $url = 'guest';
-        }
+        }*/
 
         $order->delete();
-
-        return $this->redirect($url);
+        return true;
+        //return $this->redirect($url);
     }
     
-    public function actionDeleteReturn($id)
+    public function actionDeleteReturn()
     {
-        $order = Order::findOne($id);
+        $order = Order::findOne($_POST['id']);
 
-        if (!$order->partner_id) {
+        /*if (!$order->partner_id) {
             $url = 'partner';
         } elseif ($order->partner_id && $order->user_id) {
             $url = 'member';
         } else {
             $url = 'guest';
-        }
+        }*/
 
         $order->deleteReturn();
+        return true;
 
-        return $this->redirect($url);
+        //return $this->redirect($url);
     }
 
     public function actionDownloadOrder($id)
@@ -438,15 +441,17 @@ class OrderController extends BaseController
                         throw new Exception('"' . $product->product->name . '" нельзя заказать!');
                     }
 
-                    if (isset($product->quantity)) {
-                        $product->quantity -= $product->cart_quantity;
+                    if (!$product->product->isPurchase()) {
+                        if (isset($product->quantity)) {
+                            $product->quantity -= $product->cart_quantity;
 
-                        if ($product->quantity < 0) {
-                            throw new Exception('Ошибка обновления количества товара в магазине!');
-                        }
-                        
-                        if (!$product->save()) {
-                            throw new Exception('Ошибка обновления количества товара в магазине!');
+                            if ($product->quantity < 0) {
+                                throw new Exception('Ошибка обновления количества товара в магазине!');
+                            }
+                            
+                            if (!$product->save()) {
+                                throw new Exception('Ошибка обновления количества товара в магазине!');
+                            }
                         }
                     }
 
@@ -466,6 +471,7 @@ class OrderController extends BaseController
                     $orderHasProduct->group_price = 0;
                     $orderHasProduct->quantity = $product->cart_quantity;
                     $orderHasProduct->total = $product->cart_quantity * $product->productPrices[0]->member_price;
+                    $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
 
                     $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
                     $provider_id = $provider ? $provider->provider_id : 0;
@@ -477,7 +483,7 @@ class OrderController extends BaseController
                         $provider_model = Provider::findOne(['id' => $provider_id]);
                         $provider_account = Account::findOne(['user_id' => $provider_model->user_id]);
 
-                        if ($stock_provider) {
+                        if ($stock_provider && !$product->product->isPurchase()) {
                             if ($stock_provider->reaminder_rent >= $orderHasProduct->quantity) {
                                 $stock_provider->reaminder_rent -= $orderHasProduct->quantity;
                                 $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
@@ -561,20 +567,24 @@ class OrderController extends BaseController
                 throw new ForbiddenHttpException($e->getMessage());
             }
 
+            $orderId = $order->id;
+            $order = Order::findOne($orderId);
+            $orderId = !empty($order->order_id) ? sprintf("%'.05d\n", $order->order_id) : sprintf("%'.05d\n", $order->purchase_order_id);
+            
             Email::send('order-customer', Yii::$app->params['adminEmail'], [
-                'id' => $order->id,
+                'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
 
             if ($order->partner) {
                 Email::send('order-partner', $order->partner->email, [
-                    'id' => $order->id,
+                    'id' => $orderId,
                     'information' => $order->htmlEmailFormattedInformation,
                 ]);
             }
 
             Email::send('order-customer', $order->email, [
-                'id' => $order->id,
+                'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
 
@@ -582,7 +592,11 @@ class OrderController extends BaseController
             if ($user->role == User::ROLE_PROVIDER) {
                 $role = User::ROLE_MEMBER;
             }
-            return $this->redirect(['order/' . $role]);
+            if (empty($order->order_id)) {
+                return $this->redirect(['/admin/provider-order']);
+            } else {
+                return $this->redirect(['/admin/order']);
+            }
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -662,5 +676,221 @@ class OrderController extends BaseController
         $objectWriter->save('php://output');
 
         exit();
+    }
+    
+    public function actionIndex()
+    {
+        $orders_date = Order::getPurchaseDates(0, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
+        $dates = [];
+        if ($orders_date) {
+            foreach ($orders_date as $k => $date) {
+                $dateInit = strtotime($date['purchase_date']);
+                if ($k == 0) {
+                    $dateStart = date('Y-m-d 21:00:00', $dateInit);
+                    $dateEnd = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) + 1, date('Y', $dateInit)));
+                    $o_count = Order::getOrdersCount($dateStart, $dateEnd, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
+                    if ($o_count['cnt'] > 0) {
+                        $dates[] = ['start' => $dateStart, 'end' => $dateEnd];
+                    }
+                }
+                $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+                $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+                $o_count = Order::getOrdersCount($dateStart, $dateEnd, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
+                if ($o_count['cnt'] > 0) {
+                    $dates[] = ['start' => $dateStart, 'end' => $dateEnd];
+                } else {
+                    if ($k != 0) {
+                        $nextDate = $orders_date[$k - 1]['purchase_date'];
+                        $datesDiff = (strtotime($nextDate) - strtotime($date['purchase_date']))/3600/24;
+                        if ($datesDiff > 1) {
+                            $dateStart = date('Y-m-d 21:00:00', $dateInit);
+                            $dateEnd = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) + 1, date('Y', $dateInit)));
+                            $dates[] = ['start' => $dateStart, 'end' => $dateEnd];
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $this->render('index', [
+            'dates' => $dates,
+        ]);
+    }
+    
+    public function actionDate($date)
+    {
+        $dateInit = strtotime($date);
+        $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+        
+        $dataProvider = Order::getProvidersOrderStock($dateStart, $dateEnd, 0, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
+        return $this->render('date', [
+            'dataProvider' => $dataProvider,
+            'date' => ['start' => $dateStart, 'end' => $dateEnd]
+        ]);
+    }
+    
+    public function actionGetDetalization()
+    {
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->entity->id,
+            'section' => 'co',
+            'dts' => date('Y-m-d', strtotime($_POST['date_s'])),
+            'dte' => date('Y-m-d', strtotime($_POST['date_e'])) 
+        ])->one();
+        
+        if (!$view_model) {
+            $view_model = new OView;
+            $view_model->user_id = Yii::$app->user->identity->entity->id;
+            $view_model->section = 'co';
+            $view_model->dts = $_POST['date_s'];
+            $view_model->dte = $_POST['date_e'];
+        }
+        
+        $view_model->detail = 'opened';
+        $view_model->save();
+        
+        $dateEnd = date('Y-m-d 21:00:00', strtotime($_POST['date_e']));
+        $dateStart = date('Y-m-d 21:00:00', strtotime($_POST['date_s']));
+        
+        $dataProvider = Order::getDetalizationStock($dateStart, $dateEnd, 0);
+        return $this->renderPartial('_detail', [
+            'dataProvider' => $dataProvider,
+            'date_e' => $dateEnd,
+            'date_s' => $dateStart,
+        ]);
+    }
+    
+    public function actionShowAll()
+    {
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->entity->id,
+            'section' => 'co',
+            'dts' => date('Y-m-d', strtotime($_POST['date_s'])),
+            'dte' => date('Y-m-d', strtotime($_POST['date_e'])) 
+        ])->one();
+        
+        if (!$view_model) {
+            $view_model = new OView;
+            $view_model->user_id = Yii::$app->user->identity->entity->id;
+            $view_model->section = 'co';
+            $view_model->dts = $_POST['date_s'];
+            $view_model->dte = $_POST['date_e'];
+        }
+        
+        $view_model->detail = 'closed';
+        $view_model->save();
+        
+        $dateEnd = date('Y-m-d 21:00:00', strtotime($_POST['date_e']));
+        $dateStart = date('Y-m-d 21:00:00', strtotime($_POST['date_s']));
+        $dataProvider = Order::getDetalizationStock($dateStart, $dateEnd, 0, 1);
+        $models = $dataProvider->getModels();
+        foreach ($models as $model) {
+            $model->hide = 0;
+            $model->save();
+        }
+        return true;
+    }
+    
+    public function actionHide()
+    {
+        $order_id = $_POST['o_id'];
+        $dateStart = $_POST['date_s'];
+        $dateEnd = $_POST['date_e'];
+        
+        $order = Order::findOne($order_id);
+        $order->hide = 1;
+        $order->save();
+        
+        $dataProvider = Order::getDetalizationStock($dateStart, $dateEnd, 0);
+        return $this->renderPartial('_detail', [
+            'dataProvider' => $dataProvider,
+            'date_e' => $dateEnd,
+            'date_s' => $dateStart,
+        ]);
+    }
+    
+    public function actionSetView()
+    {
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->entity->id,
+            'section' => 'co',
+            'dts' => date('Y-m-d', strtotime($_POST['date_s'])),
+            'dte' => date('Y-m-d', strtotime($_POST['date_e'])) 
+        ])->one();
+        
+        if ($view_model) {
+            if ($view_model->detail == 'opened') {
+                $dateEnd = date('Y-m-d 21:00:00', strtotime($_POST['date_e']));
+                $dateStart = date('Y-m-d 21:00:00', strtotime($_POST['date_s']));
+                
+                $dataProvider = Order::getDetalizationStock($dateStart, $dateEnd, 0);
+                return $this->renderPartial('_detail', [
+                    'dataProvider' => $dataProvider,
+                    'date_e' => $dateEnd,
+                    'date_s' => $dateStart,
+                ]);
+            }
+        }
+        
+        return false;
+    }
+    
+    public function actionDetail($id, $pid, $prid, $date)
+    {
+        $dateInit = strtotime($date);
+        $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+        $partner = Partner::findOne($pid);
+        //$product = Product::findOne($id);
+        $provider = Provider::findOne($prid);
+        $details = Order::getProviderOrderDetailsStock($id, ['start' => $dateStart, 'end' => $dateEnd], $pid);
+        return $this->render('detail', [
+            'partner' => $partner,
+            //'product' => $product,
+            'provider' => $provider,
+            'date' => $date,
+            'date_s' => $dateStart,
+            'details' => $details,
+        ]);
+    }
+    
+    public function actionAdminDelete($date)
+    {
+        $dateInit = strtotime($date);
+        $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+        $dataProvider = Order::getProvidersOrderStock($dateStart, $dateEnd, 0);
+        $models = $dataProvider->getModels();
+        while (count($models)) {
+            foreach ($models as $model) {
+                $ohp = OrderHasProduct::findOne($model['ohp_id']);
+                $ohp->deleted = 1;
+                $ohp->save();
+            }
+            $dataProvider = Order::getProvidersOrderStock($dateStart, $dateEnd, 0);
+            $models = $dataProvider->getModels();
+        }
+        
+        $this->redirect(['index']);
+    }
+    
+    public function actionDeleteStock($date)
+    {
+        $dateInit = strtotime($date);
+        $dateEnd = date('Y-m-d 21:00:00', $dateInit);
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
+        $dataProvider = Order::getProvidersOrderStock($dateStart, $dateEnd, 0, -1);
+        $models = $dataProvider->getModels();
+        while (count($models)) {
+            foreach ($models as $model) {
+                $ohp = OrderHasProduct::findOne($model['ohp_id']);
+                $ohp->delete();
+            }
+            $dataProvider = Order::getProvidersOrderStock($dateStart, $dateEnd, 0, -1);
+            $models = $dataProvider->getModels();
+        }
+        
+        $this->redirect(['index']);
     }
 }

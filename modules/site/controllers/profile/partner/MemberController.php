@@ -20,6 +20,12 @@ use app\models\Order;
 use app\models\OrderStatus;
 use app\models\OrderHasProduct;
 use app\models\Product;
+use app\models\ProductFeature;
+use app\models\ProviderHasProduct;
+use app\models\ProviderStock;
+use app\models\Provider;
+use app\models\Fund;
+use app\models\StockBody;
 use app\models\Account;
 use app\models\AccountLog;
 use app\models\Email;
@@ -81,7 +87,9 @@ class MemberController extends BaseController
     public function actionOrder()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Order::find()->where('partner_id = :partner_id', [':partner_id' => $this->identity->entity->partner->id]),
+            'query' => Order::find()
+                ->joinWith('orderHasProducts')
+                ->where(['partner_id' => $this->identity->entity->partner->id, 'order_has_product.purchase' => 0]),
             'sort' => ['defaultOrder' => ['created_at' => SORT_DESC]],
         ]);
 
@@ -94,26 +102,27 @@ class MemberController extends BaseController
     public function actionOrderCreate()
     {
         $model = new OrderForm();
+        $total_paid_for_provider = 0;
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
             $user = User::findOne($model->user_id);
-
             if ($user->member->partner_id != $this->identity->entity->partner->id) {
                 throw new ForbiddenHttpException('Действие не разрешено.');
             }
-
             $productList = Json::decode($model->product_list);
             $productList = ArrayHelper::map($productList, 'id', 'quantity');
 
-            $products = Product::find()
-                ->where(['IN', 'id', array_keys($productList)])
+            $products = ProductFeature::find()
+                ->joinWith('product')
+                ->joinWith('productPrices')
+                ->where(['IN', 'product_feature.id', array_keys($productList)])
                 ->all();
             foreach ($products as $index => $product) {
-                $products[$index]->quantity = $productList[$product->id];
+                $products[$index]->cart_quantity = $productList[$product->id];
             }
             $total = 0;
             foreach ($products as $product) {
-                $total += $product->quantity * $product->getPriceByRole($user->role);
+                $total += $product->cart_quantity * $product->productPrices[0]->member_price;
             }
 
             if ($total > $user->deposit->total) {
@@ -130,7 +139,7 @@ class MemberController extends BaseController
                 $order->firstname = $user->firstname;
                 $order->lastname = $user->lastname;
                 $order->patronymic = $user->patronymic;
-                $order->comment = 'Заказа сделан через панель партнера.';
+                $order->comment = 'Заказ сделан через панель партнера.';
                 $order->paid_total = $total;
                 $order->total = $total;
 
@@ -142,6 +151,12 @@ class MemberController extends BaseController
 
                 $order->user_id = $user->id;
                 $order->role = $user->role;
+                if ($user->role == User::ROLE_PROVIDER) {
+                    $member = Member::find()->where(['user_id' => $user->id])->one();
+                    if ($member) {
+                        $order->role = User::ROLE_MEMBER;
+                    }
+                }
 
                 $orderStatus = OrderStatus::findOne(['type' => OrderStatus::STATUS_NEW]);
                 $order->order_status_id = $orderStatus->id;
@@ -151,40 +166,105 @@ class MemberController extends BaseController
                 }
 
                 foreach ($products as $product) {
-                    if (!$product->inventory && $product->orderDate && (strtotime($product->orderDate) + strtotime('1 day', 0)) < time()) {
-                        throw new Exception('"' . $product->name . '" нельзя заказать!');
+                    if (!$product->quantity && $product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
+                        throw new Exception('"' . $product->product->name . '" нельзя заказать!');
                     }
 
-                    if (isset($product->inventory)) {
-                        $product->inventory -= $product->quantity;
+                    if (!$product->product->isPurchase()) {
+                        if (isset($product->quantity)) {
+                            $product->quantity -= $product->cart_quantity;
 
-                        if (!$product->save()) {
-                            throw new Exception('Ошибка обновления количества товара в магазине!');
+                            if ($product->quantity < 0) {
+                                throw new Exception('Ошибка обновления количества товара в магазине!');
+                            }
+                            
+                            if (!$product->save()) {
+                                throw new Exception('Ошибка обновления количества товара в магазине!');
+                            }
                         }
                     }
 
                     $orderHasProduct = new OrderHasProduct();
 
                     $orderHasProduct->order_id = $order->id;
-                    $orderHasProduct->product_id = $product->id;
-                    $orderHasProduct->name = $product->name;
-                    $orderHasProduct->orderDate = $product->orderDate;
-                    $orderHasProduct->purchaseDate = $product->purchaseDate;
-                    $orderHasProduct->price = $product->getPriceByRole($user->role);
+                    $orderHasProduct->product_id = $product->product_id;
+                    $orderHasProduct->name = $product->product->name;
+                    $orderHasProduct->orderDate = $product->product->orderDate;
+                    $orderHasProduct->purchaseDate = $product->product->purchaseDate;
+                    $orderHasProduct->price = $product->productPrices[0]->member_price;
                     $orderHasProduct->purchase_price = $product->purchase_price;
-                    $orderHasProduct->storage_price = $product->storage_price;
-                    $orderHasProduct->invite_price = $product->calculatedInvitePrice;
-                    $orderHasProduct->fraternity_price = $product->calculatedFraternityPrice;
-                    if (!$user) {
-                        $orderHasProduct->group_price = $product->price - $product->partner_price;
-                    } elseif (!in_array($user->role, [User::ROLE_PARTNER])) {
-                        $orderHasProduct->group_price = $product->calculatedGroupPrice;
-                    } else {
-                        $orderHasProduct->group_price = 0;
-                    }
-                    $orderHasProduct->quantity = $product->quantity;
-                    $orderHasProduct->total = $product->quantity * $product->getPriceByRole($user->role);
+                    $orderHasProduct->storage_price = 0;
+                    $orderHasProduct->invite_price = 0;
+                    $orderHasProduct->fraternity_price = 0;
+                    $orderHasProduct->product_feature_id = $product->id;
+                    $orderHasProduct->group_price = 0;
+                    $orderHasProduct->quantity = $product->cart_quantity;
+                    $orderHasProduct->total = $product->cart_quantity * $product->productPrices[0]->member_price;
+                    $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
 
+                    $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
+                    $provider_id = $provider ? $provider->provider_id : 0;
+
+                    if ($provider_id != 0) {
+                        $orderHasProduct->provider_id = $provider_id;
+                        $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
+                        
+                        $provider_model = Provider::findOne(['id' => $provider_id]);
+                        $provider_account = Account::findOne(['user_id' => $provider_model->user_id]);
+
+                        if ($stock_provider && !$product->product->isPurchase()) {
+                            if ($stock_provider->reaminder_rent >= $orderHasProduct->quantity) {
+                                $stock_provider->reaminder_rent -= $orderHasProduct->quantity;
+                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                $paid_for_provider = $orderHasProduct->quantity * $body->summ;
+                                $stock_provider->summ_on_deposit += $paid_for_provider;
+                                $stock_provider->save();
+                            } else {
+                                $rest = $orderHasProduct->quantity - $stock_provider->reaminder_rent;
+                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
+                                $stock_provider->reaminder_rent = 0;
+                                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                $stock_provider->save();
+                                
+                                while ($rest > 0) {
+                                    $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
+                                    
+                                    if ($stock_provider->reaminder_rent >= $rest) {
+                                        $stock_provider->reaminder_rent -= $rest;
+                                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                        $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                        $paid_for_provider = $rest * $body->summ;
+                                        $stock_provider->summ_on_deposit += $paid_for_provider;
+                                        $stock_provider->save();
+                                        $rest = 0;
+                                    } else {
+                                        $rest -= $stock_provider->reaminder_rent;
+                                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                        $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
+                                        $stock_provider->reaminder_rent = 0;
+                                        $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                        $stock_provider->save();
+                                    }
+                                }
+                            }
+                            
+                            if ($body->deposit == '1') {
+                                $paid_for_provider = $orderHasProduct->quantity * $body->summ;
+                                if (!Account::swap($user->deposit, $provider_account, $paid_for_provider, 'Перевод пая на счёт', false)) {
+                                    throw new Exception('Ошибка модификации счета пользователя!');
+                                }
+                                Email::send('account-log', $provider_account->user->email, [
+                                    'message' => 'Перевод пая на счёт',
+                                    'amount' => $paid_for_provider,
+                                    'total' => $provider_account->total,
+                                ]);
+                                $total_paid_for_provider += $paid_for_provider;
+                            }
+                        }
+                    }
+                    
                     if (!$orderHasProduct->save()) {
                         throw new Exception('Ошибка сохранения товара в заказе!');
                     }
@@ -192,15 +272,22 @@ class MemberController extends BaseController
 
                 if ($order->paid_total > 0) {
                     if ($order->paid_total == $order->total) {
-                        $message = sprintf('Списано по заказу №%s.', $order->id);
+                        //$message = sprintf('Списано по заказу №%s.', $order->id);
                     } else {
-                        $message = sprintf('Частичная списано по заказу №%s.', $order->id);
+                        //$message = sprintf('Частичная списано по заказу №%s.', $order->id);
                     }
+                    
+                    $message = 'Членский взнос';
 
-                    if (!Account::swap($user->deposit, null, $order->paid_total, $message)) {
+                    if (!Account::swap($user->deposit, null, $order->paid_total - $total_paid_for_provider, $message)) {
                         throw new Exception('Ошибка модификации счета пользователя!');
                     }
+                    if ($user->role == User::ROLE_PROVIDER) {
+                        ProviderStock::setStockSum($user->id, $order->paid_total);
+                    }
                 }
+                
+                Fund::setDeductionForOrder($product->id, $product->purchase_price, $product->cart_quantity);
 
                 $transaction->commit();
             } catch (Exception $e) {
@@ -209,16 +296,19 @@ class MemberController extends BaseController
                 throw new ForbiddenHttpException($e->getMessage());
             }
 
+            $orderId = $order->id;
+            $order = Order::findOne($orderId);
+            $orderId = !empty($order->order_id) ? sprintf("%'.05d\n", $order->order_id) : sprintf("%'.05d\n", $order->purchase_order_id);
+            
             Email::send('order-customer', Yii::$app->params['adminEmail'], [
-                'id' => $order->id,
+                'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
 
             Email::send('order-customer', $order->email, [
-                'id' => $order->id,
+                'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
-
             return $this->redirect(['order']);
         } else {
             return $this->render('order-create', [

@@ -1,138 +1,49 @@
 <?php
-
 use yii\helpers\Html;
 use yii\helpers\Url;
+use kartik\grid\GridView;
 use yii\helpers\ArrayHelper;
-use yii\grid\GridView;
-use yii\web\JsExpression;
-use kartik\dropdown\DropdownX;
-use app\models\OrderStatus;
+use app\models\Order;
+use app\models\ProviderNotification;
+use app\models\Provider;
+use app\models\ProductFeature;
+use app\models\User;
+
 
 /* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
-$this->title = $title;
+/* @var $dataProvider yii\data\SqlDataProvider */
+/* @var $dataProvider1 yii\data\ActiveDataProvider */
+$this->title = 'Заказы на склад';
 $this->params['breadcrumbs'][] = $this->title;
+$delete_action = Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? 'delete-stock' : 'admin-delete';
+//$models = $dataProvider->getModels();
+//$total_price = 0;
 
-$updateOrderStatusUrl = Url::to(['/api/profile/admin/order/update-status']);
-$script = <<<JS
-    function updateOrderStatus(orderId, orderStatusId) {
-        $.ajax({
-            url: '$updateOrderStatusUrl',
-            type: 'POST',
-            data: {
-                orderId: orderId,
-                orderStatusId: orderStatusId
-            },
-            success: function (data) {
-                if (!(data && data.success)) {
-                    alert('Ошибка обновления статуса заказа');
-                }
-            },
-            error: function () {
-                alert('Ошибка обновления статуса заказа');
-            },
-        });
+/*echo '<pre>';
+var_dump($test);
+die();*/
 
-        return false;
-    }
-JS;
-$this->registerJs($script, $this::POS_END);
 ?>
-<div class="order-index">
-
+<div class="member-index">
     <h1><?= Html::encode($this->title) ?></h1>
-
-    <p>
-        <?= Html::a('Добавить заказ', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
-
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
-            'created_at',
-
-            [
-                'class' => 'yii\grid\ActionColumn',
-                'header' => 'Статус',
-                'template' => '{orderStatus}',
-                'buttons' => [
-                    'orderStatus' => function ($url, $model) {
-                        return Html::dropDownList(
-                            'order-status-select-' . $model->id,
-                            $model->order_status_id,
-                            ArrayHelper::map(OrderStatus::find()->all(), 'id', 'name'), [
-                                'onchange' => new JsExpression("
-                                    return updateOrderStatus(". $model->id .", $(this).val());
-                                "),
-                            ]
-                        );
-                    }
-                ],
-            ],
-
-            'htmlFormattedInformation:raw',
-
-            [
-                'class' => 'yii\grid\ActionColumn',
-                'template' => '{actions}',
-                'buttons' => [
-                    'actions' => function ($url, $model) {
-                        return Html::beginTag('div', ['class'=>'dropdown']) .
-                            Html::button('Действия <span class="caret"></span>', [
-                                'type'=>'button',
-                                'class'=>'btn btn-default',
-                                'data-toggle'=>'dropdown'
-                            ]) .
-                            DropdownX::widget([
-                            'items' => [
-                                [
-                                    'label' => 'Прих. ордер',
-                                    'url' => Url::to(['download-order', 'id' => $model->id]),
-                                ],
-                                [
-                                    'label' => 'Акт возврата',
-                                    'url' => Url::to(['download-act', 'id' => $model->id]),
-                                ],
-                                [
-                                    'label' => 'Заявка',
-                                    'url' => Url::to(['download-request', 'id' => $model->id]),
-                                ],
-                                [
-                                    'label' => 'Акт возврата паевого взноса',
-                                    'url' => Url::to(['download-return-fee-act', 'id' => $model->id]),
-                                ],
-                                '<li class="divider"></li>',
-                                [
-                                    'label' => 'Удалить',
-                                    'url' => Url::to(['delete', 'id' => $model->id]),
-                                    'linkOptions' => [
-                                        'data' => [
-                                            'confirm' => 'Вы уверены, что хотите удалить этот заказ?',
-                                            'method' => 'post',
-                                        ],
-                                    ]
-                                ],
-                                [
-                                    'label' => 'Сделать возврат и удалить',
-                                    'url' => Url::to(['delete-return', 'id' => $model->id]),
-                                    'linkOptions' => [
-                                        'data' => [
-                                            'confirm' => 'Вы уверены, что хотите сделать возврат и удалить этот заказ?',
-                                            'method' => 'post',
-                                        ],
-                                    ]
-                                ],
-                            ],
-                        ]) .
-                        Html::endTag('div');
-                    }
-                ],
-            ],
-        ],
-    ]); ?>
-
+    <table class="table table-bordered">
+        <thead>
+            <th style="vertical-align: top;">Дата</th>
+            <th></th>
+        </thead>
+        <tbody>
+            <?php foreach ($dates as $date): ?>
+                <tr>
+                    <td>
+                        <a href="<?= Url::to(['/admin/order/date', 'date' => date('Y-m-d', strtotime($date['end']))]); ?>"><?= date('d.m.Y', strtotime($date['end'])); ?></a>
+                    </td>
+                    <td>
+                        <a href="<?= Url::to([$delete_action, 'date' => date('Y-m-d', strtotime($date['end']))]) ?>" title="Удалить" data-pjax="0" data-method="post" data-confirm="Вы уверены что хотите удалить заказ?">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>

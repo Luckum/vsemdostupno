@@ -43,9 +43,9 @@ $this->registerJs($script, $this::POS_END);
             ['class' => 'yii\grid\SerialColumn'],
 
             [
-                'attribute' => 'purchase_order_id',
+                'attribute' => 'id',
                 'content' => function($model) {
-                    return empty($model->role) ? sprintf("%'.05d\n", $model->purchase_order_id) . " От Гостя" : sprintf("%'.05d\n", $model->purchase_order_id) . " От Участника";
+                    return empty($model->role) ? sprintf("%'.05d\n", $model->order_id) . " От Гостя" : sprintf("%'.05d\n", $model->order_id) . " От Участника";
                 },
             ],
             'created_at',
@@ -108,7 +108,7 @@ $this->registerJs($script, $this::POS_END);
                                         'data' => [
                                             'order-id' => $model->id
                                         ],
-                                        'onclick' => 'deleteOrder(this);',
+                                        'onclick' => 'deleteOrderStock(this);',
                                     ]
                                 ],
                                 [
@@ -118,21 +118,22 @@ $this->registerJs($script, $this::POS_END);
                                         'data' => [
                                             'order-id' => $model->id
                                         ],
-                                        'onclick' => 'deleteReturnOrder(this);',
+                                        'onclick' => 'deleteReturnOrderStock(this);',
                                     ]
                                 ],
                             ],
                         ]) .
                         Html::endTag('div');
                     },
-                    'hide' => function($url, $model) use ($date) {
+                    'hide' => function($url, $model) use ($date_e, $date_s) {
                         return Html::button('Скрыть', [
                                 'type'=>'button',
                                 'class'=>'btn btn-primary',
                                 'style' => 'margin-top: 10px',
-                                'onclick' => 'hideOrder(this);',
+                                'onclick' => 'hideOrderStock(this);',
                                 'data-order-id' => $model->id,
-                                'data-date' => $date,
+                                'data-date-e' => $date_e,
+                                'data-date-s' => $date_s,
                             ]);
                     }
                 ],

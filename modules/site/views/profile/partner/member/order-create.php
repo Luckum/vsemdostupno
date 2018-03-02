@@ -66,7 +66,7 @@ $script = <<<JS
         updateOrderTotal();
 
         $('#edit-account').on('click', function() {
-            var userId = $('#user-id').val();
+            var userId = $('#user_id').val();
             var url = '$editAccountUrl?id=' + userId;
             var win = window.open(url, '_blank');
 
@@ -76,7 +76,7 @@ $script = <<<JS
         });
 
         $('#add-product').on('click', function() {
-            var userId = $('#user-id').val();
+            var userId = $('#user_id').val();
             var productId = $('#product-id').val();
             var quantity = $('#quantity').val();
 
@@ -120,7 +120,7 @@ $script = <<<JS
         });
 
         $('button[type="submit"]').on('click', function(){
-            var userId = $('#user-id').val();
+            var userId = $('#user_id').val();
             var productList = [];
 
             $('#product-list tr[id]').each(function(index, value) {
@@ -157,8 +157,8 @@ $this->registerJs($script, $this::POS_END);
     <div class="form-group field-orderform-product">
         <label class="control-label" for="orderform-product">Покупатель</label>
         <?= Select2::widget([
-            'id' => 'user-id',
-            'name' => 'user-id',
+            'id' => 'user_id',
+            'name' => 'user_id',
             'options' => ['placeholder' => 'Введите покупателя ...'],
             'pluginOptions' => [
                 'allowClear' => true,

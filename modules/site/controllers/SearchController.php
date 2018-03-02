@@ -58,7 +58,9 @@ class SearchController extends BaseController
             $query->select('user.id')
                 ->from('user', ['INNER JOIN', 'member', 'user.id=member.user_id'], ['INNER JOIN', 'partner', 'user.id=partner.user_id'])
                 ->Where('user.lastname=:p1', [':p1' => $fio[0]])
-                ->andWhere('user.firstname=:p2',[':p2'=>$fio[1]]);
+                ->andWhere('user.firstname=:p2',[':p2'=>$fio[1]])
+                ->andWhere('role != "admin"')
+                ->andWhere('role != "superadmin"');
         $command = $query->createCommand();
         $query = $command->queryAll();
 
@@ -113,6 +115,8 @@ class SearchController extends BaseController
         ->distinct(true)
         ->from('user')
         ->where('lastname LIKE "%' . $name .'%"')
+        ->andWhere('role != "admin"')
+        ->andWhere('role != "superadmin"')
         ->orderBy('lastname');
     $command = $query->createCommand();
     $data = $command->queryAll();
@@ -129,6 +133,8 @@ class SearchController extends BaseController
      $query->select('number')
         ->from('user')
         ->where('number LIKE "%' . $disc_number .'%"')
+        ->andWhere('role != "admin"')
+        ->andWhere('role != "superadmin"')
         ->orderBy('number');
     $command = $query->createCommand();
     $data = $command->queryAll();
@@ -144,6 +150,8 @@ class SearchController extends BaseController
      $query->select('id')
         ->from('order')
         ->where('id LIKE "%' . $order_numb .'%"')
+        ->andWhere('role != "admin"')
+        ->andWhere('role != "superadmin"')
         ->orderBy('id');
     $command = $query->createCommand();
     $data = $command->queryAll();

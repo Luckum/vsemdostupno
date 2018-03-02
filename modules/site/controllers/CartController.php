@@ -289,20 +289,24 @@ class CartController extends BaseController
 
             $cart->clear();
 
+            $orderId = $order->id;
+            $order = Order::findOne($orderId);
+            $orderId = !empty($order->order_id) ? sprintf("%'.05d\n", $order->order_id) : sprintf("%'.05d\n", $order->purchase_order_id);
+            
             Email::send('order-customer', Yii::$app->params['adminEmail'], [
-                'id' => $order->id,
+                'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
 
             if ($order->partner) {
                 Email::send('order-partner', $order->partner->email, [
-                    'id' => $order->id,
+                    'id' => $orderId,
                     'information' => $order->htmlEmailFormattedInformation,
                 ]);
             }
 
             Email::send('order-customer', $order->email, [
-                'id' => $order->id,
+                'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
 

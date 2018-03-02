@@ -48,12 +48,14 @@ AppAsset::register($this);
                         [
                             'label' => 'Заказы',
                             'items' => [
-                                ['label' => 'Участников', 'url' => ['/admin/order/member']],
-                                ['label' => 'Партнеров', 'url' => ['/admin/order/partner']],
-                                ['label' => 'Гостей', 'url' => ['/admin/order/guest']],
-                                ['label' => 'Статусы заказов', 'url' => ['/admin/order-status']],
+                                //['label' => 'Участников', 'url' => ['/admin/order/member']],
+                                //['label' => 'Партнеров', 'url' => ['/admin/order/partner']],
+                                //['label' => 'Гостей', 'url' => ['/admin/order/guest']],
+                                //['label' => 'Статусы заказов', 'url' => ['/admin/order-status']],
                                 //['label' => 'Заказы поставщикам', 'url'=>['/admin/provider-order']]
-                                ['label' => 'Коллективная закупка', 'url'=>['/admin/provider-order']]
+                                ['label' => 'Коллективная закупка', 'url'=>['/admin/provider-order']],
+                                ['label' => 'Заказы на склад', 'url'=>['/admin/order']],
+                                ['label' => 'Добавить заказ', 'url'=>['/admin/order/create']]
                             ],
                         ],
                         

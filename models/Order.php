@@ -9,6 +9,7 @@ use app\models\Fund;
 use app\models\ProductFeature;
 use app\models\ProviderStock;
 use app\models\StockBody;
+use app\models\OrderHasProduct;
 use yii\db\Query;
 use yii\data\SqlDataProvider;
 use yii\data\ActiveDataProvider;
@@ -35,6 +36,8 @@ use yii\data\ActiveDataProvider;
  * @property string $paid_total
  * @property integer $order_status_id
  * @property integer $hide
+ * @property integer $order_id
+ * @property integer $purchase_order_id
  *
  * @property User $user
  * @property City $city
@@ -65,7 +68,7 @@ class Order extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['created_at'], 'safe'],
+            [['created_at', 'order_id', 'purchase_order_id'], 'safe'],
             [['city_id', 'partner_id', 'user_id', 'order_status_id', 'hide'], 'integer'],
             [['city_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic', 'total', 'order_status_id'], 'required'],
             [['role', 'address', 'comment'], 'string'],
@@ -106,6 +109,8 @@ class Order extends \yii\db\ActiveRecord
             'shortName' => 'ФИО',
             'htmlFormattedInformation' => 'Информация',
             'htmlEmailFormattedInformation' => 'Информация',
+            'purchase_order_id' => 'Идентификатор',
+            'order_id' => 'Идентификатор',
         ];
     }
 
@@ -224,9 +229,9 @@ class Order extends \yii\db\ActiveRecord
         return $this->hasOne(UnitContibution::className(),['order_id'=>'id']);
     }
     
-    public static function getProvidersOrder($dateStart, $dateEnd, $isPurchase = -1, $deleted = 0)
+    public static function getProvidersOrder($date, $isPurchase = -1, $deleted = 0)
     {
-        $count = Yii::$app->db->createCommand('SELECT COUNT(*) FROM `order` WHERE created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"')->queryScalar();
+        //$count = Yii::$app->db->createCommand('SELECT COUNT(*) FROM `order` WHERE created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"')->queryScalar();
         $count = 0;
         $where = $isPurchase == -1 ? '1' : 'ohp.purchase = ' . $isPurchase;
         $whereD = $deleted == -1 ? '1' : 'ohp.deleted = ' . $deleted;
@@ -251,11 +256,11 @@ class Order extends \yii\db\ActiveRecord
                         LEFT JOIN `provider` p ON ohp.provider_id = p.id
                         LEFT JOIN `product` pr ON ohp.product_id = pr.id
                         LEFT JOIN `product_feature` pf ON ohp.product_feature_id = pf.id
-                        WHERE `o`.created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"
+                        WHERE DATE_FORMAT(`ohp`.purchase_timestamp, "%Y-%m-%d") = "' . $date . '"
                             AND ' . $whereD . '
                             AND ' . $where . '
                         GROUP BY product_feature_id',
-            'totalCount' => $count,
+            //'totalCount' => $count,
             'pagination' => [
                 'pageSize' => '20',
             ],
@@ -276,7 +281,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->where(['order_has_product.product_feature_id' => $product])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere(['order_has_product.purchase_timestamp' => $date])
             ->groupBy('p_name');
         
         $command = $query->createCommand();
@@ -287,7 +292,7 @@ class Order extends \yii\db\ActiveRecord
     {
         $query = new Query;
         $query->select([
-                'order.id',
+                'order.purchase_order_id as id',
                 'CONCAT(order.lastname, " ", order.firstname, " ", order.patronymic) AS fio',
                 'order_has_product.quantity',
                 'order_has_product.price',
@@ -300,7 +305,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->where(['order_has_product.product_feature_id' => $product_id])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere(['order_has_product.purchase_timestamp' => $date])
             ->having(['p_id' => $partner_id]);
         
         $command = $query->createCommand();
@@ -327,7 +332,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->join('LEFT JOIN', 'provider', 'order_has_product.provider_id=provider.id')
             ->join('LEFT JOIN', 'product_feature', 'order_has_product.product_feature_id=product_feature.id')
-            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->where(['order_has_product.purchase_timestamp' => $date])
             ->andWhere($where)
             ->groupBy('product_feature_id, p_id')
             ->having(['p_id' => $partner_id]);
@@ -347,7 +352,7 @@ class Order extends \yii\db\ActiveRecord
             ])
             ->from('order')
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
-            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->where(['order_has_product.purchase_timestamp' => $date])
             ->andWhere($where);
             
         $command = $query->createCommand();
@@ -365,7 +370,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->where(['order_has_product.provider_id' => $provider_id])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere(['order_has_product.purchase_timestamp' => $date])
             ->andWhere($where);
         
         $command = $query->createCommand();
@@ -391,7 +396,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'product', 'order_has_product.product_id=product.id')
             ->join('LEFT JOIN', 'product_feature', 'order_has_product.product_feature_id=product_feature.id')
             ->where(['order_has_product.provider_id' => $provider_id])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere(['order_has_product.purchase_timestamp' => $date])
             ->andWhere(['product.auto_send' => '1'])
             ->andWhere($where)
             ->groupBy('product_feature, p_id')
@@ -411,7 +416,7 @@ class Order extends \yii\db\ActiveRecord
             ->from('order')
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
-            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->where(['order_has_product.purchase_timestamp' => $date])
             ->andWhere($where);
         
         $command = $query->createCommand();
@@ -425,7 +430,6 @@ class Order extends \yii\db\ActiveRecord
                 'DATE_FORMAT(created_at, "%Y-%m-%d") AS order_date'
             ])
             ->from('order')
-            ->where(['hide' => 0])
             ->groupBy('order_date')
             ->orderBy('order_date DESC');
             
@@ -499,13 +503,13 @@ class Order extends \yii\db\ActiveRecord
         }
     }
     
-    public static function getDetalization($date_s, $date_e, $isPurchase = -1, $hide = 0)
+    public static function getDetalization($date, $isPurchase = -1, $hide = 0)
     {
         $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
         
         $query = self::find();
         $query->joinWith('orderHasProducts');
-        $query->where(['between', 'created_at', $date_s, $date_e]);
+        $query->where(['order_has_product.purchase_timestamp' => $date]);
         $query->andWhere(['hide' => $hide]);
         $query->andWhere($where);
             
@@ -519,6 +523,174 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->where(['between', 'created_at', $date_s, $date_e])
             ->andWhere($where);*/
+        
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'sort' => false
+        ]);
+        
+        return $dataProvider;
+    }
+    
+    public static function getPurchaseDates($isPurchase = -1, $deleted = 0)
+    {
+        $where = $isPurchase == -1 ? '1' : 'purchase = ' . $isPurchase;
+        $whereD = $deleted == -1 ? '1' : 'deleted = ' . $deleted;
+        $query = new Query;
+        $query->select([
+                'DATE_FORMAT(purchase_timestamp, "%Y-%m-%d") AS purchase_date'
+            ])
+            ->from('order_has_product')
+            ->where($where)
+            ->andWhere($whereD)
+            ->groupBy('purchase_date')
+            ->orderBy('purchase_date DESC');
+            
+        $command = $query->createCommand();
+        
+        return $command->queryAll();
+    }
+    
+    public static function getOrdersCount($dateStart, $dateEnd, $deleted)
+    {
+        $whereD = $deleted == -1 ? '1' : 'deleted = ' . $deleted;
+        $query = new Query;
+        $query->select([
+                'count(id) as cnt'
+            ])
+            ->from('order_has_product')
+            ->where('purchase = 0')
+            ->andWhere('purchase_timestamp BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"')
+            ->andWhere($whereD);
+            
+        $command = $query->createCommand();
+        
+        return $command->queryOne();
+    }
+    
+    public static function getProvidersOrderStock($dateStart, $dateEnd, $isPurchase = -1, $deleted = 0)
+    {
+        $where = $isPurchase == -1 ? '1' : 'ohp.purchase = ' . $isPurchase;
+        $whereD = $deleted == -1 ? '1' : 'ohp.deleted = ' . $deleted;
+        $dataProvider = new SqlDataProvider([
+            'sql' => 'SELECT pr.id,
+                            ohp.id AS ohp_id, 
+                            o.partner_id AS pid, 
+                            o.partner_name,
+                            ohp.quantity, 
+                            ohp.name AS product_name,
+                            ohp.total,
+                            p.id AS provider_id,
+                            p.name AS provider_name,
+                            ohp.price,
+                            ohp.product_feature_id,
+                            COUNT(ohp.product_feature_id) AS row_cnt,
+                            SUM(ohp.quantity) AS total_qnt,
+                            SUM(ohp.total) AS total_price,
+                            CONCAT(pf.tare, ", ", pf.volume, " ", pf.measurement) AS product_feature_name
+                        FROM `order` o
+                        LEFT JOIN `order_has_product` ohp ON o.id = ohp.order_id
+                        LEFT JOIN `provider` p ON ohp.provider_id = p.id
+                        LEFT JOIN `product` pr ON ohp.product_id = pr.id
+                        LEFT JOIN `product_feature` pf ON ohp.product_feature_id = pf.id
+                        WHERE `o`.created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"
+                            AND ' . $whereD . '
+                            AND ' . $where . '
+                        GROUP BY product_feature_id',
+            'pagination' => [
+                'pageSize' => '20',
+            ],
+        ]);
+        
+        return $dataProvider;
+    }
+    
+    public static function getOrderByProductStock($product, $date)
+    {
+        $query = new Query;
+        $query->select([
+                'IF (order.partner_id IS NULL, partner.id, order.partner_id) AS p_id',
+                'IF (order.partner_name IS NULL, partner.name, order.partner_name) AS p_name',
+                'SUM(order_has_product.quantity) AS quantity',
+                'SUM(order_has_product.total) AS total'
+            ])
+            ->from('order')
+            ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
+            ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
+            ->where(['order_has_product.product_feature_id' => $product])
+            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->groupBy('p_name');
+        
+        $command = $query->createCommand();
+        return $command->queryAll();
+    }
+    
+    public static function getDetalizationStock($date_s, $date_e, $isPurchase = -1, $hide = 0)
+    {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
+        
+        $query = self::find();
+        $query->joinWith('orderHasProducts');
+        $query->where(['between', 'created_at', $date_s, $date_e]);
+        $query->andWhere(['hide' => $hide]);
+        $query->andWhere($where);
+            
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'sort' => false,
+        ]);
+        
+        return $dataProvider;
+    }
+    
+    public static function getProviderOrderDetailsStock($product_id, $date, $partner_id)
+    {
+        $query = new Query;
+        $query->select([
+                'order.order_id as id',
+                'CONCAT(order.lastname, " ", order.firstname, " ", order.patronymic) AS fio',
+                'order_has_product.quantity',
+                'order_has_product.price',
+                'order_has_product.total',
+                'order_has_product.product_feature_id',
+                'order_has_product.name',
+                'IF (order.partner_id IS NULL, partner.id, order.partner_id) AS p_id'
+            ])
+            ->from('order')
+            ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
+            ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
+            ->where(['order_has_product.product_feature_id' => $product_id])
+            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->having(['p_id' => $partner_id]);
+        
+        $command = $query->createCommand();
+        return $command->queryAll();
+    }
+    
+    public static function getProviderOrderByPartnerStock($partner_id, $date, $isPurchase = -1)
+    {
+        $where = $isPurchase == -1 ? '1' : 'order_has_product.purchase = ' . $isPurchase;
+        $query = new Query;
+        $query->select([
+                'order_has_product.product_id',
+                'order_has_product.name AS product_name',
+                'order_has_product.product_feature_id',
+                'provider.name AS provider_name',
+                'provider.id AS provider_id',
+                'SUM(order_has_product.quantity) AS quantity',
+                'SUM(order_has_product.total) AS total',
+                'IF (order.partner_id IS NULL, partner.id, order.partner_id) AS p_id',
+                'CONCAT(product_feature.tare, ", ", product_feature.volume, " ", product_feature.measurement) AS product_feature_name',
+            ])
+            ->from('order')
+            ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
+            ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
+            ->join('LEFT JOIN', 'provider', 'order_has_product.provider_id=provider.id')
+            ->join('LEFT JOIN', 'product_feature', 'order_has_product.product_feature_id=product_feature.id')
+            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere($where)
+            ->groupBy('product_feature_id, p_id')
+            ->having(['p_id' => $partner_id]);
         
         $dataProvider = new ActiveDataProvider([
             'query' => $query

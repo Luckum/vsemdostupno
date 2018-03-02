@@ -13,23 +13,22 @@ class OrderNotificationController extends Controller
 {
     public function actionIndex()
     {
-        $dateEnd = date('Y-m-d 21:00:00');
-        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m'), date('d') - 1, date('Y')));
+        $date = date('Y-m-d');
         
-        $providers = Order::getProviderIdByDate(['start' => $dateStart, 'end' => $dateEnd], 1);
+        $providers = Order::getProviderIdByDate($date, 1);
         if ($providers) {
             foreach ($providers as $provider) {
                 if ($provider['provider_id'] != 0) {
-                    $partners = Order::getPartnerIdByProvider(['start' => $dateStart, 'end' => $dateEnd], $provider['provider_id'], 1);
+                    $partners = Order::getPartnerIdByProvider($date, $provider['provider_id'], 1);
                     if ($partners) {
                         foreach ($partners as $partner) {
-                            $details = Order::getOrderDetailsByProviderPartner(['start' => $dateStart, 'end' => $dateEnd], $provider['provider_id'], $partner['partner_id'], 1);
+                            $details = Order::getOrderDetailsByProviderPartner($date, $provider['provider_id'], $partner['partner_id'], 1);
                             if ($details) {
-                                $this->sendEmailToProvider($details, $provider['provider_id'], $partner['partner_id'], $dateEnd);
+                                $this->sendEmailToProvider($details, $provider['provider_id'], $partner['partner_id'], $date);
                                 foreach ($details as $detail) {
-                                    if (!ProviderNotification::find()->where(['order_date' => $dateEnd, 'provider_id' => $provider['provider_id'], 'product_id' => $detail['product_id']])->exists()) {
+                                    if (!ProviderNotification::find()->where(['order_date' => $date, 'provider_id' => $provider['provider_id'], 'product_id' => $detail['product_id']])->exists()) {
                                         $notif = new ProviderNotification;
-                                        $notif->order_date = $dateEnd;
+                                        $notif->order_date = $date;
                                         $notif->provider_id = $provider['provider_id'];
                                         $notif->product_id = $detail['product_id'];
                                         $notif->save();
@@ -41,16 +40,21 @@ class OrderNotificationController extends Controller
                 }
             }
         }
-        $dataProvider = Order::getProvidersOrder($dateStart, $dateEnd, 1);
-        $this->sendEmailToAdmin($dataProvider, ['start' => $dateStart, 'end' => $dateEnd]);
+        $dataProvider = Order::getProvidersOrder($date, 1);
+        $this->sendEmailToAdmin($dataProvider, $date);
         
-        $partners = Order::getPartnerIdByDate(['start' => $dateStart, 'end' => $dateEnd], 1);
+        $partners = Order::getPartnerIdByDate($date, 1);
         if ($partners) {
             foreach ($partners as $partner) {
-                $dataProvider = Order::getProviderOrderByPartner($partner['partner_id'], ['start' => $dateStart, 'end' => $dateEnd], 1);
-                $this->sendEmailToPartner($dataProvider, ['start' => $dateStart, 'end' => $dateEnd], $partner['partner_id']);
+                $dataProvider = Order::getProviderOrderByPartner($partner['partner_id'], $date, 1);
+                $this->sendEmailToPartner($dataProvider, $date, $partner['partner_id']);
             }
         }
+        
+        $dateEnd = date('Y-m-d 21:00:00');
+        $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m'), date('d') - 1, date('Y')));
+        $dataProvider = Order::getProvidersOrderStock($dateStart, $dateEnd, 0);
+        $this->sendStockEmailToAdmin($dataProvider, ['start' => $dateStart, 'end' => $dateEnd]);
     }
     
     protected function sendEmailToProvider($details, $provider_id, $partner_id, $date)
@@ -74,7 +78,7 @@ class OrderNotificationController extends Controller
         Yii::$app->mailer->compose('admin/order', [
                 'dataProvider' => $dataProvider,
                 'date' => $date,
-                'link' => 'http://vsemdostupno.dev' . '/admin/provider-order/date?' . 'date_e=' . date('Y-m-d', strtotime($date['end'])) . '&date_s=' . date('Y-m-d', strtotime($date['start']))
+                'link' => 'http://vsemdostupno.ru' . '/admin/provider-order/date?' . 'date=' . date('Y-m-d', strtotime($date))
             ])
             ->setFrom(Yii::$app->params['fromEmail'])
             ->setTo($admin->email)
@@ -92,6 +96,20 @@ class OrderNotificationController extends Controller
             ->setFrom(Yii::$app->params['fromEmail'])
             ->setTo($partner->user->email)
             ->setSubject('Завершён сбор заявок на поставку с сайта "' . Yii::$app->params['name'] . '"')
+            ->send();
+    }
+    
+    protected function sendStockEmailToAdmin($dataProvider, $date)
+    {
+        $admin = User::find()->where(['role' => 'admin'])->one();
+        Yii::$app->mailer->compose('admin/order-stock', [
+                'dataProvider' => $dataProvider,
+                'date' => $date,
+                'link' => 'www.vsemdostupno.ru/admin/order/date?' . 'date=' . date('Y-m-d', strtotime($date['end']))
+            ])
+            ->setFrom(Yii::$app->params['fromEmail'])
+            ->setTo($admin->email)
+            ->setSubject('Завершён рабочий период сбора заявок на "' . date('d.m.Y', strtotime($date['end'])) . '"')
             ->send();
     }
 }

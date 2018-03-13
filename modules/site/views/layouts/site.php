@@ -64,9 +64,9 @@ $recomendations = ArrayHelper::merge(
             ],
         ],
     ],
-    getMenuItems('slug != "" AND slug != "' . Category::PURCHASE_SLUG . '"')
+    getMenuItems('slug != "" AND slug != "' . Category::PURCHASE_SLUG . '" OR id = 212')
 );
-$catalogue = getMenuItems('slug = ""');
+$catalogue = getMenuItems('slug = "" AND id != 212');
 
 $purchases = [];
 $purchase = Category::findOne(['slug' => Category::PURCHASE_SLUG]);

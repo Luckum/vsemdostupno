@@ -171,13 +171,13 @@ class OrderController extends BaseController
             ->setCellValue('A25', $parameters['message'])
             ->setCellValue('AM21', $order->total)
             ->setCellValue('AR15', sprintf('%05d', $order->order_id))
-            ->setCellValue('BB15', $parameters['currentDate'])
+            ->setCellValue('BB15', Yii::$app->formatter->asDate($order->created_at, 'php:d.m.Y'))
             ->setCellValue('BQ10', sprintf('к приходному кассовому ордеру № %05d', $order->order_id))
-            ->setCellValue('BQ12', sprintf('от %s г.', $parameters['currentDate']))
+            ->setCellValue('BQ12', sprintf('от %s г.', Yii::$app->formatter->asDate($order->created_at, 'php:d.m.Y')))
             ->setCellValue('BQ14', $parameters['fullName'])
             ->setCellValue('BQ16', $parameters['message'])
             ->setCellValue('BQ23', $spelloutTotal)
-            ->setCellValue('BQ29', sprintf('%s г.', $parameters['currentDate']))
+            ->setCellValue('BQ29', sprintf('%s г.', Yii::$app->formatter->asDate($order->created_at, 'php:d.m.Y')))
             ->setCellValue('BV21', floor($order->total))
             ->setCellValue('CM21', sprintf('%02d', round(100 * ($order->total - floor($order->total)))))
             ->setCellValue('F27', $spelloutTotal)
@@ -627,7 +627,7 @@ class OrderController extends BaseController
         $value_b13 = $objectExcel->setActiveSheetIndex(0)->getCell('B13')->getValue();
         $value_f8 = $objectExcel->setActiveSheetIndex(0)->getCell('F8')->getValue();
         
-        $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', Yii::$app->formatter->asDate($order->created_at, 'php:d.m.Y'));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('T11', $parameters['currentDate']);
         $objectExcel->setActiveSheetIndex(0)->setCellValue('B13', Template::parseTemplate($parameters, $value_b13));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F8', Template::parseTemplate($parameters, $value_f8));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('F4', $parameters['fullName']);
@@ -661,9 +661,9 @@ class OrderController extends BaseController
         $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (19 + count($order->orderHasProducts)), $total_summ);
         $objectExcel->setActiveSheetIndex(0)->setCellValue('X' . (20 + count($order->orderHasProducts)), $total_summ);
         $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (20 + count($order->orderHasProducts)), $total_summ);
-        $objectExcel->setActiveSheetIndex(0)->setCellValue('F' . (36 + count($order->orderHasProducts) - 1), '"' . Yii::$app->formatter->asDate($order->created_at, 'php:d') . '"');
-        $objectExcel->setActiveSheetIndex(0)->setCellValue('I' . (36 + count($order->orderHasProducts) - 1), Yii::$app->formatter->asDate($order->created_at, 'php:Y') . ' года');
-        $objectExcel->setActiveSheetIndex(0)->setCellValue('G' . (36 + count($order->orderHasProducts) - 1), Yii::$app->formatter->asDate($order->created_at, 'php:F'));
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('F' . (36 + count($order->orderHasProducts) - 1), '"' . Yii::$app->formatter->asDate($parameters['currentDate'], 'php:d') . '"');
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('I' . (36 + count($order->orderHasProducts) - 1), Yii::$app->formatter->asDate($parameters['currentDate'], 'php:Y') . ' года');
+        $objectExcel->setActiveSheetIndex(0)->setCellValue('G' . (36 + count($order->orderHasProducts) - 1), Yii::$app->formatter->asDate($parameters['currentDate'], 'php:F'));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('B' . (29 + count($order->orderHasProducts) - 1), Sum::toStr($total_summ));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('E' . (23 + count($order->orderHasProducts) - 1), Sum::toStr(count($order->orderHasProducts), false));
         $objectExcel->setActiveSheetIndex(0)->setCellValue('AG' . (33 + count($order->orderHasProducts) - 1), $parameters['shortName']);

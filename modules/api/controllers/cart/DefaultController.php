@@ -84,7 +84,7 @@ class DefaultController extends Controller
         if (Yii::$app->user->isGuest && $product->product->only_member_purchase) {
             return [
                 'success' => false,
-                'message' => 'Данное предложение доступно только для участников.',
+                'message' => 'Данное предложение доступно только для участников. Если Вы являетесь участником, сделайте заказ этого товара через свой личный кабинет.',
             ];
         }
 

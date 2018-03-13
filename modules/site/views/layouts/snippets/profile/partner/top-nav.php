@@ -47,10 +47,10 @@ echo Nav::widget([
                     'label' => Icon::show('users') . ' Мои участники',
                     'url' => Url::to(['/profile/partner/member']),
                 ],
-                [
+                /*[
                     'label' => Icon::show('bars') . ' Заказы моих участников',
                     'url' => Url::to(['/profile/partner/member/order']),
-                ],
+                ],*/
                 [
                     'label' => Icon::show('bars') . ' Коллективная закупка',
                     'url' => Url::to(['/profile/provider/order/index']),

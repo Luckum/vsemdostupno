@@ -94,15 +94,19 @@ $this->registerJs($script, $this::POS_END);
                             'items' => [
                                 [
                                     'label' => 'Прих. ордер',
-                                    'url' => Url::to(['download-order', 'id' => $model->id]),
+                                    'url' => Url::to(['/admin/order/download-order', 'id' => $model->id]),
                                 ],
                                 [
                                     'label' => 'Акт возврата',
-                                    'url' => Url::to(['download-act', 'id' => $model->id]),
+                                    'url' => Url::to(['/admin/order/download-act', 'id' => $model->id]),
                                 ],
                                 [
                                     'label' => 'Заявка',
-                                    'url' => Url::to(['download-request', 'id' => $model->id]),
+                                    'url' => Url::to(['/admin/order/download-request', 'id' => $model->id]),
+                                ],
+                                [
+                                    'label' => 'Акт возврата паевого взноса',
+                                    'url' => Url::to(['/admin/order/download-return-fee-act', 'id' => $model->id]),
                                 ],
                                 '<li class="divider"></li>',
                                 [

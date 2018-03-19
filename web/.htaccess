@@ -6,13 +6,7 @@ RewriteEngine on
 
 # redirect for www both http and https
 RewriteCond %{HTTP_HOST} ^www\..+$
-RewriteCond %{HTTPS}s ^on(s)|
-RewriteRule ^(.*)$ http%1://vsemdostupno.dev%{REQUEST_URI} [L,R=301]
-
-# redirect for bydemzdorovi.ru both http and https
-RewriteCond %{HTTP_HOST} ^bydemzdorovi.ru$
-RewriteCond %{HTTPS}s ^on(s)|
-RewriteRule ^(.*)$ http%1://vsemdostupno.dev%{REQUEST_URI} [L,R=301]
+RewriteRule ^(.*)$ http://vsemdostupno.dev%{REQUEST_URI} [L,R=301]
 
 # if a directory or a file exists, use it directly
 RewriteCond %{REQUEST_FILENAME} !-f

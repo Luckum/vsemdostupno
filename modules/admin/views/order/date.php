@@ -6,6 +6,7 @@ use app\models\ProductFeature;
 use app\models\ProviderNotification;
 use app\models\Provider;
 use app\models\User;
+use kartik\icons\Icon;
     
 $this->title = 'Сбор заявок за ' . date('d.m.Y', strtotime($date['end']));
 $this->params['breadcrumbs'][] = ['label' => 'Заказы на склад', 'url' => '/admin/order'];
@@ -47,10 +48,10 @@ $this->registerJs($script, $this::POS_END);
                         <td><?= $val['product_name']; ?></td>
                         <td><?= $val['provider_name']; ?></td>
                         <td><?= $orders[0]['p_name']; ?></td>
-                        <td><a href="<?= Url::to(['/admin/order/detail', 'id' => $val['product_feature_id'], 'pid' => $orders[0]['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]); ?>" style="text-decoration: underline;"><?= number_format($orders[0]['quantity']); ?></a></td>
+                        <td><a href="<?= Url::to(['/admin/order/detail', 'id' => $val['product_feature_id'], 'pid' => $orders[0]['p_id'], 'prid' => $val['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]); ?>" style="text-decoration: underline;"><?= ProductFeature::isWeights($val['product_feature_id']) ? $orders[0]['quantity'] : number_format($orders[0]['quantity']); ?></a></td>
                         <td><b><?= $orders[0]['total']; ?></b></td>
                         <td><?= ProductFeature::getFeatureNameById($val['product_feature_id']); ?></td>
-                        <td><?= number_format($val['total_qnt']); ?></td>
+                        <td><?= ProductFeature::isWeights($val['product_feature_id']) ? $val['total_qnt'] : number_format($val['total_qnt']); ?></td>
                         <td><b><?= $val['total_price']; ?></b></td>
                     </tr>
                 <?php else: ?>

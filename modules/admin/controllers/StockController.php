@@ -315,6 +315,7 @@ class StockController extends BaseController
         $price = ($_POST['product_exists'] == '0') ? $_POST['summ'] : $_POST['summ_ex'];
         $comment = ($_POST['product_exists'] == '0') ? $_POST['comment'] : $_POST['comment_ex'];
         $deposit = ($_POST['product_exists'] == '0') ? (isset($_POST['deposit']) ? 1 : 0) : (isset($_POST['deposit_ex']) ? 1 : 0);
+        $is_weights = ($_POST['product_exists'] == '0') ? (isset($_POST['is_weights']) ? 1 : 0) : (isset($_POST['is_weights_ex']) ? 1 : 0);
         
         $head = StockHead::find()
             ->where([
@@ -337,7 +338,8 @@ class StockController extends BaseController
                 'product_id' => $product->id,
                 'volume' => $volume,
                 'measurement' => $measurement,
-                'tare' => $tare])
+                'tare' => $tare,
+                'is_weights' => $is_weights])
             ->one();
         if (!$product_feature) {
             $product_feature = new ProductFeature();
@@ -346,6 +348,7 @@ class StockController extends BaseController
             $product_feature->measurement = $measurement;
             $product_feature->tare = $tare;
             $product_feature->quantity = $quantity;
+            $product_feature->is_weights = $is_weights;
             $product_feature->save();
             
             $product_price = new ProductPrice();
@@ -380,6 +383,7 @@ class StockController extends BaseController
 	    $body->total_summ = $price * $quantity;
 	    $body->deposit = $deposit;
 	    $body->comment = $comment;
+        $body->is_weights = $is_weights;
 	    $body->save();
         
         $provider_stock = new ProviderStock();
@@ -409,7 +413,8 @@ class StockController extends BaseController
             'tare' => $feature->tare,
             'volume' => $feature->volume,
             'measurement' => $feature->measurement,
-            'price' => $feature->productPrices[0]->purchase_price
+            'price' => $feature->productPrices[0]->purchase_price,
+            'is_weights' => $feature->is_weights,
         ];
         return json_encode($res);
     }

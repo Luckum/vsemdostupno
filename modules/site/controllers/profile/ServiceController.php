@@ -16,6 +16,7 @@ use app\models\Service;
 use app\models\ProviderHasProduct;
 use app\models\Photo;
 use app\models\ServiceHasPhoto;
+use app\models\NoticeEmail;
 
 class ServiceController extends BaseController
 {
@@ -91,11 +92,13 @@ class ServiceController extends BaseController
                 $model->link('serviceHasPhoto', $serviceHasPhoto);
             }
 
-            Email::send('notify-modified-service', Yii::$app->params['adminEmail'], [
-                'name' => $model->name,
-                'viewUrl' => Url::to([$model->url], true),
-                'updateUrl' => Url::to(['/admin/service/update', 'id' => $model->id], true),
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('notify-modified-service', $emails, [
+                    'name' => $model->name,
+                    'viewUrl' => Url::to([$model->url], true),
+                    'updateUrl' => Url::to(['/admin/service/update', 'id' => $model->id], true),
+                ]);
+            }
 
             return $this->redirect('/profile/service');
         } else {
@@ -127,11 +130,13 @@ class ServiceController extends BaseController
             }
             $model->save();
 
-            Email::send('notify-modified-service', Yii::$app->params['adminEmail'], [
-                'name' => $model->name,
-                'viewUrl' => Url::to([$model->url], true),
-                'updateUrl' => Url::to(['/admin/service/update', 'id' => $model->id], true),
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('notify-modified-service', $emails, [
+                    'name' => $model->name,
+                    'viewUrl' => Url::to([$model->url], true),
+                    'updateUrl' => Url::to(['/admin/service/update', 'id' => $model->id], true),
+                ]);
+            }
 
             return $this->redirect('/profile/service');
         } else {

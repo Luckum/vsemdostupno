@@ -1,4 +1,8 @@
 $(document).ready(function() {
+    if ($("#request-active").val() == 1) {
+        $("#user-menu-lnk a.dropdown-toggle").addClass('blink');
+        $("#request-menu-lnk a").addClass('blink1');
+    }
     $(".deposit-check").change(function() {
         change_deposit(this);
     });
@@ -254,6 +258,12 @@ function set_product_data(obj)
                 $("#measurement-ex").val(data.measurement);
                 $("#summ-ex").val(data.price);
                 $("#product-exists").val('1');
+                $("#is_weights_ex").val(data.is_weights);
+                if (data.is_weights == 1) {
+                    $("#weight-lbl").text("Масса/Объём 1 единицы");
+                    $("#count-lbl").text("Общий принимаемый вес");
+                    $("#summ-lbl").text("Сумма за 1 кг./л.");
+                }
                 
                 $("#stock-inner-new").hide();
                 $("#stock-inner-exists").show();
@@ -550,4 +560,95 @@ function deleteReturnOrderStock(obj)
             }
         });
     }
+}
+
+function deleteCheckedOrders()
+{
+    if (confirm('Вы уверены, что хотите удалить выбранные заказы?')) {
+        $(".check_date").each(function() {
+            if (this.checked) {
+                var chk_date = $(this).attr("data-date");
+                $.ajax({
+                    url: "/admin/provider-order/delete",
+                    type: "POST",
+                    data: {date: chk_date},
+                    async: false,
+                    success: function(response) {
+                        
+                    }
+                });
+            }
+            
+        });
+        window.location.reload();
+    }
+}
+
+function deleteCheckedOrdersStock()
+{
+    if (confirm('Вы уверены, что хотите удалить выбранные заказы?')) {
+        $(".check_date").each(function() {
+            if (this.checked) {
+                var chk_date = $(this).attr("data-date");
+                $.ajax({
+                    url: "/admin/order/delete-stock",
+                    type: "POST",
+                    data: {date: chk_date},
+                    async: false,
+                    success: function(response) {
+                        
+                    }
+                });
+            }
+            
+        });
+        window.location.reload();
+    }
+}
+
+function changeIsWeights(obj)
+{
+    if (obj.checked) {
+        $("#weight-lbl").text("Масса/Объём 1 единицы");
+        $("#count-lbl").text("Общий принимаемый вес");
+        $("#summ-lbl").text("Сумма за 1 кг./л.");
+    } else {
+        $("#weight-lbl").text("Масса/Объём");
+        $("#count-lbl").text("Количество");
+        $("#summ-lbl").text("Сумма за ед./т.");
+    }
+}
+
+function correctWeights(obj)
+{
+    $("#pname-td").html($(obj).attr("data-pname"));
+    $("#price-td").html($(obj).attr("data-price"));
+    $("#quantity-td").html($(obj).attr("data-quantity"));
+    $("#total-td").html(parseFloat($(obj).attr("data-price") * $(obj).attr("data-quantity")).toFixed(2));
+    $("#quantity-correct-txt").val($(obj).attr("data-quantity"));
+    $("#ohp-id").val($(obj).attr("data-ohp-id"));
+    $('#correct-weights-modal').modal('show');
+}
+
+function setTotalCorrect()
+{
+    $("#total-td").html(parseFloat($("#quantity-correct-txt").val() * $("#price-td").html()).toFixed(2));
+}
+
+function correctRecalc()
+{
+    var c_quantity = $("#quantity-correct-txt").val();
+    var c_total = $("#total-td").html();
+    var id = $("#ohp-id").val();
+    var prev_quantity = $("#quantity-td").html();
+    
+    $.ajax({
+        url: "/admin/order/set-corrected",
+        type: "POST",
+        data: {quantity: c_quantity, prev_quantity: prev_quantity, total: c_total, id: id},
+        async: false,
+        success: function(response) {
+            window.location.reload();
+        }
+    });
 }

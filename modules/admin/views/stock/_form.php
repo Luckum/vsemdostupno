@@ -33,10 +33,7 @@ $items_meas = [
     'гр.' => 'гр.',
     'мл.' => 'мл.',
     'мг.' => 'мг.',
-    'разновес.' => 'разновес.',
-    'упак.' => 'упак.'
 ];
-
 ?>
 
 <div class="provider-form">
@@ -47,12 +44,17 @@ $items_meas = [
             <br />
             <?php foreach ($product->productFeatures as $val): ?>
                 <a href="javascript:void(0);" data-id="<?= $val->id; ?>" class="avail-product" onclick="set_product_data(this);">
-                    <?= $val->tare . ' ' . $val->volume . ' ' . $val->measurement . ' в количестве ' . $val->quantity . ' шт. по цене ' . $val->productPrices[0]->purchase_price . ' руб.'; ?>
+                    <?php if ($val->is_weights == 1): ?>
+                        <?= 'Разновес в ' . $val->tare . ' по ' . $val->volume . ' ' . $val->measurement . ' общим количеством ' . $val->quantity . ' ' . $val->measurement . 'по цене ' . $val->productPrices[0]->purchase_price . ' руб. за ' . $val->measurement ?>
+                    <?php else: ?>
+                        <?= $val->tare . ' ' . $val->volume . ' ' . $val->measurement . ' в количестве ' . $val->quantity . ' шт. по цене ' . $val->productPrices[0]->purchase_price . ' руб.'; ?>
+                    <?php endif; ?>
                 </a>
             <?php endforeach; ?>
             <a href="javascript:void(0);" data-id="0" class="avail-product" onclick="set_product_data(this);">Добавить</a>
-            
+            <br><br>
             <div id="stock-inner-exists" style="display: none;">
+                <input type="hidden" name="is_weights_ex" id="is_weights_ex" value="">
                 <div class="form-group">
                     <label for="tare">Тара</label>
                     <?= Html::textInput('tare_ex', null, ['class' => 'form-control', 'id' => 'tare-ex', 'readonly' => true]); ?>
@@ -95,6 +97,10 @@ $items_meas = [
             </div>
             <div id="stock-inner-new" style="display: none;">
                 <div class="form-group">
+                    <?= Html::checkbox('is_weights', false, ['id' => 'is_weights', 'onchange' => 'changeIsWeights(this);']); ?>
+                    <label for="is_weights">Разновес/Упаковка</label>
+                </div>
+                <div class="form-group">
                     <label for="tare">Тара</label>
                     <?= Html::dropDownList(
                         'tare',
@@ -105,7 +111,7 @@ $items_meas = [
                 </div>
 
                 <div class="form-group">
-                    <label for="weight">Масса/Объём</label>
+                    <label for="weight" id="weight-lbl">Масса/Объём</label>
                     <?= Html::textInput('volume', null, ['class' => 'form-control', 'id' => 'volume']); ?>
                 </div>
 
@@ -120,12 +126,12 @@ $items_meas = [
                 </div>
 
                 <div class="form-group">
-                    <label for="count">Количество</label>
+                    <label for="count" id="count-lbl">Количество</label>
                     <?= Html::textInput('count', null, ['class' => 'form-control', 'id' => 'count']); ?>
                 </div>
 
                 <div class="form-group">
-                    <label for="summ">Сумма за ед./т.</label>
+                    <label for="summ" id="summ-lbl">Сумма за ед./т.</label>
                     <?= Html::textInput('summ', null, ['class' => 'form-control', 'id' => 'summ']); ?>
                 </div>
 
@@ -141,6 +147,10 @@ $items_meas = [
             </div>
         <?php else: ?>
             <div class="form-group">
+                <?= Html::checkbox('is_weights', false, ['id' => 'is_weights', 'onchange' => 'changeIsWeights(this);']); ?>
+                <label for="is_weights">Разновес/Упаковка</label>
+            </div>
+            <div class="form-group">
                 <label for="tare">Тара</label>
                 <?= Html::dropDownList(
                     'tare',
@@ -151,7 +161,7 @@ $items_meas = [
             </div>
 
             <div class="form-group">
-                <label for="weight">Масса/Объём</label>
+                <label for="weight" id="weight-lbl">Масса/Объём</label>
                 <?= Html::textInput('volume', null, ['class' => 'form-control', 'id' => 'volume']); ?>
             </div>
 
@@ -166,12 +176,12 @@ $items_meas = [
             </div>
 
             <div class="form-group">
-                <label for="count">Количество</label>
+                <label for="count" id="count-lbl">Количество</label>
                 <?= Html::textInput('count', null, ['class' => 'form-control', 'id' => 'count']); ?>
             </div>
 
             <div class="form-group">
-                <label for="summ">Сумма за ед./т.</label>
+                <label for="summ" id="summ-lbl">Сумма за ед./т.</label>
                 <?= Html::textInput('summ', null, ['class' => 'form-control', 'id' => 'summ']); ?>
             </div>
 

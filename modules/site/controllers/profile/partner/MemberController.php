@@ -300,10 +300,12 @@ class MemberController extends BaseController
             $order = Order::findOne($orderId);
             $orderId = sprintf("%'.05d\n", $order->order_id);
             
-            Email::send('order-customer', Yii::$app->params['adminEmail'], [
-                'id' => $orderId,
-                'information' => $order->htmlEmailFormattedInformation,
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('order-customer', $emails, [
+                    'id' => $orderId,
+                    'information' => $order->htmlEmailFormattedInformation,
+                ]);
+            }
 
             Email::send('order-customer', $order->email, [
                 'id' => $orderId,

@@ -11,6 +11,7 @@ use yii\web\Response;
 use yii\data\ActiveDataProvider;
 use app\models\User;
 use app\models\Module;
+use app\models\NoticeEmail;
 use yii\bootstrap\Nav;
 
 class ModuleController extends BaseController
@@ -51,8 +52,32 @@ class ModuleController extends BaseController
         $dataProvider = new ActiveDataProvider([
             'query' => Module::find()
         ]);
+        
+        if (Yii::$app->request->post('notice_email') !== null) {
+            $emails_str = Yii::$app->request->post('notice_email');
+            $emails = explode(',', $emails_str);
+            $model_notice = NoticeEmail::find()->all();
+            if ($model_notice) {
+                NoticeEmail::deleteAll();
+            }
+            foreach ($emails as $email) {
+                $model_notice = new NoticeEmail;
+                $model_notice->email = trim($email);
+                $model_notice->save();
+            }
+            
+        }
+        
+        $emails = "";
+        $model_notice = NoticeEmail::find()->all();
+        if ($model_notice) {
+            foreach ($model_notice as $res) {
+                $emails .= $res->email . ", ";
+            }
+        }
         return $this->render('index', [
             'dataProvider' => $dataProvider,
+            'emails' => substr($emails, 0, -2),
         ]);
     }
     

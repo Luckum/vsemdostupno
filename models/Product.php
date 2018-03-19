@@ -27,6 +27,7 @@ use yii\data\ActiveDataProvider;
  * @property string $expiry_timestamp
  * @property integer $min_inventory
  * @property integer $auto_send
+ * @property integer $manufacturer_photo_id
  *
  * @property CategoryHasProduct[] $categoryHasProduct
  * @property ProductHasPhoto[] $productHasPhoto
@@ -74,7 +75,7 @@ class Product extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['visibility', 'only_member_purchase', 'min_inventory', 'auto_send'], 'integer'],
+            [['visibility', 'only_member_purchase', 'min_inventory', 'auto_send', 'manufacturer_photo_id'], 'integer'],
             [['name', 'description'], 'required'],
             [['category_id', 'provider_id'], 'required', 'except' => ['apply_product', 'order_product']],
             [['description', 'composition', 'packing', 'manufacturer', 'status'], 'string'],
@@ -106,6 +107,9 @@ class Product extends \yii\db\ActiveRecord
             'thumbUrl' => 'Фотография',
             'quantity' => 'Количество',
             'auto_send' => 'Отправление авто заявки поставщику',
+            'manufacturer_photo_id' => 'Фото производителя',
+            'photo' => 'Фото производителя',
+            'thumbUrlManufacturer' => 'Фото производителя',
         ];
     }
 
@@ -198,9 +202,11 @@ class Product extends \yii\db\ActiveRecord
         }
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
+    public function getPhoto()
+    {
+        return $this->hasOne(Photo::className(), ['id' => 'manufacturer_photo_id']);
+    }
+    
     public function getCategoryHasProduct()
     {
         return $this->hasMany(CategoryHasProduct::className(), ['product_id' => 'id']);
@@ -248,16 +254,23 @@ class Product extends \yii\db\ActiveRecord
         return $this->hasOne(Provider::className(), ['id' => 'provider_id'])->viaTable('{{%provider_has_product}}', ['product_id' => 'id']);
     }
 
-    public function deletePhoto($photo)
+    public function deletePhoto($photo, $manufacturer = 0)
     {
         if ($photo) {
-            $productHasPhoto = ProductHasPhoto::findOne([
-                'product_id' => $this->id,
-                'photo_id' => $photo->id,
-            ]);
+            if ($manufacturer == 0) {
+                $productHasPhoto = ProductHasPhoto::findOne([
+                    'product_id' => $this->id,
+                    'photo_id' => $photo->id,
+                ]);
 
-            if ($productHasPhoto) {
-                $this->unlink('productHasPhoto', $productHasPhoto, true);
+                if ($productHasPhoto) {
+                    $this->unlink('productHasPhoto', $productHasPhoto, true);
+                    return true;
+                }
+            } else {
+                $this->manufacturer_photo_id = null;
+                $this->save();
+                $photo->delete();
                 return true;
             }
         }
@@ -269,10 +282,20 @@ class Product extends \yii\db\ActiveRecord
     {
         return $this->productHasPhoto ? $this->productHasPhoto[0]->getThumbUrl() : self::DEFAULT_THUMB;
     }
+    
+    public function getThumbUrlManufacturer()
+    {
+        return $this->photo ? $this->photo->getThumbUrl() : self::DEFAULT_THUMB;
+    }
 
     public function getImageUrl()
     {
         return $this->productHasPhoto ? $this->productHasPhoto[0]->getImageUrl() : self::DEFAULT_IMAGE;
+    }
+    
+    public function getImageUrlManufacturer()
+    {
+        return $this->photo ? $this->photo->getImageUrl() : self::DEFAULT_IMAGE;
     }
 
     public function isPurchase()

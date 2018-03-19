@@ -112,6 +112,25 @@ class ProductController extends BaseController
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $files = UploadedFile::getInstances($model, 'photo');
+            if ($files) {
+                if ($model->photo) {
+                    $model->photo->updatePhoto(
+                        Product::MAX_GALLERY_IMAGE_SIZE,
+                        Product::MAX_GALLERY_THUMB_WIDTH,
+                        Product::MAX_GALLERY_THUMB_HEIGHT,
+                        $files[0]->tempName
+                    );
+                } else {
+                    $photo = Photo::createPhoto(
+                        Product::MAX_GALLERY_IMAGE_SIZE,
+                        Product::MAX_GALLERY_THUMB_WIDTH,
+                        Product::MAX_GALLERY_THUMB_HEIGHT,
+                        $files[0]->tempName
+                    );
+                    $model->manufacturer_photo_id = $photo->id;
+                }
+            }
             $model->save();
             $gallery = UploadedFile::getInstances($model, 'gallery');
             foreach ($gallery as $file) {
@@ -162,6 +181,25 @@ class ProductController extends BaseController
                 $productHasPhoto = new ProductHasPhoto();
                 $productHasPhoto->photo_id = $photo->id;
                 $model->link('productHasPhoto', $productHasPhoto);
+            }
+            $files = UploadedFile::getInstances($model, 'photo');
+            if ($files) {
+                if ($model->photo) {
+                    $model->photo->updatePhoto(
+                        Product::MAX_GALLERY_IMAGE_SIZE,
+                        Product::MAX_GALLERY_THUMB_WIDTH,
+                        Product::MAX_GALLERY_THUMB_HEIGHT,
+                        $files[0]->tempName
+                    );
+                } else {
+                    $photo = Photo::createPhoto(
+                        Product::MAX_GALLERY_IMAGE_SIZE,
+                        Product::MAX_GALLERY_THUMB_WIDTH,
+                        Product::MAX_GALLERY_THUMB_HEIGHT,
+                        $files[0]->tempName
+                    );
+                    $model->manufacturer_photo_id = $photo->id;
+                }
             }
             $model->save();
             return $this->redirect(['view', 'id' => $model->id]);

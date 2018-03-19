@@ -7,6 +7,7 @@ use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
 use yii\bootstrap\ActiveForm;
 use kartik\typeahead\Typeahead;
+use kartik\icons\Icon;
 use yii\web\JsExpression;
 use app\models\User;
 use app\models\Module;
@@ -16,6 +17,7 @@ use app\models\Module;
 /* @var $content string */
 
 AppAsset::register($this);
+Icon::map($this);
 
 ?>
 <?php $this->beginPage() ?>
@@ -64,11 +66,13 @@ AppAsset::register($this);
                         ['label' => 'Категории', 'url' => ['/admin/category']],
                         [
                             'label' => 'Пользователи',
+                            'options' => ['id' => 'user-menu-lnk'],
                             'items' => [
                                 ['label' => 'Участники', 'url' => ['/admin/member']],
                                 ['label' => 'Партнеры', 'url' => ['/admin/partner']],
                                 ['label' => 'Поставщики', 'url' => ['/admin/provider']],
                                 ['label' => 'Кандидаты', 'url' => ['/admin/candidate'], 'visible' => Yii::$app->user->identity->role == User::ROLE_SUPERADMIN],
+                                ['label' => 'Заявки на вступление', 'url' => ['/admin/entry-request'], 'options' => ['id' => 'request-menu-lnk'],],
                                 ['label' => 'Членские взносы', 'url' => ['/admin/subscriber-payment']],
                                 ['label' => 'Поиск контрагентов', 
                                 'url' => '#',
@@ -85,7 +89,7 @@ AppAsset::register($this);
                                 ['label' => 'Города', 'url' => ['/admin/city']],
                                 ['label' => 'Параметры', 'url' => ['/admin/parameter']],
                                 ['label' => 'Файлы', 'url' => ['/elfinder/manager/', 'lang' => 'ru'], 'linkOptions' => ['target' => '_blank']],
-                                ['label' => 'Модули', 'url' => ['/admin/module'], 'visible' => Yii::$app->user->identity->role == User::ROLE_SUPERADMIN],
+                                ['label' => 'Панель управления', 'url' => ['/admin/module'], 'visible' => Yii::$app->user->identity->role == User::ROLE_SUPERADMIN],
                             ],
                         ],
                         [
@@ -106,6 +110,7 @@ AppAsset::register($this);
             NavBar::end();
         ?>
 
+        <input type="hidden" id="request-active" value="<?= User::existsEntityRequest() ?>">
         <div class="container">
             <?= Breadcrumbs::widget([
                 'homeLink' => ['label' => Yii::t('yii', 'Home'), 'url' => Url::to(['/admin'])],

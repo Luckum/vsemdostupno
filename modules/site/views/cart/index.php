@@ -72,10 +72,11 @@ $this->params['breadcrumbs'][] = $this->title;
                                     </div>
                                 </td>
                                 <td class="text-center">
+                                    <?php $f_quantity = $product->is_weights == 1 ? $product->quantity / $product->volume : $product->quantity ?>
                                     <?= SelectizeDropDownList::widget([
                                         'name' => 'quantity',
                                         'value' => $product->cart_quantity,
-                                        'items' => range(0, $product->quantity),
+                                        'items' => range(0, $f_quantity),
                                         'options' => [
                                             'data-product-id' => $product->id,
                                             'readonly' => true,

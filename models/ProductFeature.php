@@ -13,6 +13,7 @@ use Yii;
  * @property string $measurement
  * @property string $tare
  * @property integer $quantity
+ * @property integer $is_weights
  *
  * @property Product $product
  */
@@ -34,8 +35,8 @@ class ProductFeature extends \yii\db\ActiveRecord
     {
         return [
             [['product_id', 'volume', 'quantity'], 'required'],
-            [['product_id', 'quantity'], 'integer'],
-            [['volume'], 'number'],
+            [['product_id', 'is_weights'], 'integer'],
+            [['volume', 'quantity'], 'number'],
             [['measurement', 'tare'], 'string', 'max' => 10],
             [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => Product::className(), 'targetAttribute' => ['product_id' => 'id']],
         ];
@@ -121,13 +122,13 @@ class ProductFeature extends \yii\db\ActiveRecord
         }
     }
     
-    public function getCalculatedPrice()
+    public function getCalculatedPrice($is_w = true)
     {
         if (!Yii::$app->user->isGuest) {
-            return $this->productPrices[0]->member_price;
+            return $this->is_weights == 1 ? ($is_w ? $this->productPrices[0]->member_price * $this->volume : $this->productPrices[0]->member_price) : $this->productPrices[0]->member_price;
         }
 
-        return $this->productPrices[0]->price;
+        return $this->is_weights == 1 ? ($is_w ? $this->productPrices[0]->price * $this->volume : $this->productPrices[0]->price) : $this->productPrices[0]->price;
     }
     
     public function getCalculatedTotalPrice()
@@ -159,5 +160,11 @@ class ProductFeature extends \yii\db\ActiveRecord
     {
         $feature = self::findOne($id);
         return $feature->tare . ', ' . $feature->volume . ' ' . $feature->measurement;
+    }
+    
+    public static function isWeights($id)
+    {
+        $feature = self::findOne($id);
+        return $feature->is_weights == 1 ? true : false;
     }
 }

@@ -139,19 +139,21 @@ class DefaultController extends BaseController
     {
         $user = User::find()->where('id=:id',[':id'=>Yii::$app->user->identity->entity->id])->with('member')->one();
         
-        Email::send('notice-from-member', Yii::$app->params['adminEmail'], [
-            'name' => $user->shortName,
-            'phone' => $user->phone,
-            'email' => $user->email,
-            'viewUrl' => Url::to(['/admin/member/view', 'id' => $user->member->id], true),
-        ]);
-        
-        Email::send('notice-from-member', Yii::$app->params['adminEmail'], [
-            'name' => $user->shortName,
-            'phone' => $user->phone,
-            'email' => $user->email,
-            'viewUrl' => Url::to(['/admin/member/view', 'id' => $user->member->id], true),
-        ]);
+        if ($emails = NoticeEmail::getEmails()) {
+            Email::send('notice-from-member', $emails, [
+                'name' => $user->shortName,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'viewUrl' => Url::to(['/admin/member/view', 'id' => $user->member->id], true),
+            ]);
+            
+            Email::send('notice-from-member', $emails, [
+                'name' => $user->shortName,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'viewUrl' => Url::to(['/admin/member/view', 'id' => $user->member->id], true),
+            ]);
+        }
         
         Yii::$app->session->setFlash('Успех', 'Ваше уведомление отправлено, мы с Вами обязательно свяжемся в ближайшее время для обсуждения деталей сотрудничества');
         return $this->render('becomeprovider');

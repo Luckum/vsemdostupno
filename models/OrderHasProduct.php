@@ -179,4 +179,9 @@ class OrderHasProduct extends \yii\db\ActiveRecord
     {
         $this->order_timestamp = $value ? $value : date('Y-m-d H:i:s');
     }
+    
+    public static function getSumTotalByOrder($order_id)
+    {
+        return self::find()->where(['order_id' => $order_id])->sum('total');
+    }
 }

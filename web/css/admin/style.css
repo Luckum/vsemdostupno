@@ -215,3 +215,33 @@ body.loading {
 body.loading .loader {
 	display: block;
 }
+
+.blink {
+	-webkit-animation: blink 2s linear infinite;
+	animation: blink 2s linear infinite;
+}
+@-webkit-keyframes blink {
+	0% { color: rgba(255, 255, 255, 1); }
+	50% { color: rgba(155, 155, 155); }
+	100% { color: rgba(255, 255, 255, 1); }
+}
+@keyframes blink {
+	0% { color: rgba(255, 255, 255, 1); }
+	50% { color: rgba(155, 155, 155, 1); }
+	100% { color: rgba(255, 255, 255, 1); }
+}
+
+.blink1 {
+	-webkit-animation: blink1 1s linear infinite;
+	animation: blink1 1s linear infinite;
+} 
+@-webkit-keyframes blink1 {
+	0% { color: rgba(34, 34, 34, 1); }
+	50% { color: rgba(155, 155, 155, 1); }
+	100% { color: rgba(34, 34, 34, 1); }
+} 
+@keyframes blink1 {
+	0% { color: rgba(34, 34, 34, 1); }
+	50% { color: rgba(155, 155, 155, 1); }
+	100% { color: rgba(34, 34, 34, 1); }
+}

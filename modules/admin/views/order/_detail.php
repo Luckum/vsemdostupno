@@ -5,7 +5,9 @@ use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\grid\GridView;
 use yii\web\JsExpression;
+use yii\bootstrap\Modal;
 use kartik\dropdown\DropdownX;
+use kartik\icons\Icon;
 use app\models\OrderStatus;
 use app\models\User;
 use app\helpers\Sum;
@@ -34,9 +36,14 @@ use app\helpers\Sum;
                         <td><?= $k + 1 ?></td>
                         <td><?= $ohp->name ?></td>
                         <td><?= $ohp->price ?></td>
-                        <td><?= number_format($ohp->quantity) ?></td>
+                        <td><?= $ohp->product->productFeatures[0]->is_weights == 1 ? $ohp->quantity : number_format($ohp->quantity) ?></td>
                         <td><?= $ohp->product->productFeatures[0]->measurement ?></td>
                         <td><?= $ohp->total ?></td>
+                        <td>
+                            <?php if ($ohp->product->productFeatures[0]->is_weights == 1): ?>
+                                <a href="javascript:void(0);" id="weights-correct" class="btn btn-default" onclick="correctWeights(this);" data-pname="<?= $ohp->name ?>" data-quantity="<?= $ohp->product->productFeatures[0]->is_weights == 1 ? $ohp->quantity : number_format($ohp->quantity) ?>" data-price="<?= $ohp->price ?>" data-ohp-id="<?= $ohp->id ?>"><?= Icon::show('plus') ?></a>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 <tr>
@@ -118,3 +125,37 @@ use app\helpers\Sum;
         </table>
     <?php endforeach; ?>
 </div>
+
+<?php Modal::begin([
+    'id' => 'correct-weights-modal',
+    'options' => ['tabindex' => false,],
+    'header' => '<h4>' . 'Указать вес' . '</h4>',
+]); ?>
+    
+    <table class="table table-bordered">
+        <thead>
+            <th>Наименование товара</th>
+            <th>Цена</th>
+            <th>Количество</th>
+            <th>Итог</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="pname-td"></td>
+                <td id="price-td"></td>
+                <td id="quantity-td"></td>
+                <td id="total-td"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <label for="quantity-correct-txt">Общий вес:</label>
+    <input type="text" pattern="\d+(\.\d{1,3})?" id="quantity-correct-txt" value="" style="width: 80px; padding-left: 5px;" onkeyup="setTotalCorrect()">
+    <input type="hidden" id="ohp-id" value="">
+    <div class="form-group" style="text-align: right;">
+        <?= Html::button('Отмена', ['class' => 'btn btn-default', 'data-dismiss' => 'modal', 'aria-hidden' => 'true']) ?>
+        <?= Html::submitButton('Пересчитать', ['class' => 'btn btn-success', 'id' => 'correct-recalc', 'onclick' => 'correctRecalc();']) ?>
+    </div>
+    
+    
+<?php Modal::end(); ?>

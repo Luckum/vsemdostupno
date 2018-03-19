@@ -28,6 +28,7 @@ use app\models\ProductFeature;
 use app\models\Fund;
 use app\models\OView;
 use app\models\Partner;
+use app\models\NoticeEmail;
 use app\modules\admin\models\OrderForm;
 use app\helpers\Sum;
 
@@ -389,7 +390,11 @@ class OrderController extends BaseController
             }
             $total = 0;
             foreach ($products as $product) {
-                $total += $product->cart_quantity * $product->productPrices[0]->member_price;
+                if ($product->is_weights == 1) {
+                    $total += $product->cart_quantity * $product->volume * $product->productPrices[0]->member_price;
+                } else {
+                    $total += $product->cart_quantity * $product->productPrices[0]->member_price;
+                }
             }
 
             if ($total > $user->deposit->total) {
@@ -443,7 +448,11 @@ class OrderController extends BaseController
 
                     if (!$product->product->isPurchase()) {
                         if (isset($product->quantity)) {
-                            $product->quantity -= $product->cart_quantity;
+                            if ($product->is_weights == 1) {
+                                $product->quantity -= $product->volume * $product->cart_quantity;
+                            } else {
+                                $product->quantity -= $product->cart_quantity;
+                            }
 
                             if ($product->quantity < 0) {
                                 throw new Exception('Ошибка обновления количества товара в магазине!');
@@ -469,8 +478,12 @@ class OrderController extends BaseController
                     $orderHasProduct->fraternity_price = 0;
                     $orderHasProduct->product_feature_id = $product->id;
                     $orderHasProduct->group_price = 0;
-                    $orderHasProduct->quantity = $product->cart_quantity;
-                    $orderHasProduct->total = $product->cart_quantity * $product->productPrices[0]->member_price;
+                    if ($product->is_weights == 1) {
+                        $orderHasProduct->quantity = $product->volume * $product->cart_quantity;
+                    } else {
+                        $orderHasProduct->quantity = $product->cart_quantity;
+                    }
+                    $orderHasProduct->total = $orderHasProduct->quantity * $product->productPrices[0]->member_price;
                     $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
 
                     $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
@@ -571,10 +584,12 @@ class OrderController extends BaseController
             $order = Order::findOne($orderId);
             $orderId = sprintf("%'.05d\n", $order->order_id);
             
-            Email::send('order-customer', Yii::$app->params['adminEmail'], [
-                'id' => $orderId,
-                'information' => $order->htmlEmailFormattedInformation,
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('order-customer', $emails, [
+                    'id' => $orderId,
+                    'information' => $order->htmlEmailFormattedInformation,
+                ]);
+            }
 
             if ($order->partner) {
                 Email::send('order-partner', $order->partner->email, [
@@ -876,8 +891,11 @@ class OrderController extends BaseController
         $this->redirect(['index']);
     }
     
-    public function actionDeleteStock($date)
+    public function actionDeleteStock($date = "")
     {
+        if (empty($date)) {
+            $date = $_POST['date'];
+        }
         $dateInit = strtotime($date);
         $dateEnd = date('Y-m-d 21:00:00', $dateInit);
         $dateStart = date('Y-m-d H:i:s', mktime(21, 0, 0, date('m', $dateInit), date('d', $dateInit) - 1, date('Y', $dateInit)));
@@ -892,6 +910,110 @@ class OrderController extends BaseController
             $models = $dataProvider->getModels();
         }
         
-        $this->redirect(['index']);
+        if (isset($_POST['date'])) {
+            return true;
+        } else {
+            $this->redirect(['index']);
+        }
+    }
+    
+    public function actionSetCorrected()
+    {
+        $quantity = $_POST['quantity'];
+        $total = $_POST['total'];
+        $ohp_id = $_POST['id'];
+        $prev_quantity = $_POST['prev_quantity'];
+        
+        $model = OrderHasProduct::findOne($ohp_id);
+        if ($model) {
+            $user = User::findOne($model->order->user_id);
+            $model->productFeature->quantity += $prev_quantity; 
+            if ($model->productFeature->quantity < $quantity) {
+                $quantity = $model->productFeature->quantity;
+                $model->productFeature->quantity = 0;
+            } else {
+                $model->productFeature->quantity -= $quantity;
+            }
+            $model->productFeature->save();
+            
+            
+            $prev_total = $model->total;
+            $model->quantity = $quantity;
+            $model->total = $quantity * $model->price;
+            $model->save();
+            
+            $model->order->total = OrderHasProduct::getSumTotalByOrder($model->order_id);
+            $model->order->paid_total = OrderHasProduct::getSumTotalByOrder($model->order_id);
+            $model->order->save();
+            
+            $prev_paid_for_provider = $paid_for_provider = 0;
+            $stock_provider = ProviderStock::getCurrentStock($model->product_feature_id, $model->provider_id);
+            $provider_model = Provider::findOne(['id' => $model->provider_id]);
+            $provider_account = Account::findOne(['user_id' => $provider_model->user_id]);
+            if ($stock_provider) {
+                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                $stock_provider->reaminder_rent += $prev_quantity;
+                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                $stock_provider->summ_on_deposit = $stock_provider->total_sum - $stock_provider->summ_reminder;
+                if ($stock_provider->reaminder_rent >= $quantity) {
+                    $stock_provider->reaminder_rent -= $quantity;
+                    $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                    $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                    $paid_for_provider =  $quantity * $body->summ;
+                    $stock_provider->summ_on_deposit += $paid_for_provider;
+                    $stock_provider->save();
+                } else {
+                    $rest = $quantity - $stock_provider->reaminder_rent;
+                    $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                    $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
+                    $stock_provider->reaminder_rent = 0;
+                    $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                    $stock_provider->save();
+                    
+                    while ($rest > 0) {
+                        $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
+                        
+                        if ($stock_provider->reaminder_rent >= $rest) {
+                            $stock_provider->reaminder_rent -= $rest;
+                            $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                            $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                            $paid_for_provider = $rest * $body->summ;
+                            $stock_provider->summ_on_deposit += $paid_for_provider;
+                            $stock_provider->save();
+                            $rest = 0;
+                        } else {
+                            $rest -= $stock_provider->reaminder_rent;
+                            $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                            $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
+                            $stock_provider->reaminder_rent = 0;
+                            $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                            $stock_provider->save();
+                        }
+                    }
+                }
+                
+                if ($body->deposit == '1') {
+                    $prev_paid_for_provider = $prev_quantity * $body->summ;
+                    $paid_for_provider = $quantity * $body->summ;
+                    if (!Account::swap($user->deposit, $provider_account, -$prev_paid_for_provider, 'Корректировка стоимости по заявке №' . $model->order_id, false)) {
+                        throw new Exception('Ошибка модификации счета пользователя 1!');
+                    }
+                    if (!Account::swap($user->deposit, $provider_account, $paid_for_provider, 'Корректировка стоимости по заявке №' . $model->order_id, false)) {
+                        throw new Exception('Ошибка модификации счета пользователя 2!');
+                    }
+                }
+            }
+            if (!Account::swap($user->deposit, null, -($prev_total - $prev_paid_for_provider), 'Корректировка стоимости')) {
+               throw new Exception('Ошибка модификации счета пользователя 3!');
+            }
+            if (!Account::swap($user->deposit, null, $model->total - $paid_for_provider, 'Корректировка стоимости')) {
+               throw new Exception('Ошибка модификации счета пользователя 4!');
+            }
+            
+            Fund::setDeductionForOrder($model->product_feature_id, -$model->purchase_price, $prev_quantity);
+            Fund::setDeductionForOrder($model->product_feature_id, $model->purchase_price, $quantity);
+            
+            return true;
+        }
     }
 }

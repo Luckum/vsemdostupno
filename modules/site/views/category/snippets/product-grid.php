@@ -38,9 +38,9 @@ use kartik\helpers\Html;
                         <div class="row product-price">
                             <div class="col-md-12">
                                 <?php if (Yii::$app->user->isGuest): ?>
-                                    <?= Html::badge($products[$inCount]->formattedPrice, ['class' => '']) ?>
+                                    <?= $products[$inCount]->productFeatures[0]->is_weights == 1 ? Html::badge(Yii::$app->formatter->asCurrency($products[$inCount]->formattedPrice * $products[$inCount]->productFeatures[0]->volume, 'RUB') , ['class' => '']) : Html::badge($products[$inCount]->formattedPrice, ['class' => '']) ?>
                                 <?php else: ?>
-                                    <?= Html::badge($products[$inCount]->formattedMemberPrice, ['class' => '']) ?>
+                                    <?= $products[$inCount]->productFeatures[0]->is_weights == 1 ? Html::badge(Yii::$app->formatter->asCurrency($products[$inCount]->formattedMemberPrice * $products[$inCount]->productFeatures[0]->volume, 'RUB') , ['class' => '']) : Html::badge($products[$inCount]->formattedMemberPrice, ['class' => '']) ?>
                                 <?php endif ?>
                             </div>
                         </div>

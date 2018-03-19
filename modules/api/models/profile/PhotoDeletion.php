@@ -17,6 +17,7 @@ class PhotoDeletion extends Model
     public $key;
     public $id;
     public $class;
+    public $manufacturer;
 
     /**
      * @inheritdoc
@@ -31,6 +32,7 @@ class PhotoDeletion extends Model
                 Product::className(),
                 Service::className(),
             ]],
+            [['manufacturer'], 'safe'],
         ];
     }
 

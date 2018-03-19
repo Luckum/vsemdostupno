@@ -20,6 +20,7 @@ use app\models\ProductFeature;
  * @property integer $deposit
  * @property string $comment
  * @property integer $product_feature_id
+ * @property integer $is_weights
  */
 class StockBody extends \yii\db\ActiveRecord
 {
@@ -38,7 +39,7 @@ class StockBody extends \yii\db\ActiveRecord
     {
         return [
             [['stock_head_id', 'product_id', 'weight', 'measurement', 'count', 'summ', 'total_summ', 'deposit', 'product_feature_id'], 'required'],
-            [['stock_head_id', 'product_id', 'count', 'deposit'], 'integer'],
+            [['stock_head_id', 'product_id', 'count', 'deposit', 'is_weights'], 'integer'],
             [['weight', 'total_summ', 'summ'], 'number'],
             [['comment'], 'string'],
             [['tare', 'measurement'], 'string', 'max' => 10],

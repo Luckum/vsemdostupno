@@ -8,6 +8,7 @@ use app\modules\mailing\models\MailingUser;
 use app\modules\mailing\models\MailingVote;
 use app\modules\mailing\models\MailingVoteStat;
 use app\modules\mailing\models\MailingMessage;
+use app\models\NoticeEmail;
 
 /**
  * Default controller for the `mailing` module
@@ -90,13 +91,17 @@ class DefaultController extends BaseController
                 $body .= $model->getCategoryText($model->category);
                 $body .= "<br>";
                 $body .= $model->message;
-                $mail = Yii::$app->mailer->compose()
-                    ->setFrom([Yii::$app->params['fromEmail'] => Yii::$app->params['name']])
-                    ->setTo(Yii::$app->params['adminEmail'])
-                    ->setSubject("Сообщение от пользователя")
-                    ->setHtmlBody($body);
-                
-                $mail->send();
+                if ($emails = NoticeEmail::getEmails()) {
+                    foreach ($emails as $email) {
+                        $mail = Yii::$app->mailer->compose()
+                            ->setFrom([Yii::$app->params['fromEmail'] => Yii::$app->params['name']])
+                            ->setTo($email)
+                            ->setSubject("Сообщение от пользователя")
+                            ->setHtmlBody($body);
+                        
+                        $mail->send();
+                    }
+                }
                 
                 Yii::$app->response->format = Response::FORMAT_JSON;
                 return [

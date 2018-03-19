@@ -52,7 +52,7 @@ class ProviderController extends BaseController
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Provider::find(),
+            'query' => Provider::find()->joinWith('user')->where('user.request = 0'),
             'sort' => ['defaultOrder' => ['id' => SORT_DESC]],
         ]);
 

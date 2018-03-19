@@ -167,8 +167,12 @@ class ProviderOrderController extends BaseController
         $this->redirect(['index']);
     }
     
-    public function actionDelete($date)
+    public function actionDelete($date = "")
     {
+        if (empty($date)) {
+            $date = $_POST['date'];
+        }
+        
         $dataProvider = Order::getProvidersOrder($date, 1, -1);
         $models = $dataProvider->getModels();
         while (count($models)) {
@@ -180,7 +184,11 @@ class ProviderOrderController extends BaseController
             $models = $dataProvider->getModels();
         }
         
-        $this->redirect(['index']);
+        if (isset($_POST['date'])) {
+            return true;
+        } else {
+            $this->redirect(['index']);
+        }
     }
     
     public function actionSetView()

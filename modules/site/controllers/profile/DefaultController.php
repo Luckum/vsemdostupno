@@ -183,9 +183,7 @@ class DefaultController extends BaseController
                 $user->itn = $model->itn ? $model->itn : null;
                 $user->skills = $model->skills ? $model->skills : null;
                 $user->recommender_info = $model->recommender_info ? $model->recommender_info : null;
-                $user->number = (int) User::find()->max('number') + 1;
                 $user->re_captcha = $model->re_captcha;
-
                 
                 if (!$user->save()) {
                     throw new Exception('Ошибка создания пользователя!');
@@ -221,11 +219,11 @@ class DefaultController extends BaseController
                 //throw new ForbiddenHttpException($e->getMessage());
             }
 
-            Email::send('notify-registered-new-user', Yii::$app->params['adminEmail'], [
+            /*Email::send('notify-registered-new-user', Yii::$app->params['adminEmail'], [
                 'name' => $user->fullName,
                 'viewUrl' => Url::to(['/admin/member/view', 'id' => $member->id], true),
                 'updateUrl' => Url::to(['/admin/member/update', 'id' => $member->id], true),
-            ]);
+            ]);*/
             
             $c_params = [
                 'email' => $user->email,
@@ -237,9 +235,12 @@ class DefaultController extends BaseController
                 ]);
             }
 
-            Email::send('register', $user->email, ['url' => $register->url]);
+            Email::send('entity-request', $user->email, [
+                'fio' => $user->respectedName,
+                'u_role' => 'Участника'
+            ]);
 
-            Yii::$app->session->setFlash('profile-message', 'profile-register-finish');
+            Yii::$app->session->setFlash('profile-message', 'profile-entity-request');
             return $this->redirect('/profile/message');
         } else {
             $model->password =
@@ -383,7 +384,6 @@ class DefaultController extends BaseController
                             $model_user->passport_date = $model->passport_date;
                             $model_user->passport_department = $model->passport_department;
                             $model_user->itn = $model->itn;
-                            $model_user->number = (int) User::find()->max('number') + 1;
                             $model_user->ext_phones = $model->ext_phones;
                             
                             if (!$model_user->save()) {
@@ -441,21 +441,26 @@ class DefaultController extends BaseController
                             ]);
                         }
                         
-                        Email::send('notify-registered-new-provider', Yii::$app->params['adminEmail'], [
+                        /*Email::send('notify-registered-new-provider', Yii::$app->params['adminEmail'], [
                             'name' => $model_provider->name,
                             'viewUrl' => Url::to(['/admin/provider/view', 'id' => $model_provider->id], true),
                             'updateUrl' => Url::to(['/admin/provider/update', 'id' => $model_provider->id], true),
-                        ]);
+                        ]);*/
 
-                        Email::send('active-profile-provider', $model_user->email, [
+                        /*Email::send('active-profile-provider', $model_user->email, [
                             'firstname' => $model_user->firstname,
                             'patronymic' => $model_user->patronymic,
                             'email' => $model_user->email,
                             'password' => $_POST['User']['password'],
                             'reg_number' => $model_user->number,
+                        ]);*/
+                        
+                        Email::send('entity-request', $model_user->email, [
+                            'fio' => $model_user->respectedName,
+                            'u_role' => 'Поставщика'
                         ]);
                         
-                        Yii::$app->session->setFlash('profile-message', 'profile-provider-register-success');
+                        Yii::$app->session->setFlash('profile-message', 'profile-entity-request');
                         return $this->redirect('/profile/message');
                     }
                 break;

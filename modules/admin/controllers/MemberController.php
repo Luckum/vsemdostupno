@@ -49,7 +49,7 @@ class MemberController extends BaseController
     public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => Member::find(),
+            'query' => Member::find()->joinWith('user')->where('user.request = 0'),
             'sort' => ['defaultOrder' => ['id' => SORT_DESC]],
         ]);
 

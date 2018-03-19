@@ -103,11 +103,13 @@ class ProductController extends BaseController
                 $model->link('productHasPhoto', $productHasPhoto);
             }
 
-            Email::send('notify-modified-product', Yii::$app->params['adminEmail'], [
-                'name' => $model->name,
-                'viewUrl' => Url::to([$model->url], true),
-                'updateUrl' => Url::to(['/admin/product/update', 'id' => $model->id], true),
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('notify-modified-product', $emails, [
+                    'name' => $model->name,
+                    'viewUrl' => Url::to([$model->url], true),
+                    'updateUrl' => Url::to(['/admin/product/update', 'id' => $model->id], true),
+                ]);
+            }
 
             return $this->redirect('index');
         } else {
@@ -139,11 +141,13 @@ class ProductController extends BaseController
             }
             $model->save();
 
-            Email::send('notify-modified-product', Yii::$app->params['adminEmail'], [
-                'name' => $model->name,
-                'viewUrl' => Url::to([$model->url], true),
-                'updateUrl' => Url::to(['/admin/product/update', 'id' => $model->id], true),
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('notify-modified-product', $emails, [
+                    'name' => $model->name,
+                    'viewUrl' => Url::to([$model->url], true),
+                    'updateUrl' => Url::to(['/admin/product/update', 'id' => $model->id], true),
+                ]);
+            }
 
             return $this->redirect('index');
         } else {

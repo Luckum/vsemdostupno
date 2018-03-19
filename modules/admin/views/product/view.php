@@ -55,6 +55,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'min_inventory',
             'expiry_timestamp',
             'thumbUrl:image',
+            'thumbUrlManufacturer:image',
         ],
     ]) ?>
 

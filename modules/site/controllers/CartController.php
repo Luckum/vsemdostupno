@@ -26,6 +26,7 @@ use app\models\Provider;
 use app\models\UnitContibution;
 use app\models\ProviderHasProduct;
 use app\models\Fund;
+use app\models\NoticeEmail;
 
 class CartController extends BaseController
 {
@@ -158,7 +159,11 @@ class CartController extends BaseController
                     }
 
                     if (!$product->product->isPurchase()) {
-                        $product->quantity -= $product->cart_quantity;
+                        if ($product->is_weights == 1) {
+                            $product->quantity -= $product->volume * $product->cart_quantity;
+                        } else {
+                            $product->quantity -= $product->cart_quantity;
+                        }
                         
                         if ($product->quantity < 0) {
                             throw new Exception('Ошибка обновления количества товара в магазине!');
@@ -176,7 +181,7 @@ class CartController extends BaseController
                     $orderHasProduct->name = $product->product->name;
                     $orderHasProduct->orderDate = $product->product->orderDate;
                     $orderHasProduct->purchaseDate = $product->product->purchaseDate;
-                    $orderHasProduct->price = $product->calculatedPrice;
+                    $orderHasProduct->price = $product->getCalculatedPrice(false);
                     $orderHasProduct->purchase_price = $product->purchase_price;
                     $orderHasProduct->storage_price = 0;
                     $orderHasProduct->invite_price = 0;
@@ -185,7 +190,11 @@ class CartController extends BaseController
                     $orderHasProduct->group_price = 0;
                     $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
                     
-                    $orderHasProduct->quantity = $product->cart_quantity;
+                    if ($product->is_weights == 1) {
+                        $orderHasProduct->quantity = $product->volume * $product->cart_quantity;
+                    } else {
+                        $orderHasProduct->quantity = $product->cart_quantity;
+                    }
                     $orderHasProduct->total = $product->calculatedTotalPrice;
                     
                     $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
@@ -293,10 +302,12 @@ class CartController extends BaseController
             $order = Order::findOne($orderId);
             $orderId = sprintf("%'.05d\n", $order->order_id);
             
-            Email::send('order-customer', Yii::$app->params['adminEmail'], [
-                'id' => $orderId,
-                'information' => $order->htmlEmailFormattedInformation,
-            ]);
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('order-customer', $emails, [
+                    'id' => $orderId,
+                    'information' => $order->htmlEmailFormattedInformation,
+                ]);
+            }
 
             if ($order->partner) {
                 Email::send('order-partner', $order->partner->email, [

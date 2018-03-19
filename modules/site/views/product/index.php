@@ -41,6 +41,12 @@ foreach ($model->productHasPhoto as $productHasPhoto) {
     ];
 }
 
+$manufacturerImage = [[
+    'url' => $model->thumbUrlManufacturer,
+    'src' => $model->thumbUrlManufacturer,
+    'options' => ['class' => 'hidden'],
+]];
+
 $enableCart = false;
 if (Yii::$app->user->isGuest) {
     $enableCart = true;
@@ -129,7 +135,7 @@ foreach ($model->productFeatures as $feat) {
                 <?php $cnt_show = 1; ?>
                 <?php foreach ($model->productFeatures as $k => $feat): ?>
                     <?php if ($feat->quantity > 0 || $model->isPurchase()): ?>
-                        <?php $f_quantity = $model->isPurchase() ? 100 : $feat->quantity; ?>
+                        <?php $f_quantity = $model->isPurchase() ? 100 : ($feat->is_weights == 1 ? $feat->quantity / $feat->volume : $feat->quantity) ?>
                         <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($cnt_show != 1): ?>style="display: none;"<?php endif; ?>>
                             <?= SelectizeDropDownList::widget([
                                 'name' => 'quantity',
@@ -239,12 +245,12 @@ foreach ($model->productFeatures as $feat) {
                     $prices = [
                         [
                             'content' => 'Стоимость для всех желающих',
-                            'badge' => $model->formattedPrice,
+                            'badge' => $model->productFeatures[0]->is_weights == 1 ? Yii::$app->formatter->asCurrency($model->formattedPrice * $model->productFeatures[0]->volume, 'RUB') : $model->formattedPrice,
                             'options' => ['class' => !Yii::$app->user->isGuest ? 'disabled' : ''],
                         ],
                         [
                             'content' => 'Стоимость для участников ПО',
-                            'badge' => $model->formattedMemberPrice,
+                            'badge' => $model->productFeatures[0]->is_weights == 1 ? Yii::$app->formatter->asCurrency($model->formattedMemberPrice * $model->productFeatures[0]->volume, 'RUB') : $model->formattedMemberPrice,
                             'options' => ['class' => Yii::$app->user->isGuest ? 'disabled' : ''],
                         ],
                     ];
@@ -297,7 +303,18 @@ foreach ($model->productFeatures as $feat) {
                 </div>
             </div>
         <?php endif ?>
+        <?= Gallery::widget(['id' => 'manufacturer-image', 'items' => $manufacturerImage, 'templateOptions' => ['id' => 'gallery_1'],]) ?>
+        <?= Html::button(Icon::show('cogs') . ' Производитель', [
+                'class' => 'btn btn-warning',
+                'id' => 'manufacturer-btn',
+                'onclick' => new JsExpression('
+                    $("#manufacturer-image a").first().trigger("click");
+                    return false;
+                '),
+            ]) 
+        ?>
     </div>
+    
 </div>
 
 <div class="product-description">

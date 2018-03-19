@@ -8,6 +8,7 @@ use app\models\Partner;
 use app\models\Provider;
 use app\models\ProviderNotification;
 use app\models\User;
+use app\models\NoticeEmail;
 
 class OrderNotificationController extends Controller
 {
@@ -74,16 +75,20 @@ class OrderNotificationController extends Controller
     
     protected function sendEmailToAdmin($dataProvider, $date)
     {
-        $admin = User::find()->where(['role' => 'admin'])->one();
-        Yii::$app->mailer->compose('admin/order', [
-                'dataProvider' => $dataProvider,
-                'date' => $date,
-                'link' => 'http://vsemdostupno.ru' . '/admin/provider-order/date?' . 'date=' . date('Y-m-d', strtotime($date))
-            ])
-            ->setFrom(Yii::$app->params['fromEmail'])
-            ->setTo($admin->email)
-            ->setSubject('Завершён сбор заявок на поставку с сайта "' . Yii::$app->params['name'] . '"')
-            ->send();
+        if ($emails = NoticeEmail::getEmails()) {
+            foreach ($emails as $email) {
+                Yii::$app->mailer->compose('admin/order', [
+                        'dataProvider' => $dataProvider,
+                        'date' => $date,
+                        'link' => 'http://vsemdostupno.ru' . '/admin/provider-order/date?' . 'date=' . date('Y-m-d', strtotime($date))
+                    ])
+                    ->setFrom(Yii::$app->params['fromEmail'])
+                    ->setTo($email)
+                    ->setSubject('Завершён сбор заявок на поставку с сайта "' . Yii::$app->params['name'] . '"')
+                    ->send();
+            }
+            
+        }
     }
     
     protected function sendEmailToPartner($dataProvider, $date, $partner_id)
@@ -101,15 +106,18 @@ class OrderNotificationController extends Controller
     
     protected function sendStockEmailToAdmin($dataProvider, $date)
     {
-        $admin = User::find()->where(['role' => 'admin'])->one();
-        Yii::$app->mailer->compose('admin/order-stock', [
-                'dataProvider' => $dataProvider,
-                'date' => $date,
-                'link' => 'www.vsemdostupno.ru/admin/order/date?' . 'date=' . date('Y-m-d', strtotime($date['end']))
-            ])
-            ->setFrom(Yii::$app->params['fromEmail'])
-            ->setTo($admin->email)
-            ->setSubject('Завершён рабочий период сбора заявок на "' . date('d.m.Y', strtotime($date['end'])) . '"')
-            ->send();
+        if ($emails = NoticeEmail::getEmails()) {
+            foreach ($emails as $email) {
+                Yii::$app->mailer->compose('admin/order-stock', [
+                        'dataProvider' => $dataProvider,
+                        'date' => $date,
+                        'link' => 'www.vsemdostupno.ru/admin/order/date?' . 'date=' . date('Y-m-d', strtotime($date['end']))
+                    ])
+                    ->setFrom(Yii::$app->params['fromEmail'])
+                    ->setTo($email)
+                    ->setSubject('Завершён рабочий период сбора заявок на "' . date('d.m.Y', strtotime($date['end'])) . '"')
+                    ->send();
+            }
+        }
     }
 }

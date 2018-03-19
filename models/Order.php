@@ -591,7 +591,7 @@ class Order extends \yii\db\ActiveRecord
                         LEFT JOIN `provider` p ON ohp.provider_id = p.id
                         LEFT JOIN `product` pr ON ohp.product_id = pr.id
                         LEFT JOIN `product_feature` pf ON ohp.product_feature_id = pf.id
-                        WHERE `o`.created_at BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"
+                        WHERE `ohp`.purchase_timestamp BETWEEN "' . $dateStart . '" AND "' . $dateEnd . '"
                             AND ' . $whereD . '
                             AND ' . $where . '
                         GROUP BY product_feature_id',
@@ -616,7 +616,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->where(['order_has_product.product_feature_id' => $product])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere(['between', 'order_has_product.purchase_timestamp', $date['start'], $date['end']])
             ->groupBy('p_name');
         
         $command = $query->createCommand();
@@ -629,7 +629,7 @@ class Order extends \yii\db\ActiveRecord
         
         $query = self::find();
         $query->joinWith('orderHasProducts');
-        $query->where(['between', 'created_at', $date_s, $date_e]);
+        $query->where(['between', 'order_has_product.purchase_timestamp', $date_s, $date_e]);
         $query->andWhere(['hide' => $hide]);
         $query->andWhere($where);
             
@@ -658,7 +658,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'order_has_product', 'order.id=order_has_product.order_id')
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->where(['order_has_product.product_feature_id' => $product_id])
-            ->andWhere(['between', 'created_at', $date['start'], $date['end']])
+            ->andWhere(['between', 'order_has_product.purchase_timestamp', $date['start'], $date['end']])
             ->having(['p_id' => $partner_id]);
         
         $command = $query->createCommand();
@@ -685,7 +685,7 @@ class Order extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'partner', 'order.user_id=partner.user_id')
             ->join('LEFT JOIN', 'provider', 'order_has_product.provider_id=provider.id')
             ->join('LEFT JOIN', 'product_feature', 'order_has_product.product_feature_id=product_feature.id')
-            ->where(['between', 'created_at', $date['start'], $date['end']])
+            ->where(['between', 'order_has_product.purchase_timestamp', $date['start'], $date['end']])
             ->andWhere($where)
             ->groupBy('product_feature_id, p_id')
             ->having(['p_id' => $partner_id]);

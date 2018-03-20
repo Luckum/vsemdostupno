@@ -40,40 +40,47 @@ class SearchController extends BaseController
 
 
     }
-    public function actionSearch() {
+    
+    public function actionSearch()
+    {
         $fio = $_GET['fio'];
-        $discount_number=$_GET['reg_Nom'];
+        $discount_number = $_GET['reg_Nom'];
         $order_number = $_GET['nomer_order'];
-        if ($fio!=null && $discount_number==null && $order_number==null)
-        {
+        if ($fio != null && $discount_number == null && $order_number == null) {
             $fio = str_replace('  ', ' ', trim($fio));
-            $temp_fio=explode(' ',$fio);
+            $temp_fio = explode(' ',$fio);
             $query = new Query();
-            $query
-                ->select('user.id')
+            $query->select('user.id')
                 ->from('user', ['INNER JOIN', 'member', 'user.id=member.user_id'], ['INNER JOIN', 'partner', 'user.id=partner.user_id'])
-                ->Where('user.lastname=:p1', [':p1' => $temp_fio[0]])
-                ->andWhere('user.firstname=:p2',[':p2'=>$temp_fio[1]])
+                ->where('user.lastname=:p1', [':p1' => $temp_fio[0]])
+                ->andWhere('user.firstname=:p2',[':p2' => isset($temp_fio[1]) ? $temp_fio[1] : ""])
                 ->andWhere('role != "admin"')
                 ->andWhere('role != "superadmin"');
             $command = $query->createCommand();
             $query = $command->queryAll();
             $res_query= new Query();
             $sub_array=array();
-            foreach ($query as $item) {
-                $sub_array[]=$item['id'];
+            if ($query) {
+                foreach ($query as $item) {
+                    $sub_array[]=$item['id'];
+                }
+                $res_sql=implode(',',$sub_array);
+                $count = Yii::$app->db
+                    ->createCommand('SELECT COUNT(*) FROM user WHERE user.id IN ('.$res_sql.')')
+                    ->queryScalar();
+                $dataProvider = new SqlDataProvider([
+                    'sql' => 'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.patronymic, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where role != "admin" AND role != "superadmin" AND u.id in ('.$res_sql.')',
+                    'totalCount' => $count,
+                    'pagination' => [
+                        'pageSize' => 20,
+                    ],
+                ]);
+            } else {
+                $dataProvider = new ActiveDataProvider([
+                    'models' => [],
+                ]);
             }
-            $res_sql=implode(',',$sub_array);
-            $count = Yii::$app->db
-                ->createCommand('SELECT COUNT(*) FROM user WHERE user.id IN ('.$res_sql.')')
-                ->queryScalar();
-            $dataProvider = new SqlDataProvider([
-                'sql' => 'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.patronymic, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where role != "admin" AND role != "superadmin" AND u.id in ('.$res_sql.')',
-                'totalCount' => $count,
-                'pagination' => [
-                    'pageSize' => 20,
-                ],
-            ]);
+            
          }   
          if($fio==null && $discount_number!=null && $order_number==null){
             $count= Yii::$app->db->createCommand('SELECT COUNT(*) from user WHERE user.number='.$discount_number.'')->queryScalar();

@@ -41,6 +41,7 @@ class Candidate extends \yii\db\ActiveRecord
             [['phone'], 'string', 'max' => 20],
             [['comment'], 'string'],
             [['email'], 'unique'],
+            [['email'], 'email'],
             [['group_id'], 'exist', 'skipOnError' => true, 'targetClass' => CandidateGroup::className(), 'targetAttribute' => ['group_id' => 'id']],
         ];
     }

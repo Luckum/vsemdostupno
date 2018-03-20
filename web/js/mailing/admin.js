@@ -146,20 +146,23 @@ $(document).ready(function() {
     });
     
     $("#mailing-product-info-save-btn").click(function() {
-        $.ajax({
-            url: "/admin/mailing/product",
-            type: 'POST',
-            data: $("#mailing_product_info_frm").serialize(),
-            success: function (data) {
-                if (!(data && data.success)) {
+        if (confirm('Вы уверены, что желаете сохранить рассылку?')) {
+            $.ajax({
+                url: "/admin/mailing/product",
+                type: 'POST',
+                data: $("#mailing_product_info_frm").serialize(),
+                success: function (data) {
+                    if (!(data && data.success)) {
+                        alert('Ошибка сохранения настроек');
+                    } else {
+                        window.location.reload();
+                    }
+                },
+                error: function () {
                     alert('Ошибка сохранения настроек');
-                }
-                window.location.reload();
-            },
-            error: function () {
-                alert('Ошибка сохранения настроек');
-            },
-        });
+                },
+            });
+        }
     });
     
     $("#answer-message-btn").click(function() {

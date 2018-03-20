@@ -513,7 +513,7 @@ class ProviderController extends BaseController
         $templateProcessor = new TemplateProcessor($templateFile);
         $parameters = Template::getUserParameters($provider->user);
 
-        $productQuery = Product::find()
+        /*$productQuery = Product::find()
             ->joinWith('provider')
             ->where('provider_id = :provider_id AND visibility <> 0 AND inventory > 0', [':provider_id' => $provider->id]);
         $parameters['productList'] = '';
@@ -528,7 +528,7 @@ class ProviderController extends BaseController
             );
             $productTotal += $product->inventory * $product->purchase_price;
         }
-        $parameters['productTotal'] = sprintf('%.2f руб.', $productTotal);
+        $parameters['productTotal'] = sprintf('%.2f руб.', $productTotal);*/
 
         foreach ($parameters as $name => $value) {
             $templateProcessor->setValue($name, $value);

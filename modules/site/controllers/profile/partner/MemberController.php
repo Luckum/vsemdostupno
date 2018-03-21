@@ -29,6 +29,7 @@ use app\models\StockBody;
 use app\models\Account;
 use app\models\AccountLog;
 use app\models\Email;
+use app\models\NoticeEmail;
 use app\helpers\Html;
 
 class MemberController extends BaseController
@@ -122,7 +123,11 @@ class MemberController extends BaseController
             }
             $total = 0;
             foreach ($products as $product) {
-                $total += $product->cart_quantity * $product->productPrices[0]->member_price;
+                if ($product->is_weights == 1) {
+                    $total += $product->cart_quantity * $product->volume * $product->productPrices[0]->member_price;
+                } else {
+                    $total += $product->cart_quantity * $product->productPrices[0]->member_price;
+                }
             }
 
             if ($total > $user->deposit->total) {
@@ -172,7 +177,11 @@ class MemberController extends BaseController
 
                     if (!$product->product->isPurchase()) {
                         if (isset($product->quantity)) {
-                            $product->quantity -= $product->cart_quantity;
+                            if ($product->is_weights == 1) {
+                                $product->quantity -= $product->volume * $product->cart_quantity;
+                            } else {
+                                $product->quantity -= $product->cart_quantity;
+                            }
 
                             if ($product->quantity < 0) {
                                 throw new Exception('Ошибка обновления количества товара в магазине!');
@@ -198,8 +207,12 @@ class MemberController extends BaseController
                     $orderHasProduct->fraternity_price = 0;
                     $orderHasProduct->product_feature_id = $product->id;
                     $orderHasProduct->group_price = 0;
-                    $orderHasProduct->quantity = $product->cart_quantity;
-                    $orderHasProduct->total = $product->cart_quantity * $product->productPrices[0]->member_price;
+                    if ($product->is_weights == 1) {
+                        $orderHasProduct->quantity = $product->volume * $product->cart_quantity;
+                    } else {
+                        $orderHasProduct->quantity = $product->cart_quantity;
+                    }
+                    $orderHasProduct->total = $orderHasProduct->quantity * $product->productPrices[0]->member_price;
                     $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
 
                     $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
@@ -311,7 +324,8 @@ class MemberController extends BaseController
                 'id' => $orderId,
                 'information' => $order->htmlEmailFormattedInformation,
             ]);
-            return $this->redirect(['order']);
+            
+            return $this->redirect(['/profile/partner/order/index']);
         } else {
             return $this->render('order-create', [
                 'title' => 'Добавить заказ',

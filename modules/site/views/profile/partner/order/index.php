@@ -40,7 +40,7 @@ $this->params['breadcrumbs'] = [$this->title];
                 'format' => 'raw',
                 'contentOptions' => ['style' => 'font-weight: 600;'],
                 'value' => function ($data) use ($date) {
-                    return Html::a(number_format($data['quantity']), Url::to(['/profile/partner/order/detail', 'id' => $data['product_feature_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]), ['style' => 'text-decoration: underline;']);
+                    return Html::a(ProductFeature::isWeights($data['product_feature_id']) ? $data['quantity'] : number_format($data['quantity']), Url::to(['/profile/partner/order/detail', 'id' => $data['product_feature_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date['end']))]), ['style' => 'text-decoration: underline;']);
                 },
                 'footerOptions' => ['style' => 'display: none;']
             ],

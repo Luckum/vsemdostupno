@@ -44,8 +44,8 @@ class SearchController extends BaseController
     public function actionSearch()
     {
         $fio = $_GET['fio'];
-        $discount_number = $_GET['reg_Nom'];
-        $order_number = $_GET['nomer_order'];
+        $discount_number = isset($_GET['reg_Nom']) ? $_GET['reg_Nom'] : null;
+        $order_number = isset($_GET['nomer_order']) ? $_GET['reg_Nom'] : null;
         if ($fio != null && $discount_number == null && $order_number == null) {
             $fio = str_replace('  ', ' ', trim($fio));
             $temp_fio = explode(' ',$fio);

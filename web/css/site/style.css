@@ -307,3 +307,6 @@ div.required > label::after {
 	50% { color: rgba(155, 155, 155, 1); }
 	100% { color: rgba(34, 34, 34, 1); }
 }
+.blueimp-gallery {
+	background: rgba(0,0,0,.0);
+}

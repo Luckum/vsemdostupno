@@ -53,7 +53,7 @@ class ProductController extends BaseController
             $data = [];
             foreach ($productQuery->each() as $product) {
                 if ($product->quantity) {
-                    $text = sprintf('%s (%s)', $product->product->name . ', ' . $product->featureName, $product->quantity);
+                    $text = sprintf('%s (%s)', $product->product->name . ', ' . $product->featureName, $product->is_weights == 1 ? floor($product->quantity / $product->volume) : number_format($product->quantity));
                 } else {
                     $text = $product->product->name;
                 }
@@ -76,7 +76,7 @@ class ProductController extends BaseController
             
             if ($product) {
                 if ($product->quantity) {
-                    $text = sprintf('%s (%s)', $product->product->name . ', ' . $product->featureName, $product->quantity);
+                    $text = sprintf('%s (%s)', $product->product->name . ', ' . $product->featureName, $product->is_weights == 1 ? floor($product->quantity / $product->volume) : number_format($product->quantity));
                 } else {
                     $text = $product->product->name;
                 }
@@ -113,9 +113,10 @@ class ProductController extends BaseController
 
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $quantity = $product->quantity && $product->quantity < $productAddition->quantity ?
-            $product->quantity : $productAddition->quantity;
-        $price = $product->productPrices[0]->member_price;
+        $f_quantity = $product->is_weights == 1 ? floor($product->quantity / $product->volume) : number_format($product->quantity);
+        $quantity = $product->quantity && $f_quantity < $productAddition->quantity ?
+            $f_quantity : $productAddition->quantity;
+        $price = $product->is_weights == 1 ? $product->productPrices[0]->member_price * $product->volume : $product->productPrices[0]->member_price;
         $total = sprintf('%.2f', $quantity * $price);
 
         return [

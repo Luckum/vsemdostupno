@@ -20,7 +20,7 @@ $this->params['breadcrumbs'] = [$this->title];
 
 <div class="order-index">
     <?php foreach ($dataProvider->getModels() as $model): ?>
-        <h4 style="text-decoration: underline; text-align: center;">Заявка №<?= sprintf("%'.05d\n", $model->order_id) ?> (дата и время заказа <?= date("d.m.Yг.: H.i", strtotime($model->created_at)) ?>)</h4>
+        <h4 style="text-decoration: underline; text-align: center;">Заявка №<?= sprintf("%'.05d\n", $model->order_id) ?> (<?= date("d.m.Yг.: H.i", strtotime($model->created_at)) ?>)</h4>
         <table class="table table-bordered">
             <thead>
                 <th style="width: 57px;">№ п/п</th>

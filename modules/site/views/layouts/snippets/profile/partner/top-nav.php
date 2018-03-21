@@ -52,6 +52,10 @@ echo Nav::widget([
                     'url' => Url::to(['/profile/partner/member/order']),
                 ],*/
                 [
+                    'label' => Icon::show('bars') . ' Добавить заказ',
+                    'url' => Url::to(['profile/partner/member/order-create']),
+                ],
+                [
                     'label' => Icon::show('bars') . ' Коллективная закупка',
                     'url' => Url::to(['/profile/provider/order/index']),
                 ],

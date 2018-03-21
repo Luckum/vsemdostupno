@@ -16,7 +16,7 @@ use app\helpers\Sum;
 ?>
 <div class="order-index">
     <?php foreach ($dataProvider->getModels() as $model): ?>
-        <h4 style="text-decoration: underline; text-align: center;">Заявка №<?= sprintf("%'.05d\n", $model->order_id) ?> (дата и время заказа <?= date("d.m.Yг.: H.i", strtotime($model->created_at)) ?>)</h4>
+        <h4 style="text-decoration: underline; text-align: center;">Заявка №<?= sprintf("%'.05d\n", $model->order_id) ?> (<?= date("d.m.Yг.: H.i", strtotime($model->created_at)) ?>)</h4>
         <p style="text-decoration: underline;">Заказчик: <strong><?= empty($model->role) ? "ГОСТЬ" : "УЧАСТНИК" ?></strong> <a href="<?= isset($model->user->member) ? Url::to(['/admin/member/view', 'id' => $model->user->member->id]) : (isset($model->user->partner) ? Url::to(['/admin/partner/view', 'id' => $model->user->partner->id]) : "") ?>"><?= Html::encode($model->fullName) ?> № Регистрации: <?= $model->user->number ?></a></p>
         <table class="table table-bordered">
             <thead>

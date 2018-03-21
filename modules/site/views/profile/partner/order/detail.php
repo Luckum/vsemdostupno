@@ -35,7 +35,7 @@ $total_price = $total_qnt = 0;
                     <td><?= sprintf("%'.05d\n", $details[0]['id']); ?></td>
                     <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
-                    <td><?= number_format($details[0]['quantity']); ?></td>
+                    <td><?= ProductFeature::isWeights($details[0]['product_feature_id']) ? $details[0]['quantity'] : number_format($details[0]['quantity']) ?></td>
                     <td><b><?= $details[0]['total']; ?></b></td>
                 </tr>
                 <?php $total_price += $details[0]['total']; ?>
@@ -49,7 +49,7 @@ $total_price = $total_qnt = 0;
                     <td><?= sprintf("%'.05d\n", $details[0]['id']); ?></td>
                     <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
-                    <td><?= number_format($details[0]['quantity']); ?></td>
+                    <td><?= ProductFeature::isWeights($details[0]['product_feature_id']) ? $details[0]['quantity'] : number_format($details[0]['quantity']) ?></td>
                     <td><b><?= $details[0]['total']; ?></b></td>
                 </tr>
                 <?php $total_price += $details[0]['total']; ?>
@@ -62,7 +62,7 @@ $total_price = $total_qnt = 0;
                             <td><?= sprintf("%'.05d\n", $details[0]['id']); ?></td>
                             <td><?= ProductFeature::getFeatureNameById($detail['product_feature_id']); ?></td>
                             <td><?= $detail['price']; ?></td>
-                            <td><?= number_format($detail['quantity']); ?></td>
+                            <td><?= ProductFeature::isWeights($detail['product_feature_id']) ? $detail['quantity'] : number_format($detail['quantity']) ?></td>
                             <td><b><?= $detail['total']; ?></b></td>
                         </tr>
                         <?php $total_price += $detail['total']; ?>
@@ -73,7 +73,7 @@ $total_price = $total_qnt = 0;
         </tbody>
         <tfoot>
             <td colspan="7"><b>ИТОГО:</b></td>
-            <td><?= number_format($total_qnt); ?></td>
+            <td><?= $total_qnt; ?></td>
             <td><b><?= number_format($total_price, 2, ".", ""); ?></b></td>
         </tfoot>
     </table>

@@ -206,6 +206,7 @@ class EntryRequestController extends BaseController
         $user = User::findOne($id);
         $user->number = (int) User::find()->max('number') + 1;
         $user->request = 0;
+        $user->disabled = 0;
         $user->scenario = 'admin_creation';
         $user->save();
         if (isset($user->provider)) {

@@ -27,6 +27,7 @@ use app\models\Provider;
 use app\models\ProviderRegData;
 use app\models\ProviderHasCategory;
 use app\models\Candidate;
+use app\models\NoticeEmail;
 
 class DefaultController extends BaseController
 {
@@ -239,6 +240,12 @@ class DefaultController extends BaseController
                 'fio' => $user->respectedName,
                 'u_role' => 'Участника'
             ]);
+            
+            if ($emails = NoticeEmail::getEmails()) {
+                Email::send('admin-entity-request', $emails, [
+                    'fio' => $user->fullName,
+                ]);
+            }
 
             Yii::$app->session->setFlash('profile-message', 'profile-entity-request');
             return $this->redirect('/profile/message');
@@ -459,6 +466,12 @@ class DefaultController extends BaseController
                             'fio' => $model_user->respectedName,
                             'u_role' => 'Поставщика'
                         ]);
+                        
+                        if ($emails = NoticeEmail::getEmails()) {
+                            Email::send('admin-entity-request', $emails, [
+                                'fio' => $user->fullName,
+                            ]);
+                        }
                         
                         Yii::$app->session->setFlash('profile-message', 'profile-entity-request');
                         return $this->redirect('/profile/message');

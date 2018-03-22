@@ -45,7 +45,7 @@ $items_meas = [
             <?php foreach ($product->productFeatures as $val): ?>
                 <a href="javascript:void(0);" data-id="<?= $val->id; ?>" class="avail-product" onclick="set_product_data(this);">
                     <?php if ($val->is_weights == 1): ?>
-                        <?= 'Разновес в ' . $val->tare . ' по ' . $val->volume . ' ' . $val->measurement . ' общим количеством ' . $val->quantity . ' ' . $val->measurement . 'по цене ' . $val->productPrices[0]->purchase_price . ' руб. за ' . $val->measurement ?>
+                        <?= 'Разновес в ' . $val->tare . ' по ' . $val->volume . ' ' . $val->measurement . ' общим количеством ' . $val->quantity . ' ' . $val->measurement . ' по цене ' . $val->productPrices[0]->purchase_price . ' руб. за ' . $val->measurement ?>
                     <?php else: ?>
                         <?= $val->tare . ' ' . $val->volume . ' ' . $val->measurement . ' в количестве ' . $val->quantity . ' шт. по цене ' . $val->productPrices[0]->purchase_price . ' руб.'; ?>
                     <?php endif; ?>

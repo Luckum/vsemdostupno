@@ -242,7 +242,11 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
                 <?php foreach ($model->productFeatures as $feat): ?>
                     <div class="product-card-feature">
                         <div class="product-card-description">
-                            <?= '<b>' . $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement . '</b> в количестве <b>' . $feat->quantity . '</b> шт., закупочная цена - <b>' . $feat->productPrices[0]->purchase_price . '</b> руб., цена для участников - <b><span data-f-m-id="' . $feat->id . '">' . $feat->productPrices[0]->member_price . '</span></b> руб., цена для всех - <b><span data-f-a-id="' . $feat->id . '">' . $feat->productPrices[0]->price . '</span></b> руб.'; ?>
+                            <?php if ($feat->is_weights == 1): ?>
+                                <?= '<b>Разновес</b> в <b>' . $feat->tare . '</b> по <b>' . $feat->volume . ' ' . $feat->measurement . '</b> общим количеством <b>' . $feat->quantity . ' ' . $feat->measurement . '</b> по цене <b>' . $feat->productPrices[0]->purchase_price . ' руб. </b> за ' . $feat->measurement ?>
+                            <?php else: ?>
+                                <?= '<b>' . $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement . '</b> в количестве <b>' . $feat->quantity . '</b> шт., закупочная цена - <b>' . $feat->productPrices[0]->purchase_price . '</b> руб., цена для участников - <b><span data-f-m-id="' . $feat->id . '">' . $feat->productPrices[0]->member_price . '</span></b> руб., цена для всех - <b><span data-f-a-id="' . $feat->id . '">' . $feat->productPrices[0]->price . '</span></b> руб.'; ?>
+                            <?php endif; ?>
                         </div>
                         <?php if (count($model_fund) > 0): ?>
                             <div class="product-card-price-btns">
@@ -269,7 +273,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
 
     <?= $form->field($model, 'composition')->textArea(['rows' => '6']) ?>
 
-    <?= $form->field($model, 'packing') ?>
+    <!--<?= $form->field($model, 'packing') ?>-->
 
     <?= $form->field($model, 'manufacturer') ?>
 

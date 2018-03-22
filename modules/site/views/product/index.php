@@ -2,6 +2,7 @@
 
 use yii\web\View;
 use yii\bootstrap\Alert;
+use yii\bootstrap\Modal;
 use yii\web\JsExpression;
 use yii\helpers\Url;
 use kartik\helpers\Html;
@@ -303,13 +304,12 @@ foreach ($model->productFeatures as $feat) {
                 </div>
             </div>
         <?php endif ?>
-        <?= Gallery::widget(['id' => 'manufacturer-image', 'items' => $manufacturerImage, 'templateOptions' => ['id' => 'gallery_1'],]) ?>
         <?= Html::button(Icon::show('cogs') . ' Производитель', [
                 'class' => 'btn btn-warning',
                 'id' => 'manufacturer-btn',
                 'onclick' => new JsExpression('
-                    $("#manufacturer-image a").first().trigger("click");
-                    return false;
+                    $("#manufacturer-modal").modal("show");
+                    $(".modal-backdrop").css({opacity: 0});
                 '),
             ]) 
         ?>
@@ -343,3 +343,11 @@ foreach ($model->productFeatures as $feat) {
         </div>
     </div>
 </div>
+
+<?php Modal::begin([
+    'id' => 'manufacturer-modal',
+    'options' => ['tabindex' => false, 'class' => 'manufacturer-modal'],
+]); ?>
+    
+    <img src="<?= $model->thumbUrlManufacturer ?>">
+<?php Modal::end(); ?>

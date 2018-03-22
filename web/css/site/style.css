@@ -307,3 +307,9 @@ div.required > label::after {
 	50% { color: rgba(155, 155, 155, 1); }
 	100% { color: rgba(34, 34, 34, 1); }
 }
+.manufacturer-modal .modal-content {
+	text-align: center;
+}
+.manufacturer-modal .modal-dialog {
+	margin: 150px auto;
+}

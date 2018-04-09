@@ -86,6 +86,24 @@ if ($purchase) {
     }
 }
 
+
+$account_routes = [
+    'site/profile/member/default/order',
+    'site/profile/service/index',
+    'site/stock/index',
+    'site/stock/contibute',
+    'site/profile/provider/default/personal',
+    'mailing/site/default/vote',
+    'mailing/site/default/message',
+    'site/profile/partner/default/order',
+    'site/profile/partner/member/index',
+    'site/profile/partner/member/order-create',
+    'site/profile/provider/order/index',
+    'site/profile/partner/order/index',
+    'site/profile/partner/default/personal',
+    'site/profile/member/default/personal',
+    'site/profile/account/index',
+];
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -258,33 +276,27 @@ if ($purchase) {
                 ]) ?>
                 <div class="container">
                     <div class="row site-page">
-                        <div class="col-md-2">
-                            <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                'heading' => Icon::show('thumbs-o-up') . ' Рекомендуем',
-                                'items' => $recomendations,
-                            ]) ?>
-                            <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                'heading' => Icon::show('list') . ' В наличии',
-                                'items' => $catalogue,
-                            ]) ?>
-                            <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                'heading' => Icon::show('calendar') . ' Закупки',
-                                'items' => $purchases,
-                                'class' => 'menu-purchases',
-                            ]) ?>
-                        </div>
-                        <div class="col-md-10">
-                            <?php if (!empty($this->params['breadcrumbs'])): ?>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <?= Breadcrumbs::widget([
-                                            'homeLink' => ['label' => Icon::show('home') . ' Главная', 'url' => Url::to(['/'])],
-                                            'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
-                                            'encodeLabels' => false,
-                                        ]) ?>
-                                    </div>
-                                </div>
-                            <?php endif ?>
+                        <?php if (!in_array(Yii::$app->controller->route, $account_routes)): ?>
+                            <div class="col-md-2">
+                                <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                    'heading' => Icon::show('thumbs-o-up') . ' Рекомендуем',
+                                    'items' => $recomendations,
+                                ]) ?>
+                                <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                    'heading' => Icon::show('list') . ' В наличии',
+                                    'items' => $catalogue,
+                                ]) ?>
+                                <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                    'heading' => Icon::show('calendar') . ' Закупки',
+                                    'items' => $purchases,
+                                    'class' => 'menu-purchases',
+                                ]) ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="<?= !in_array(Yii::$app->controller->route, $account_routes) ? 'col-md-10' : 'col-md-12' ?>">
+                            <?php if (in_array(Yii::$app->controller->route, $account_routes)): ?>
+                                <?= Html::a('Товары / Услуги', Url::to(['/']), ['class' => 'btn btn-primary']) ?>
+                            <?php endif; ?>
                             <div class="row">
                                 <div class="col-md-12">
                                     <?= $content ?>

@@ -62,12 +62,8 @@ echo Nav::widget([
                     'url' => Url::to(['/profile/service']),
                 ],
                 [
-                    'label' => Icon::show('list-alt') . ' Мои товары',
+                    'label' => Icon::show('list-alt') . ' Внесён пай товаром',
                     'url' => Url::to(['/site/stock']),
-                ],
-                [
-                    'label' => Icon::show('credit-card-alt') . 'Перевод пая на лицевой счёт',
-                    'url' => Url::to(['/site/stock/contibute']),
                 ],
                 [
                     'label' => Icon::show('pencil-square-o') . ' Личные данные',

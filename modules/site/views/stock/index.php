@@ -19,53 +19,56 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
+            [
+                'class' => 'yii\grid\SerialColumn',
+                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 600;']
+            ],
             [
                 'attribute'=>'stock_body.stockHead.date',
-                'headerOptions' => ['style' => 'min-width: 120px; vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'min-width: 120px; vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute'=>'stock_body.stockHead.provider.name',
                 'label'=>'Поставщик',
-                'headerOptions' => ['style' => 'min-width: 150px; vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'min-width: 150px; vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute'=>'stock_body.product.name',
                 'label'=>'Наименование товара',
-                'headerOptions' => ['style' => 'min-width: 150px; vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'min-width: 150px; vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'stock_body.tare',
-                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'stock_body.weight',
-                'headerOptions' => ['style' => 'min-width: 50px; word-break: break-all; vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'min-width: 50px; word-break: break-all; vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'stock_body.measurement',
-                'headerOptions' => ['style' => 'min-width: 50px; word-break: break-all; vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'min-width: 50px; word-break: break-all; vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'total_rent',
-                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'stock_body.summ',
-                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'total_sum',
-                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'reaminder_rent',
                 'label' => 'Кол-во на остатке',
-                'headerOptions' => ['style' => 'min-width: 50px; word-break: break-all; vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'min-width: 50px; word-break: break-all; vertical-align: top; font-weight: 600;']
             ],
             [
                 'attribute' => 'summ_reminder',
-                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 400;']
+                'headerOptions' => ['style' => 'vertical-align: top; font-weight: 600;']
             ],
             ['class' => 'yii\grid\ActionColumn',
                 'template'=> '{actions}',
@@ -83,10 +86,13 @@ $this->params['breadcrumbs'][] = $this->title;
                             DropdownX::widget([
                                 'items' => [
                                     [
+                                        'label' => 'Зачислено на Л/С',
+                                        'url' => Url::to(['/site/stock/contibute']),
+                                    ],
+                                    [
                                         'label' => 'Удалить',
                                         'url' => Url::to(['/site/stock/delete', 'id' => $model->id]),
                                     ],
-
                                 ],
                             ]);
                     }

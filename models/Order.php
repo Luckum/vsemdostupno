@@ -704,11 +704,13 @@ class Order extends \yii\db\ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             
-            $order_id = self::find()->where('YEAR(created_at) = "' . date('Y') . '"')->max('order_id');
-            if ($order_id) {
-                $this->order_id = $order_id + 1;
-            } else {
-                $this->order_id = 1;
+            if ($this->isNewRecord) {
+                $order_id = self::find()->where('YEAR(created_at) = "' . date('Y') . '"')->max('order_id');
+                if ($order_id) {
+                    $this->order_id = $order_id + 1;
+                } else {
+                    $this->order_id = 1;
+                }
             }
 
             return true;

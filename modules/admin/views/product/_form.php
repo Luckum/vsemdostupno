@@ -273,7 +273,7 @@ $this->registerJs("CKEDITOR.plugins.addExternal('youtube', '/ckeditor/plugins/yo
 
     <?= $form->field($model, 'composition')->textArea(['rows' => '6']) ?>
 
-    <!--<?= $form->field($model, 'packing') ?>-->
+    <?= $form->field($model, 'packing') ?>
 
     <?= $form->field($model, 'manufacturer') ?>
 

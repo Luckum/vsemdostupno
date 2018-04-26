@@ -32,6 +32,12 @@ use app\models\NoticeEmail;
 use app\modules\admin\models\OrderForm;
 use app\helpers\Sum;
 
+use app\modules\purchase\models\PurchaseOrder;
+use app\modules\purchase\models\PurchaseOrderProduct;
+use app\modules\purchase\models\PurchaseProviderBalance;
+use app\modules\purchase\models\PurchaseFundBalance;
+use app\modules\purchase\models\PurchaseProduct;
+
 /**
  * OrderController implements the CRUD actions for Order model.
  */
@@ -376,18 +382,34 @@ class OrderController extends BaseController
         $total_paid_for_provider = 0;
 
         if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+            $is_purchase = isset($_POST['is_purchase']);
             $user = User::findOne($model->user_id);
             $productList = Json::decode($model->product_list);
             $productList = ArrayHelper::map($productList, 'id', 'quantity');
 
-            $products = ProductFeature::find()
-                ->joinWith('product')
-                ->joinWith('productPrices')
-                ->where(['IN', 'product_feature.id', array_keys($productList)])
-                ->all();
+            if ($is_purchase) {
+                $products = PurchaseProduct::find()
+                    ->joinWith('productFeature')
+                    ->joinWith('productFeature.product')
+                    ->joinWith('productFeature.productPrices')
+                    ->where(['IN', 'purchase_product.id', array_keys($productList)])
+                    ->all();
+            } else {
+                $products = ProductFeature::find()
+                    ->joinWith('product')
+                    ->joinWith('productPrices')
+                    ->where(['IN', 'product_feature.id', array_keys($productList)])
+                    ->all();
+            }
+            
             foreach ($products as $index => $product) {
+                if ($is_purchase) {
+                    $products[$index] = $product->productFeature;
+                    $products[$index]->purchase_product_id = $product->id;
+                }
                 $products[$index]->cart_quantity = $productList[$product->id];
             }
+            
             $total = 0;
             foreach ($products as $product) {
                 if ($product->is_weights == 1) {
@@ -404,8 +426,12 @@ class OrderController extends BaseController
             $transaction = Yii::$app->db->beginTransaction();
 
             try {
-                $order = new Order();
-
+                if ($is_purchase) {
+                    $order = new PurchaseOrder;
+                } else {
+                    $order = new Order();
+                }
+                
                 $order->email = $user->email;
                 $order->phone = $user->phone;
                 $order->firstname = $user->firstname;
@@ -434,8 +460,10 @@ class OrderController extends BaseController
                     }
                 }
 
-                $orderStatus = OrderStatus::findOne(['type' => OrderStatus::STATUS_NEW]);
-                $order->order_status_id = $orderStatus->id;
+                if (!$is_purchase) {
+                    $orderStatus = OrderStatus::findOne(['type' => OrderStatus::STATUS_NEW]);
+                    $order->order_status_id = $orderStatus->id;
+                }
 
                 if (!$order->save()) {
                     throw new Exception('Ошибка сохранения заказа!');
@@ -446,7 +474,7 @@ class OrderController extends BaseController
                         throw new Exception('"' . $product->product->name . '" нельзя заказать!');
                     }
 
-                    if (!$product->product->isPurchase()) {
+                    if (!$is_purchase) {
                         if (isset($product->quantity)) {
                             if ($product->is_weights == 1) {
                                 $product->quantity -= $product->volume * $product->cart_quantity;
@@ -464,93 +492,122 @@ class OrderController extends BaseController
                         }
                     }
 
-                    $orderHasProduct = new OrderHasProduct();
-
-                    $orderHasProduct->order_id = $order->id;
+                    if ($is_purchase) {
+                        $orderHasProduct = new PurchaseOrderProduct;
+                        $orderHasProduct->purchase_order_id = $order->id;
+                        $orderHasProduct->purchase_product_id = $product->purchase_product_id;
+                        $orderHasProduct->status = 'advance';
+                    } else {
+                        $orderHasProduct = new OrderHasProduct();
+                        $orderHasProduct->order_id = $order->id;
+                    }
+                    
                     $orderHasProduct->product_id = $product->product_id;
                     $orderHasProduct->name = $product->product->name;
-                    $orderHasProduct->orderDate = $product->product->orderDate;
-                    $orderHasProduct->purchaseDate = $product->product->purchaseDate;
+                    
+                    if (!$is_purchase) {
+                        $orderHasProduct->orderDate = $product->product->orderDate;
+                        $orderHasProduct->purchaseDate = $product->product->purchaseDate;
+                        $orderHasProduct->storage_price = 0;
+                        $orderHasProduct->invite_price = 0;
+                        $orderHasProduct->fraternity_price = 0;
+                        $orderHasProduct->group_price = 0;
+                        $orderHasProduct->purchase = 0;
+                    }
+                    
                     $orderHasProduct->price = $product->productPrices[0]->member_price;
                     $orderHasProduct->purchase_price = $product->purchase_price;
-                    $orderHasProduct->storage_price = 0;
-                    $orderHasProduct->invite_price = 0;
-                    $orderHasProduct->fraternity_price = 0;
                     $orderHasProduct->product_feature_id = $product->id;
-                    $orderHasProduct->group_price = 0;
+                    
                     if ($product->is_weights == 1) {
                         $orderHasProduct->quantity = $product->volume * $product->cart_quantity;
                     } else {
                         $orderHasProduct->quantity = $product->cart_quantity;
                     }
                     $orderHasProduct->total = $orderHasProduct->quantity * $product->productPrices[0]->member_price;
-                    $orderHasProduct->purchase = $product->product->isPurchase() ? 1 : 0;
-
+                    
                     $provider = ProviderHasProduct::find()->where(['product_id' => $product->product_id])->one();
                     $provider_id = $provider ? $provider->provider_id : 0;
-
                     if ($provider_id != 0) {
                         $orderHasProduct->provider_id = $provider_id;
-                        $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
                         
                         $provider_model = Provider::findOne(['id' => $provider_id]);
                         $provider_account = Account::findOne(['user_id' => $provider_model->user_id]);
+                        
+                        if (!$is_purchase) {
+                            $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
 
-                        if ($stock_provider && !$product->product->isPurchase()) {
-                            if ($stock_provider->reaminder_rent >= $orderHasProduct->quantity) {
-                                $stock_provider->reaminder_rent -= $orderHasProduct->quantity;
-                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
-                                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
-                                $paid_for_provider = $orderHasProduct->quantity * $body->summ;
-                                $stock_provider->summ_on_deposit += $paid_for_provider;
-                                $stock_provider->save();
-                            } else {
-                                $rest = $orderHasProduct->quantity - $stock_provider->reaminder_rent;
-                                $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
-                                $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
-                                $stock_provider->reaminder_rent = 0;
-                                $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
-                                $stock_provider->save();
-                                
-                                while ($rest > 0) {
-                                    $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
+                            if ($stock_provider && !$product->product->isPurchase()) {
+                                if ($stock_provider->reaminder_rent >= $orderHasProduct->quantity) {
+                                    $stock_provider->reaminder_rent -= $orderHasProduct->quantity;
+                                    $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                    $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                    $paid_for_provider = $orderHasProduct->quantity * $body->summ;
+                                    $stock_provider->summ_on_deposit += $paid_for_provider;
+                                    $stock_provider->save();
+                                } else {
+                                    $rest = $orderHasProduct->quantity - $stock_provider->reaminder_rent;
+                                    $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                    $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
+                                    $stock_provider->reaminder_rent = 0;
+                                    $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                    $stock_provider->save();
                                     
-                                    if ($stock_provider->reaminder_rent >= $rest) {
-                                        $stock_provider->reaminder_rent -= $rest;
-                                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
-                                        $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
-                                        $paid_for_provider = $rest * $body->summ;
-                                        $stock_provider->summ_on_deposit += $paid_for_provider;
-                                        $stock_provider->save();
-                                        $rest = 0;
-                                    } else {
-                                        $rest -= $stock_provider->reaminder_rent;
-                                        $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
-                                        $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
-                                        $stock_provider->reaminder_rent = 0;
-                                        $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
-                                        $stock_provider->save();
+                                    while ($rest > 0) {
+                                        $stock_provider = ProviderStock::getCurrentStock($product->id, $provider_id);
+                                        
+                                        if ($stock_provider->reaminder_rent >= $rest) {
+                                            $stock_provider->reaminder_rent -= $rest;
+                                            $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                            $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                            $paid_for_provider = $rest * $body->summ;
+                                            $stock_provider->summ_on_deposit += $paid_for_provider;
+                                            $stock_provider->save();
+                                            $rest = 0;
+                                        } else {
+                                            $rest -= $stock_provider->reaminder_rent;
+                                            $body = StockBody::findOne(['id' => $stock_provider->stock_body_id]);
+                                            $stock_provider->summ_on_deposit += $stock_provider->reaminder_rent * $body->summ;
+                                            $stock_provider->reaminder_rent = 0;
+                                            $stock_provider->summ_reminder = $stock_provider->reaminder_rent * $body->summ;
+                                            $stock_provider->save();
+                                        }
                                     }
                                 }
-                            }
-                            
-                            if ($body->deposit == '1') {
-                                $paid_for_provider = $orderHasProduct->quantity * $body->summ;
-                                if (!Account::swap($user->deposit, $provider_account, $paid_for_provider, 'Перевод пая на счёт', false)) {
-                                    throw new Exception('Ошибка модификации счета пользователя!');
+                                
+                                if ($body->deposit == '1') {
+                                    $paid_for_provider = $orderHasProduct->quantity * $body->summ;
+                                    if (!Account::swap($user->deposit, $provider_account, $paid_for_provider, 'Перевод пая на счёт', false)) {
+                                        throw new Exception('Ошибка модификации счета пользователя!');
+                                    }
+                                    Email::send('account-log', $provider_account->user->email, [
+                                        'message' => 'Перевод пая на счёт',
+                                        'amount' => $paid_for_provider,
+                                        'total' => $provider_account->total,
+                                    ]);
+                                    $total_paid_for_provider += $paid_for_provider;
                                 }
-                                Email::send('account-log', $provider_account->user->email, [
-                                    'message' => 'Перевод пая на счёт',
-                                    'amount' => $paid_for_provider,
-                                    'total' => $provider_account->total,
-                                ]);
-                                $total_paid_for_provider += $paid_for_provider;
                             }
                         }
                     }
                     
                     if (!$orderHasProduct->save()) {
                         throw new Exception('Ошибка сохранения товара в заказе!');
+                    }
+                    if ($is_purchase) {
+                        $provider_balance = new PurchaseProviderBalance;
+                        $provider_balance->provider_id = $provider_id;
+                        $provider_balance->user_id = $user->id;
+                        $provider_balance->purchase_order_product_id = $orderHasProduct->id;
+                        $provider_balance->total = $orderHasProduct->quantity * $orderHasProduct->purchase_price;
+                        $provider_balance->save();
+                        
+                        PurchaseFundBalance::setDeductionForOrder($orderHasProduct->id, $user->id);
+                        
+                        $total_paid_for_provider += $provider_balance->total;
+                        if (!Account::swap($user->deposit, $provider_account, $provider_balance->total, 'Перевод пая на счёт', false)) {
+                            throw new Exception('Ошибка модификации счета пользователя!');
+                        }
                     }
                 }
 
@@ -571,7 +628,7 @@ class OrderController extends BaseController
                     }
                 }
                 
-                Fund::setDeductionForOrder($product->id, $product->purchase_price, $product->cart_quantity);
+                if (!$is_purchase) Fund::setDeductionForOrder($product->id, $product->purchase_price, $product->cart_quantity);
 
                 $transaction->commit();
             } catch (Exception $e) {
@@ -580,34 +637,38 @@ class OrderController extends BaseController
                 throw new ForbiddenHttpException($e->getMessage());
             }
 
-            $orderId = $order->id;
-            $order = Order::findOne($orderId);
-            $orderId = sprintf("%'.05d\n", $order->order_id);
+            if (!$is_purchase) {
+                $orderId = $order->id;
+                $order = Order::findOne($orderId);
+                $orderId = sprintf("%'.05d\n", $order->order_id);
+                
+                if ($emails = NoticeEmail::getEmails()) {
+                    Email::send('order-customer', $emails, [
+                        'id' => $orderId,
+                        'information' => $order->htmlEmailFormattedInformation,
+                    ]);
+                }
+
+                if ($order->partner) {
+                    Email::send('order-partner', $order->partner->email, [
+                        'id' => $orderId,
+                        'information' => $order->htmlEmailFormattedInformation,
+                    ]);
+                }
+
+                Email::send('order-customer', $order->email, [
+                    'id' => $orderId,
+                    'information' => $order->htmlEmailFormattedInformation,
+                ]);
+            } else {
+                Email::send('add_advance_order', $order->email, [
+                    'fio' => $user->respectedName,
+                    'order_products' => $order->htmlEmailFormattedInformation,
+                    'order_number' => $order->order_number,
+                ]);
+            }
             
-            if ($emails = NoticeEmail::getEmails()) {
-                Email::send('order-customer', $emails, [
-                    'id' => $orderId,
-                    'information' => $order->htmlEmailFormattedInformation,
-                ]);
-            }
-
-            if ($order->partner) {
-                Email::send('order-partner', $order->partner->email, [
-                    'id' => $orderId,
-                    'information' => $order->htmlEmailFormattedInformation,
-                ]);
-            }
-
-            Email::send('order-customer', $order->email, [
-                'id' => $orderId,
-                'information' => $order->htmlEmailFormattedInformation,
-            ]);
-
-            $role = $user->role;
-            if ($user->role == User::ROLE_PROVIDER) {
-                $role = User::ROLE_MEMBER;
-            }
-            if (empty($order->order_id)) {
+            if ($is_purchase) {
                 return $this->redirect(['/admin/provider-order']);
             } else {
                 return $this->redirect(['/admin/order']);

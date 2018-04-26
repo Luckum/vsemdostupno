@@ -2,6 +2,7 @@
 
 use yii\widgets\LinkPager;
 use kartik\helpers\Html;
+use app\modules\purchase\models\PurchaseProduct;
 
 ?>
 
@@ -20,7 +21,15 @@ use kartik\helpers\Html;
         <?php for ($exCount = 0; $exCount < count($products); $exCount += 4): ?>
             <div class="row text-center">
                 <?php for ($inCount = $exCount; $inCount < $exCount + 4 && $inCount < count($products); $inCount += 1): ?>
+                    <?php if ($products[$inCount]->category->isPurchase()): ?>
+                        <?php $purchase = PurchaseProduct::getPurchaseDateByFeature($products[$inCount]->productFeatures[0]->id) ?>
+                    <?php endif ?>
                     <div class="col-md-3 product-item">
+                        <?php if ($products[$inCount]->category->isPurchase()): ?>
+                            <div style="height: 25px;">
+                                <h5 class="text-center" style="font-size: 20px;"><strong><?= $purchase ? 'Закупка ' . date('d.m.Yг.', strtotime($purchase[0]->purchase_date)) : '' ?></strong></h5>
+                            </div>
+                        <?php endif; ?>
                         <div class="row">
                             <div class="col-md-12">
                                 <?= Html::a(

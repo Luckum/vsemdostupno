@@ -44,6 +44,7 @@ $services = $servicesQuery->offset($servicePages->offset)
     ->limit($servicePages->limit)
     ->orderBy(['name' => SORT_ASC])
     ->all();
+    
 ?>
 
 <?= Html::pageHeader(Html::encode($model->fullName)) ?>
@@ -60,11 +61,13 @@ $services = $servicesQuery->offset($servicePages->offset)
     'categories' => $categories,
 ]) ?>
 
-<?= $this->renderFile('@app/modules/site/views/category/snippets/product-panel.php', [
-    'name' => count($categories) ? 'Товары' : null,
-    'products' => $products,
-    'pages' => $productPages,
-]) ?>
+<?php if (count($categories) == 0): ?>
+    <?= $this->renderFile('@app/modules/site/views/category/snippets/product-panel.php', [
+        'name' => count($categories) ? 'Товары' : null,
+        'products' => $products,
+        'pages' => $productPages,
+    ]) ?>
+<?php endif; ?>
 
 <?= $this->renderFile('@app/modules/site/views/category/snippets/service-panel.php', [
     'name' => count($categories) || count($products) ? 'Услуги' : null,

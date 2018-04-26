@@ -13,7 +13,18 @@ echo Nav::widget([
         ],
         [
             'label' => Icon::show('list') . ' Прайс-лист',
-            'url' => Url::to(['/pricelist/product']),
+            'items' => [
+                [
+                    'label' => 'Заказы на склад',
+                    'url' => Url::to(['/pricelist/product']),
+                ],
+                [
+                    'label' => 'Коллективные закупки',
+                    'url' => Url::to(['/purchase/pricelist']),
+                    'visible' => Yii::$app->hasModule('purchase'),
+                ]
+            ],
+            
         ],
         [
             'label' => Icon::show('rouble') . ' Оплата',

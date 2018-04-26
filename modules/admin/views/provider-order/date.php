@@ -6,6 +6,8 @@ use app\models\ProductFeature;
 use app\models\ProviderNotification;
 use app\models\Provider;
 use app\models\User;
+
+use app\modules\purchase\models\PurchaseOrder;
     
 $this->title = 'Заявка на поставку товаров на ' . date('d.m.Y', strtotime($date));
 $this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/admin/provider-order'];
@@ -40,7 +42,7 @@ $this->registerJs($script, $this::POS_END);
         </thead>
         <tbody>
             <?php foreach ($model as $k => $val): ?>
-                <?php $orders = Order::getOrderByProduct($val['product_feature_id'], $date); ?>
+                <?php $orders = PurchaseOrder::getOrderByProduct($val['product_feature_id'], $date); ?>
                 <?php $rowspan = count($orders); ?>
                 <?php if ($rowspan == 1): ?>
                     <tr>

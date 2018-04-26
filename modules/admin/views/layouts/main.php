@@ -55,7 +55,7 @@ Icon::map($this);
                                 //['label' => 'Гостей', 'url' => ['/admin/order/guest']],
                                 //['label' => 'Статусы заказов', 'url' => ['/admin/order-status']],
                                 //['label' => 'Заказы поставщикам', 'url'=>['/admin/provider-order']]
-                                ['label' => 'Коллективная закупка', 'url'=>['/admin/provider-order']],
+                                ['label' => 'Коллективная закупка', 'url'=>['/admin/provider-order'], 'visible' => Yii::$app->hasModule('purchase')],
                                 ['label' => 'Заказы на склад', 'url'=>['/admin/order']],
                                 ['label' => 'Добавить заказ', 'url'=>['/admin/order/create']]
                             ],
@@ -126,85 +126,96 @@ Icon::map($this);
             <p class="pull-right"><?= Yii::powered() ?></p>
         </div>
     </footer>
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Поиск контрагентов</h4>
-      </div>
-      <div class="modal-body">
-        <?php $form = ActiveForm::begin([
-            'method' => 'get',
-            'action' => Yii::$app->urlManager->createUrl(['admin/search/search'])
-        ]); ?>
-            <label for="fio" >Поиск по фамилии</label>
-            <?php
-            echo Typeahead::widget([
-    'name' => 'fio',
-    'options' => ['placeholder' => 'Начните вводить фамилию'],
-    'pluginOptions' => ['highlight'=>true],
-    'dataset' => [
-        [
-            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
-            'display' => 'value',
-            
-            'remote' => [
-                'url' => Url::to(['search/searchajax']) . '?name=%QUERY',
-                'wildcard' => '%QUERY'
-            ],
-        ]
-    ]
-            ]); 
-        ?>
-            <label for="reg_nom" style="margin-top: 20px;">Поиск по регистрационному номеру</label>
-            <?php
-            echo Typeahead::widget([
-    'name' => 'reg_Nom',
-    'options' => ['placeholder' => 'Начните вводить регистрационный номер'],
-    'pluginOptions' => ['highlight'=>true],
-    'dataset' => [
-        [
-            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
-            'display' => 'value',
-            
-            'remote' => [
-                'url' => Url::to(['search/searchajax']) . '?disc_number=%QUERY',
-                'wildcard' => '%QUERY'
-            ],
-        ]
-    ]
-            ]); 
-        ?>
-            <label for="nomer_order" style="margin-top: 20px;">Поиск по № заказа</label>
-            <?php
-            echo Typeahead::widget([
-    'name' => 'nomer_order',
-    'options' => ['placeholder' => 'Начните вводить номер заказа'],
-    'pluginOptions' => ['highlight'=>true],
-    'dataset' => [
-        [
-            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
-            'display' => 'value',
-            
-            'remote' => [
-                'url' => Url::to(['search/searchajax']) . '?order_numb=%QUERY',
-                'wildcard' => '%QUERY'
-            ],
-        ]
-    ]
-            ]); 
-        ?>
-            <button type="submit" class="btn btn-success" style="width:150px; margin-left: 73%; margin-top: 5%;">Поиск</button>
-            <?php $form= ActiveForm::end(); ?>
-        </form>
-      </div>
-      <div class="modal-footer">
-        
 
-      </div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Поиск контрагентов</h4>
+            </div>
+            <div class="modal-body">
+                <?php $form = ActiveForm::begin([
+                    'method' => 'get',
+                    'action' => Yii::$app->urlManager->createUrl(['admin/search/search'])
+                ]); ?>
+                
+                <label for="fio" >Поиск по фамилии</label>
+                <?php echo Typeahead::widget([
+                    'name' => 'fio',
+                    'options' => ['placeholder' => 'Начните вводить фамилию'],
+                    'pluginOptions' => ['highlight'=>true],
+                    'dataset' => [
+                        [
+                            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                            'display' => 'value',
+                            'remote' => [
+                                'url' => Url::to(['search/searchajax']) . '?name=%QUERY',
+                                'wildcard' => '%QUERY'
+                            ],
+                        ]
+                    ]
+                ]); ?>
+                
+                <label for="reg_nom" style="margin-top: 20px;">Поиск по регистрационному номеру</label>
+                <?php echo Typeahead::widget([
+                    'name' => 'reg_Nom',
+                    'options' => ['placeholder' => 'Начните вводить регистрационный номер'],
+                    'pluginOptions' => ['highlight'=>true],
+                    'dataset' => [
+                        [
+                            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                            'display' => 'value',
+                            'remote' => [
+                                'url' => Url::to(['search/searchajax']) . '?disc_number=%QUERY',
+                                'wildcard' => '%QUERY'
+                            ],
+                        ]
+                    ]
+                ]); ?>
+
+                <?php if (Yii::$app->hasModule('purchase')): ?>
+                    <label for="purchase_order_number" style="margin-top: 20px;">Поиск по № предварительного заказа</label>
+                    <?php echo Typeahead::widget([
+                        'name' => 'purchase_order_number',
+                        'options' => ['placeholder' => 'Начните вводить номер заказа'],
+                        'pluginOptions' => ['highlight' => true],
+                        'dataset' => [
+                            [
+                                'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                                'display' => 'value',
+                                'remote' => [
+                                    'url' => Url::to(['search/searchajax']) . '?purchase_order_number=%QUERY',
+                                    'wildcard' => '%QUERY'
+                                ],
+                            ]
+                        ]
+                    ]); ?>
+                <?php endif; ?>
+
+                <label for="nomer_order" style="margin-top: 20px;">Поиск по № заказа</label>
+                <?php echo Typeahead::widget([
+                    'name' => 'nomer_order',
+                    'options' => ['placeholder' => 'Начните вводить номер заказа'],
+                    'pluginOptions' => ['highlight'=>true],
+                    'dataset' => [
+                        [
+                            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                            'display' => 'value',
+                            'remote' => [
+                                'url' => Url::to(['search/searchajax']) . '?order_numb=%QUERY',
+                                'wildcard' => '%QUERY'
+                            ],
+                        ]
+                    ]
+                ]); ?>
+                
+                <button type="submit" class="btn btn-success" style="width:150px; margin-left: 73%; margin-top: 5%;">Поиск</button>
+                <?php $form= ActiveForm::end(); ?>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
     </div>
-  </div>
 </div>
 <?php $this->endBody() ?>
 </body>

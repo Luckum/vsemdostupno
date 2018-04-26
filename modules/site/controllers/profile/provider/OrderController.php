@@ -11,7 +11,12 @@ use app\models\Order;
 use app\models\Partner;
 use app\models\Product;
 use app\models\Provider;
+use app\models\OView;
 use yii\web\ForbiddenHttpException;
+
+use app\modules\purchase\models\PurchaseOrder;
+use app\modules\purchase\models\PurchaseOrderProduct;
+
 
 class OrderController extends BaseController
 {
@@ -26,7 +31,12 @@ class OrderController extends BaseController
                         'actions' => [
                             'index',
                             'detail',
-                            'hide'
+                            'hide',
+                            'date',
+                            'get-detalization',
+                            'set-view',
+                            'show-all',
+                            'delete'
                         ],
                         'roles' => ['@'],
                         'matchCallback' => function ($rule, $action) {
@@ -54,23 +64,20 @@ class OrderController extends BaseController
     
     public function actionIndex()
     {
-        $date = date('Y-m-d');
-        
         $partner = Partner::getByUserId(Yii::$app->user->identity->id);
-        $dataProvider = Order::getProviderOrderByPartner($partner->id, $date, 1);
+        $purchases_date = PurchaseOrder::getPurchaseDatesByPartner($partner->id);
+        //$dataProvider = Order::getProviderOrderByPartner($partner->id, $date, 1);
         
         return $this->render('index', [
-            'date' => $date,
-            'dataProvider' => $dataProvider,
+            'purchases_date' => $purchases_date
         ]);
     }
     
-    public function actionDetail($id, $prid, $date)
+    public function actionDetail($id, $pid, $prid, $date)
     {
-        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
-        //$product = Product::findOne($id);
+        $partner = Partner::findOne($pid);
         $provider = Provider::findOne($prid);
-        $details = Order::getProviderOrderDetails($id, $date, $partner->id);
+        $details = PurchaseOrder::getProviderOrderDetails($id, $date, $pid);
         return $this->render('detail', [
             'partner' => $partner,
             //'product' => $product,
@@ -80,9 +87,127 @@ class OrderController extends BaseController
         ]);
     }
     
-    public function actionHide($date)
+    public function actionHide()
     {
-        $orders = Order::hideOrdersByDate($date);
-        return $this->redirect(['index']);
+        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
+        $order_id = $_POST['o_id'];
+        $date = $_POST['date'];
+        
+        $order = PurchaseOrder::findOne($order_id);
+        $order->hide = 1;
+        $order->save();
+        
+        $dataProvider = PurchaseOrder::getDetalizationByPartner($partner->id, $date);
+        return $this->renderPartial('_detail', [
+            'dataProvider' => $dataProvider,
+            'date' => $date,
+        ]);
+    }
+    
+    public function actionDate($date)
+    {
+        
+        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
+        $dataProvider = PurchaseOrder::getProvidersOrderByPartner($partner->id, $date);
+        
+        return $this->render('date', [
+            'date' => $date,
+            'dataProvider' => $dataProvider,
+            'partner_id' => $partner->id,
+        ]);
+    }
+    
+    public function actionGetDetalization()
+    {
+        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->id,
+            'section' => 'po',
+            'dts' => date('Y-m-d', strtotime($_POST['date'])),
+        ])->one();
+        
+        if (!$view_model) {
+            $view_model = new OView;
+            $view_model->user_id = Yii::$app->user->identity->id;
+            $view_model->section = 'po';
+            $view_model->dts = $_POST['date'];
+        }
+        
+        $view_model->detail = 'opened';
+        $view_model->save();
+        
+        $dataProvider = PurchaseOrder::getDetalizationByPartner($partner->id, $_POST['date']);
+        return $this->renderPartial('_detail', [
+            'dataProvider' => $dataProvider,
+            'date' => $_POST['date'],
+        ]);
+    }
+    
+    public function actionSetView()
+    {
+        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->id,
+            'section' => 'po',
+            'dts' => date('Y-m-d', strtotime($_POST['date'])),
+        ])->one();
+        
+        if ($view_model) {
+            if ($view_model->detail == 'opened') {
+                $dataProvider = PurchaseOrder::getDetalizationByPartner($partner->id, $_POST['date']);
+                return $this->renderPartial('_detail', [
+                    'dataProvider' => $dataProvider,
+                    'date' => $_POST['date'],
+                ]);
+            }
+        }
+        
+        return false;
+    }
+    
+    public function actionShowAll()
+    {
+        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
+        $view_model = OView::find()->where([
+            'user_id' => Yii::$app->user->identity->id,
+            'section' => 'po',
+            'dts' => date('Y-m-d', strtotime($_POST['date'])),
+        ])->one();
+        
+        if (!$view_model) {
+            $view_model = new OView;
+            $view_model->user_id = Yii::$app->user->identity->id;
+            $view_model->section = 'po';
+            $view_model->dts = $_POST['date'];
+        }
+        
+        $view_model->detail = 'closed';
+        $view_model->save();
+        
+        $dataProvider = PurchaseOrder::getDetalizationByPartner($partner->id, $_POST['date'], 1);
+        $models = $dataProvider->getModels();
+        foreach ($models as $model) {
+            $model->hide = 0;
+            $model->save();
+        }
+        return true;
+    }
+    
+    public function actionDelete($date)
+    {
+        $partner = Partner::getByUserId(Yii::$app->user->identity->id);
+        $dataProvider = PurchaseOrder::getProvidersOrderByPartner($partner->id, $date);
+        $models = $dataProvider->getModels();
+        while (count($models)) {
+            foreach ($models as $model) {
+                $ohp = PurchaseOrderProduct::findOne($model['ohp_id']);
+                $ohp->deleted_p = 1;
+                $ohp->save();
+            }
+            $dataProvider = PurchaseOrder::getProvidersOrderByPartner($partner->id, $date);
+            $models = $dataProvider->getModels();
+        }
+        
+        $this->redirect(['index']);
     }
 }

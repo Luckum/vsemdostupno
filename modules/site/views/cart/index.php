@@ -10,6 +10,8 @@ use dosamigos\selectize\SelectizeDropDownList;
 use app\models\Parameter;
 use app\models\Cart;
 
+use app\modules\purchase\models\PurchaseProduct;
+
 /* @var $this yii\web\View */
 $this->title = 'Корзина';
 $this->params['breadcrumbs'][] = $this->title;
@@ -61,11 +63,12 @@ $this->params['breadcrumbs'][] = $this->title;
                                             <?= Html::badge(Html::encode($product->formattedCalculatedPrice)) ?>
                                         </p>
                                         <?php if ($product->product->isPurchase()): ?>
+                                            <?php $purchase = PurchaseProduct::getPurchaseDateByFeature($product->id);?>
                                             <p>
                                                 <b>Закупка:</b>
                                                 <?= Html::a(
-                                                    $product->product->purchaseCategory->htmlFormattedPurchaseDate,
-                                                    $product->product->purchaseCategory->url
+                                                    $purchase[0]->htmlFormattedPurchaseDate,
+                                                    $product->product->category->url
                                                 ) ?>
                                             </p>
                                         <?php endif; ?>

@@ -10,14 +10,12 @@ use app\models\OrderStatus;
 use app\models\User;
 use app\helpers\Sum;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
 ?>
 <div class="order-index">
     <?php foreach ($dataProvider->getModels() as $model): ?>
-        <h4 style="text-decoration: underline; text-align: center;">Заявка №<?= sprintf("%'.05d\n", $model->order_id) ?> (<?= date("d.m.Yг.: H.i", strtotime($model->created_at)) ?>)</h4>
-        <p style="text-decoration: underline;">Заказчик: <strong><?= empty($model->role) ? "ГОСТЬ" : "УЧАСТНИК" ?></strong> <a href="<?= Url::to(['/admin/search/search?fio=' . $model->user->lastname . "+" . $model->user->firstname . "+" . $model->user->patronymic]) ?>"><?= Html::encode($model->fullName) ?> № Регистрации: <?= $model->user->number ?></a></p>
+        <?php $total = 0; $k = 1; ?>
+        <h4 style="text-decoration: underline; text-align: center;">Заявка № <?= !empty($model->order_id) ? sprintf("%'.05d\n", $model->order_id) : $model->order_number ?> (<?= date("d.m.Yг.: H.i", strtotime($model->created_at)) ?>)</h4>
+        <p style="text-decoration: underline;">Заказчик: <strong><?= empty($model->role) ? "ГОСТЬ" : "УЧАСТНИК" ?></strong> <?php if (!empty($model->role)): ?><a href="<?= Url::to(['/admin/search/search?fio=' . $model->lastname . "+" . $model->firstname . "+" . $model->patronymic]) ?>"><?= Html::encode($model->fullName) ?> № Регистрации: <?= $model->user->number ?></a><?php else: ?><?= $model->lastname . " " . $model->firstname . " " . $model->patronymic ?><?php endif; ?></p>
         <table class="table table-bordered">
             <thead>
                 <th style="width: 57px;">№ п/п</th>
@@ -29,71 +27,76 @@ use app\helpers\Sum;
                 <th></th>
             </thead>
             <tbody>
-                <?php foreach ($model->orderHasProducts as $k => $ohp): ?>
-                    <tr>
-                        <td><?= $k + 1 ?></td>
-                        <td><?= $ohp->name ?></td>
-                        <td><?= $ohp->price ?></td>
-                        <td><?= number_format($ohp->quantity) ?></td>
-                        <td><?= $ohp->product->productFeatures[0]->measurement ?></td>
-                        <td><?= $ohp->total ?></td>
-                    </tr>
+                <?php foreach ($model->purchaseOrderProducts as $ohp): ?>
+                    <?php if ($ohp->purchaseProduct->purchase_date == $date): ?>
+                        <tr>
+                            <td><?= $k ++ ?></td>
+                            <td><?= $ohp->name ?></td>
+                            <td><?= $ohp->price ?></td>
+                            <td><?= number_format($ohp->quantity) ?></td>
+                            <td><?= $ohp->product->productFeatures[0]->measurement ?></td>
+                            <td><?= $ohp->total ?></td>
+                        </tr>
+                        <?php $total += $ohp->total ?>
+                    <?php endif; ?>
                 <?php endforeach; ?>
                 <tr>
-                    <td colspan="5"><span style="text-decoration: underline;">Списано с лицевого счёта заказчика:</span> <strong><?= Sum::toStr($model->total) ?></strong></td>
-                    <td><strong><?= $model->total ?></strong></td>
+                    <td colspan="5"><span style="text-decoration: underline;">Списано с лицевого счёта заказчика:</span> <strong><?= Sum::toStr($total) ?></strong></td>
+                    <td><strong><?= number_format($total, 2, '.', '') ?></strong></td>
                     <td rowspan="2">
-                        <?= Html::beginTag('div', ['class'=>'dropdown']) .
-                                Html::button('Действия <span class="caret"></span>', [
-                                    'type'=>'button',
-                                    'class'=>'btn btn-default',
-                                    'data-toggle'=>'dropdown'
+                        <?php if ($model->status !== 'advance'): ?>
+                            <?= Html::beginTag('div', ['class'=>'dropdown']) .
+                                    Html::button('Действия <span class="caret"></span>', [
+                                        'type'=>'button',
+                                        'class'=>'btn btn-default',
+                                        'data-toggle'=>'dropdown'
+                                    ]) .
+                                    DropdownX::widget([
+                                    'items' => [
+                                        [
+                                            'label' => 'Прих. ордер',
+                                            'url' => Url::to(['/admin/order/download-order', 'id' => $model->id]),
+                                        ],
+                                        [
+                                            'label' => 'Акт возврата',
+                                            'url' => Url::to(['/admin/order/download-act', 'id' => $model->id]),
+                                        ],
+                                        [
+                                            'label' => 'Заявка',
+                                            'url' => Url::to(['/admin/order/download-request', 'id' => $model->id]),
+                                        ],
+                                        [
+                                            'label' => 'Акт возврата паевого взноса',
+                                            'url' => Url::to(['/admin/order/download-return-fee-act', 'id' => $model->id]),
+                                        ],
+                                        '<li class="divider"></li>',
+                                        [
+                                            'label' => 'Удалить',
+                                            'url' => 'javascript:void(0)',
+                                            'linkOptions' => [
+                                                'data' => [
+                                                    'order-id' => $model->id
+                                                ],
+                                                'onclick' => 'deleteOrder(this);',
+                                            ],
+                                            'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
+                                        ],
+                                        [
+                                            'label' => 'Сделать возврат и удалить',
+                                            'url' => 'javascript:void(0)',
+                                            'linkOptions' => [
+                                                'data' => [
+                                                    'order-id' => $model->id
+                                                ],
+                                                'onclick' => 'deleteReturnOrder(this);',
+                                            ],
+                                            'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
+                                        ],
+                                    ],
                                 ]) .
-                                DropdownX::widget([
-                                'items' => [
-                                    [
-                                        'label' => 'Прих. ордер',
-                                        'url' => Url::to(['/admin/order/download-order', 'id' => $model->id]),
-                                    ],
-                                    [
-                                        'label' => 'Акт возврата',
-                                        'url' => Url::to(['/admin/order/download-act', 'id' => $model->id]),
-                                    ],
-                                    [
-                                        'label' => 'Заявка',
-                                        'url' => Url::to(['/admin/order/download-request', 'id' => $model->id]),
-                                    ],
-                                    [
-                                        'label' => 'Акт возврата паевого взноса',
-                                        'url' => Url::to(['/admin/order/download-return-fee-act', 'id' => $model->id]),
-                                    ],
-                                    '<li class="divider"></li>',
-                                    [
-                                        'label' => 'Удалить',
-                                        'url' => 'javascript:void(0)',
-                                        'linkOptions' => [
-                                            'data' => [
-                                                'order-id' => $model->id
-                                            ],
-                                            'onclick' => 'deleteOrder(this);',
-                                        ],
-                                        'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
-                                    ],
-                                    [
-                                        'label' => 'Сделать возврат и удалить',
-                                        'url' => 'javascript:void(0)',
-                                        'linkOptions' => [
-                                            'data' => [
-                                                'order-id' => $model->id
-                                            ],
-                                            'onclick' => 'deleteReturnOrder(this);',
-                                        ],
-                                        'visible' => Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN
-                                    ],
-                                ],
-                            ]) .
-                            Html::endTag('div');
-                        ?>
+                                Html::endTag('div');
+                            ?>
+                        <?php endif; ?>
                         <?= Html::button('Скрыть', [
                                 'type'=>'button',
                                 'class'=>'btn btn-primary',

@@ -21,6 +21,7 @@ class BaseController extends Controller
                 'js'=>[
                     'js/site/WidgetHelpers.js?v=' . (int) (time() / 3600),
                     'js/site/CartHelpers.js?v=' . (int) (time() / 3600),
+                    'js/site/site.js?v=' . (int) (time() / 3600),
                 ],
             ],
         ];

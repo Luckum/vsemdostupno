@@ -10,51 +10,25 @@ $this->params['breadcrumbs'] = [$this->title];
 ?>
 
 <?= Html::pageHeader(Html::encode($this->title)) ?>
-<h4>Заявка на поставку товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
 <div class="order-index">
-<!--    <a href="<?//= Url::to(['/profile/provider/order/hide', 'date' => date('Y-m-d', strtotime($date))]); ?>">Удалить заявку</a>-->
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'columns' => [
-            [
-                'class' => 'yii\grid\SerialColumn', 
-                'header' => '№ п/п', 
-                'footer' => 'ИТОГО:',
-                'footerOptions' => ['colspan' => 4]
-            ],
-            [
-                'label' => 'Наименование товаров', 
-                'value' => function ($data) {
-                    return $data['product_name'] . ', ' . ProductFeature::getFeatureNameById($data['product_feature_id']);
-                },
-                'footerOptions' => ['style' => 'display: none;']
-            ],
-            [
-                'label' => 'Поставщик',
-                'value' => function ($data) {
-                    return $data['provider_name'];
-                },
-                'footerOptions' => ['style' => 'display: none;']
-            ],
-            [
-                'label' => 'Количество',
-                'format' => 'raw',
-                'contentOptions' => ['style' => 'font-weight: 600;'],
-                'value' => function ($data) use ($date) {
-                    return Html::a(number_format($data['quantity']), Url::to(['/profile/provider/order/detail', 'id' => $data['product_feature_id'], 'prid' => $data['provider_id'], 'date' => date('Y-m-d', strtotime($date))]), ['style' => 'text-decoration: underline;']);
-                },
-                'footerOptions' => ['style' => 'display: none;']
-            ],
-            [
-                'label' => 'На сумму',
-                'contentOptions' => ['style' => 'font-weight: 600;'],
-                'value' => function ($data) {
-                    return $data['total'];
-                },
-                'class' => NumberColumn::className(),
-                'footerOptions' => ['style' => 'font-weight: 600;'],
-            ]
-        ],
-        'showFooter' => true,
-    ]);?>
+    <table class="table table-bordered">
+        <thead>
+            <th style="vertical-align: top;">Дата</th>
+            <th></th>
+        </thead>
+        <tbody>
+            <?php foreach ($purchases_date as $date): ?>
+                <tr>
+                    <td>
+                        <a href="<?= Url::to(['date', 'date' => date('Y-m-d', strtotime($date['purchase_date']))]); ?>"><?= date('d.m.Y', strtotime($date['purchase_date'])); ?></a>
+                    </td>
+                    <td>
+                        <a href="<?= Url::to(['delete', 'date' => date('Y-m-d', strtotime($date['purchase_date']))]) ?>" title="Удалить" data-pjax="0" data-method="post" data-confirm="Вы уверены что хотите удалить закупку?">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>

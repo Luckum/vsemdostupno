@@ -58,6 +58,7 @@ echo Nav::widget([
                 [
                     'label' => Icon::show('bars') . ' Коллективная закупка',
                     'url' => Url::to(['/profile/provider/order/index']),
+                    'visible' => Yii::$app->hasModule('purchase'),
                 ],
                 [
                     'label' => Icon::show('bars') . ' Заказы на склад',

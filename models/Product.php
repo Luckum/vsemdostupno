@@ -484,4 +484,11 @@ class Product extends \yii\db\ActiveRecord
         $feature = ProductPrice::find()->where(['product_feature_id' => $feature_id])->one();
         return Yii::$app->formatter->asCurrency($feature->price, 'RUB');
     }
+    
+    public static function getNextId()
+    {
+        $sql = "SHOW TABLE STATUS LIKE '" . self::tableName() . "'";
+        $res = Yii::$app->db->createCommand($sql)->queryOne();
+        return $res['Auto_increment'];
+    }
 }

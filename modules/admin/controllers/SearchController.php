@@ -24,6 +24,8 @@ use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
 use yii\helpers\Json;
 
+use app\modules\purchase\models\PurchaseOrder;
+
 class SearchController extends BaseController
 {
 
@@ -45,8 +47,9 @@ class SearchController extends BaseController
     {
         $fio = $_GET['fio'];
         $discount_number = isset($_GET['reg_Nom']) ? $_GET['reg_Nom'] : null;
-        $order_number = isset($_GET['nomer_order']) ? $_GET['reg_Nom'] : null;
-        if ($fio != null && $discount_number == null && $order_number == null) {
+        $order_number = isset($_GET['nomer_order']) ? $_GET['nomer_order'] : null;
+        $purchase_order_number = isset($_GET['purchase_order_number']) ? $_GET['purchase_order_number'] : null;
+        if ($fio != null && $discount_number == null && $order_number == null && $purchase_order_number == null) {
             $fio = str_replace('  ', ' ', trim($fio));
             $temp_fio = explode(' ',$fio);
             $query = new Query();
@@ -62,9 +65,9 @@ class SearchController extends BaseController
             $sub_array=array();
             if ($query) {
                 foreach ($query as $item) {
-                    $sub_array[]=$item['id'];
+                    $sub_array[] = $item['id'];
                 }
-                $res_sql=implode(',',$sub_array);
+                $res_sql = implode(',', $sub_array);
                 $count = Yii::$app->db
                     ->createCommand('SELECT COUNT(*) FROM user WHERE user.id IN ('.$res_sql.')')
                     ->queryScalar();
@@ -80,71 +83,77 @@ class SearchController extends BaseController
                     'models' => [],
                 ]);
             }
-            
-         }   
-         if($fio==null && $discount_number!=null && $order_number==null){
+        }   
+        if ($fio==null && $discount_number!=null && $order_number==null  && $purchase_order_number == null) {
             $count= Yii::$app->db->createCommand('SELECT COUNT(*) from user WHERE user.number='.$discount_number.'')->queryScalar();
             $dataProvider= new SqlDataProvider ([
                 'sql'=>'SELECT u.id as user_id, u.role, u.email, u.phone, u.firstname, u.lastname, u.number, m.id as member_id, p.id as partner_id, p.name from user u left join member m on u.id = m.user_id left join partner p on (u.id = p.user_id OR m.partner_id = p.id) where role != "admin" AND role != "superadmin" AND u.number = ('.$discount_number.')',
                 'totalCount'=>$count,
                 'pagination'=> [
                     'pageSize'=>10,
-                    ],
-                ]);
-            
-         }
-         if($fio==null && $discount_number==null && $order_number!=null){
-            
+                ],
+            ]);
+        }
+        if ($fio==null && $discount_number==null && $order_number!=null  && $purchase_order_number == null) {
             $dataProvider = new ActiveDataProvider([
-            'query' => Order::find()->where('order_id = :id', [':id' => $order_number]),
-            
+                'query' => Order::find()->where('order_id = :id', [':id' => $order_number]),
             ]);
             return $this->render('order', [
-            'dataProvider' => $dataProvider,
-        ]);
-         }
+                'dataProvider' => $dataProvider,
+            ]);
+        }
+        
+        if ($fio == null && $discount_number == null && $order_number == null && $purchase_order_number != null) {
+            $dataProvider = new ActiveDataProvider([
+                'query' => PurchaseOrder::find()->where('order_number = :id', [':id' => $purchase_order_number]),
+            ]);
+            return $this->render('purchase', [
+                'dataProvider' => $dataProvider,
+            ]);
+        }
         return $this->render('index', [
             'dataProvider' => $dataProvider,
         ]);
     }
 
-    public function actionSearchajax($name=null, $disc_number=null, $order_numb=null) {
-     if ($name !=null){
-         $temp_name=explode(' ',$name);
-     $query = new Query;
-     $query->select('lastname, firstname, patronymic')
-        ->distinct(true)
-        ->from('user')
-        ->where('lastname LIKE "%' . $temp_name[0] .'%"')
-        ->andWhere('role != "admin"')
-        ->andWhere('role != "superadmin"')
-        ->orderBy('lastname');
-    $command = $query->createCommand();
-    $data = $command->queryAll();
-        $out = [];
-        foreach ($data as $d) {
-            $out[] = ['value' => $d['lastname']. ' ' .$d['firstname']. ' ' .$d['patronymic']];
+    public function actionSearchajax($name=null, $disc_number=null, $order_numb=null, $purchase_order_number = null)
+    {
+        if ($name !=null) {
+            $temp_name = explode(' ', $name);
+            $query = new Query;
+            $query->select('lastname, firstname, patronymic')
+                ->distinct(true)
+                ->from('user')
+                ->where('lastname LIKE "%' . $temp_name[0] .'%"')
+                ->andWhere('role != "admin"')
+                ->andWhere('role != "superadmin"')
+                ->orderBy('lastname');
+            $command = $query->createCommand();
+            $data = $command->queryAll();
+            $out = [];
+            foreach ($data as $d) {
+                $out[] = ['value' => $d['lastname']. ' ' .$d['firstname']. ' ' .$d['patronymic']];
+            }
+            echo Json::encode($out);
         }
-        echo Json::encode($out);
-    }
-    
-    if ($disc_number !=null){
-     $query = new Query;
-     $query->select('number')
-        ->from('user')
-        ->where('number LIKE "%' . $disc_number .'%"')
-        ->andWhere('role != "admin"')
-        ->andWhere('role != "superadmin"')
-        ->orderBy('number');
-    $command = $query->createCommand();
-    $data = $command->queryAll();
-    $out = [];
-    foreach ($data as $d) {
-        $out[] = ['value' => $d['number']];
-    }
-    echo Json::encode($out);
-    }
-    
+
+        if ($disc_number != null) {
+            $query = new Query;
+            $query->select('number')
+                ->from('user')
+                ->where('number LIKE "%' . $disc_number .'%"')
+                ->andWhere('role != "admin"')
+                ->andWhere('role != "superadmin"')
+                ->orderBy('number');
+            $command = $query->createCommand();
+            $data = $command->queryAll();
+            $out = [];
+            foreach ($data as $d) {
+                $out[] = ['value' => $d['number']];
+            }
+            echo Json::encode($out);
+        }
+
         if ($order_numb != null) {
             $query = new Query;
             $query->select(['LPAD(`order_id`, 5, "0") as `order_id`'])
@@ -156,6 +165,21 @@ class SearchController extends BaseController
             $out = [];
             foreach ($data as $d) {
                 $out[] = ['value' => $d['order_id']];
+            }
+            echo Json::encode($out);
+        }
+        
+        if ($purchase_order_number != null) {
+            $query = new Query;
+            $query->select(['order_number'])
+                ->from('purchase_order')
+                ->where('order_number LIKE "%' . $purchase_order_number .'%"')
+                ->orderBy('order_number');
+            $command = $query->createCommand();
+            $data = $command->queryAll();
+            $out = [];
+            foreach ($data as $d) {
+                $out[] = ['value' => $d['order_number']];
             }
             echo Json::encode($out);
         }

@@ -62,8 +62,18 @@ echo Nav::widget([
                     'url' => Url::to(['/profile/service']),
                 ],
                 [
+                    'label' => Icon::show('list-alt') . ' История моих закупок',
+                    'url' => Url::to(['/purchase/history']),
+                    'visible' => Yii::$app->hasModule('purchase'),
+                ],
+                [
                     'label' => Icon::show('list-alt') . ' Внесён пай товаром',
                     'url' => Url::to(['/site/stock']),
+                ],
+                [
+                    'label' => Icon::show('list-alt') . ' Коллективная закупка',
+                    'url' => Url::to(['/purchase/provider']),
+                    'visible' => Yii::$app->hasModule('purchase'),
                 ],
                 [
                     'label' => Icon::show('pencil-square-o') . ' Личные данные',

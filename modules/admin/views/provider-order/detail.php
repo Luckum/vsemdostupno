@@ -33,7 +33,7 @@ $total_price = $total_qnt = 0;
                     <td><?= $details[0]['name']; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
-                    <td><?= sprintf("%'.05d\n", $details[0]['id']); ?></td>
+                    <td><?= !empty($details[0]['order_id']) ? sprintf("%'.05d\n", $details[0]['order_id']) : $details[0]['order_number']; ?></td>
                     <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
                     <td><?= number_format($details[0]['quantity']); ?></td>
@@ -47,7 +47,7 @@ $total_price = $total_qnt = 0;
                     <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $details[0]['name']; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
-                    <td><?= sprintf("%'.05d\n", $details[0]['id']); ?></td>
+                    <td><?= !empty($details[0]['order_id']) ? sprintf("%'.05d\n", $details[0]['order_id']) : $details[0]['order_number']; ?></td>
                     <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
                     <td><?= number_format($details[0]['quantity']); ?></td>
@@ -60,7 +60,7 @@ $total_price = $total_qnt = 0;
                         <tr>
                             <td><?= $k + 1 ?></td>
                             <td><?= $detail['fio']; ?></td>
-                            <td><?= sprintf("%'.05d\n", $detail['id']); ?></td>
+                            <td><?= !empty($detail['order_id']) ? sprintf("%'.05d\n", $detail['order_id']) : $detail['order_number']; ?></td>
                             <td><?= ProductFeature::getFeatureNameById($detail['product_feature_id']); ?></td>
                             <td><?= $detail['price']; ?></td>
                             <td><?= number_format($detail['quantity']); ?></td>

@@ -12,6 +12,8 @@ use app\models\ProductPrice;
 use app\models\Cart;
 use app\models\Category;
 
+use app\modules\purchase\models\PurchaseProduct;
+
 class ProductController extends BaseController
 {
     public function actionIndex($id)
@@ -28,13 +30,22 @@ class ProductController extends BaseController
 
         if (!$model->isPurchase()) {
             $model = Product::find()
-            ->joinWith('productFeatures')
-            ->joinWith('productFeatures.productPrices')
-            ->andWhere('product.id = :id', [':id' => $id])
-            ->andWhere('product.visibility != 0')
-            ->andWhere('published != 0')
-            ->andWhere('product_feature.quantity > 0')
-            ->one();
+                ->joinWith('productFeatures')
+                ->joinWith('productFeatures.productPrices')
+                ->andWhere('product.id = :id', [':id' => $id])
+                ->andWhere('product.visibility != 0')
+                ->andWhere('published != 0')
+                ->andWhere('product_feature.quantity > 0')
+                ->one();
+        } else {
+            $model = Product::find()
+                ->joinWith('productFeatures')
+                ->joinWith('productFeatures.productPrices')
+                ->joinWith('productFeatures.purchaseProducts')
+                ->andWhere('product.id = :id', [':id' => $id])
+                ->andWhere('product.visibility != 0')
+                ->andWhere('published != 0')
+                ->one();
         }
         
         if (!$model) {
@@ -60,5 +71,17 @@ class ProductController extends BaseController
         $feature_id = $_POST['f_id'];
         $feature = ProductFeature::findOne($feature_id);
         return Cart::hasProductId($feature);
+    }
+    
+    public function actionGetPurchaseDate()
+    {
+        $feature_id = $_POST['f_id'];
+        $url = $_POST['url'];
+        $product = PurchaseProduct::getPurchaseDateByFeature($feature_id);
+        return $this->renderPartial('_dates', [
+            'purchase_date' => $product[0]->htmlFormattedPurchaseDate,
+            'stop_date' => $product[0]->htmlFormattedStopDate,
+            'url' => $url,
+        ]);
     }
 }

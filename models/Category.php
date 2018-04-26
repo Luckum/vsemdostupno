@@ -237,15 +237,19 @@ class Category extends \yii\db\ActiveRecord
         }
         
         $query = new Query();
-        $productIds = $query->select('DISTINCT {{%product}}.id')
+        $query->select('DISTINCT {{%product}}.id')
             ->from('{{%product}}')
             ->join('LEFT JOIN', '{{%category_has_product}}', '{{%category_has_product}}.product_id = {{%product}}.id')
             ->join('LEFT JOIN', 'product_feature', 'product_feature.product_id = {{%product}}.id')
             ->join('LEFT JOIN', 'product_price', 'product_feature.id = product_price.product_feature_id')
             ->where(['IN', '{{%category_has_product}}.category_id', $categoryIds])
             ->andWhere('product_price.purchase_price IS NOT NULL')
-            ->andWhere($where)
-            ->all();
+            ->andWhere($where);
+        if ($this->isPurchase()) {
+            $query->join('RIGHT JOIN', 'purchase_product', 'product_feature.id = purchase_product.product_feature_id');
+            $query->andWhere('purchase_product.stop_date >= ' . date('Y-m-d'));
+        }
+        $productIds = $query->all();
         
         $productIds = ArrayHelper::getColumn($productIds, 'id');
 
@@ -487,6 +491,34 @@ class Category extends \yii\db\ActiveRecord
         return false;
     }
     
+    public function isStock()
+    {
+        $category = $this;
+
+        do {
+            if ($category->id == '220') {
+                return true;
+            }
+            $category = $category->parent()->one();
+        } while ($category);
+
+        return false;
+    }
+    
+    public function isRecomended()
+    {
+        $category = $this;
+
+        do {
+            if ($category->id == '234') {
+                return true;
+            }
+            $category = $category->parent()->one();
+        } while ($category);
+
+        return false;
+    }
+    
     public static function getCategoryPath($id)
     {
         $category = self::findOne($id);
@@ -504,4 +536,23 @@ class Category extends \yii\db\ActiveRecord
         return false;
     }
     
+    public static function getMenuItems($data)
+    {
+        $categories = $data
+            ->children()
+            ->andWhere('visibility != 0')
+            ->orderBy([
+                'name' => SORT_ASC,
+            ])
+            ->all();
+        foreach ($categories as $category) {
+            $ret[] = [
+                'content' => $category->htmlFormattedFullName,
+                'url' => $category->url,
+                'thumbUrl' => $category->thumbUrl,
+            ];
+        }
+        
+        return $ret;
+    }
 }

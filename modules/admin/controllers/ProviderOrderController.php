@@ -10,11 +10,15 @@ use app\models\Provider;
 use app\models\User;
 use app\models\OView;
 
+use app\modules\purchase\models\PurchaseOrder;
+use app\modules\purchase\models\PurchaseOrderProduct;
+
 class ProviderOrderController extends BaseController
 {
     public function actionIndex()
     {   
-        $purchases_date = Order::getPurchaseDates(1, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
+        //$purchases_date = Order::getPurchaseDates(1, Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
+        $purchases_date = PurchaseOrder::getPurchaseDates(Yii::$app->user->identity->entity->role == User::ROLE_SUPERADMIN ? -1 : 0);
         //print_r($purchases_date);
         /*$dataProviderAll = $dates = [];
         $orders_date = Order::getOrdersDate();
@@ -62,7 +66,7 @@ class ProviderOrderController extends BaseController
         $partner = Partner::findOne($pid);
         //$product = Product::findOne($id);
         $provider = Provider::findOne($prid);
-        $details = Order::getProviderOrderDetails($id, $date, $pid);
+        $details = PurchaseOrder::getProviderOrderDetails($id, $date, $pid);
         return $this->render('detail', [
             'partner' => $partner,
             //'product' => $product,
@@ -77,11 +81,11 @@ class ProviderOrderController extends BaseController
         $order_id = $_POST['o_id'];
         $date = $_POST['date'];
         
-        $order = Order::findOne($order_id);
+        $order = PurchaseOrder::findOne($order_id);
         $order->hide = 1;
         $order->save();
         
-        $dataProvider = Order::getDetalization($date, 1);
+        $dataProvider = PurchaseOrder::getDetalization($date);
         return $this->renderPartial('_detail', [
             'dataProvider' => $dataProvider,
             'date' => $date,
@@ -90,7 +94,7 @@ class ProviderOrderController extends BaseController
     
     public function actionDate($date)
     {
-        $dataProvider = Order::getProvidersOrder($date, 1);
+        $dataProvider = PurchaseOrder::getProvidersOrder($date);
         
         return $this->render('date', [
             'date' => $date,
@@ -116,7 +120,7 @@ class ProviderOrderController extends BaseController
         $view_model->detail = 'opened';
         $view_model->save();
         
-        $dataProvider = Order::getDetalization($_POST['date'], 1);
+        $dataProvider = PurchaseOrder::getDetalization($_POST['date']);
         return $this->renderPartial('_detail', [
             'dataProvider' => $dataProvider,
             'date' => $_POST['date'],
@@ -141,7 +145,7 @@ class ProviderOrderController extends BaseController
         $view_model->detail = 'closed';
         $view_model->save();
         
-        $dataProvider = Order::getDetalization($_POST['date'], 1, 1);
+        $dataProvider = PurchaseOrder::getDetalization($_POST['date'], 1);
         $models = $dataProvider->getModels();
         foreach ($models as $model) {
             $model->hide = 0;
@@ -152,15 +156,15 @@ class ProviderOrderController extends BaseController
     
     public function actionAdminDelete($date)
     {
-        $dataProvider = Order::getProvidersOrder($date, 1);
+        $dataProvider = PurchaseOrder::getProvidersOrder($date);
         $models = $dataProvider->getModels();
         while (count($models)) {
             foreach ($models as $model) {
-                $ohp = OrderHasProduct::findOne($model['ohp_id']);
+                $ohp = PurchaseOrderProduct::findOne($model['ohp_id']);
                 $ohp->deleted = 1;
                 $ohp->save();
             }
-            $dataProvider = Order::getProvidersOrder($date, 1);
+            $dataProvider = PurchaseOrder::getProvidersOrder($date);
             $models = $dataProvider->getModels();
         }
         
@@ -201,7 +205,7 @@ class ProviderOrderController extends BaseController
         
         if ($view_model) {
             if ($view_model->detail == 'opened') {
-                $dataProvider = Order::getDetalization($_POST['date'], 1);
+                $dataProvider = PurchaseOrder::getDetalization($_POST['date']);
                 return $this->renderPartial('_detail', [
                     'dataProvider' => $dataProvider,
                     'date' => $_POST['date'],

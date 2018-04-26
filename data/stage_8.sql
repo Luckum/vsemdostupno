@@ -1,4 +1,4 @@
-﻿INSERT INTO `category` (`id`, `photo_id`, `name`, `description`, `root`, `left`, `right`, `level`, `slug`, `purchase_timestamp`, `order_timestamp`, `visibility`, `order`, `for_reg`, `collapsed`) VALUES
+INSERT INTO `category` (`id`, `photo_id`, `name`, `description`, `root`, `left`, `right`, `level`, `slug`, `purchase_timestamp`, `order_timestamp`, `visibility`, `order`, `for_reg`, `collapsed`) VALUES
     (6, 459, 'Овощи', '', 24, 132, 133, 4, '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 0, 0, 0),
     (7, 460, 'Фрукты', '', 24, 130, 131, 4, '', '2018-02-28 00:00:00', '2018-02-26 00:00:00', 0, 0, 0, 0),
     (8, 394, 'Разносолы', '', 24, 119, 120, 3, '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 0, 0, 0),
@@ -180,4 +180,107 @@
     (261, 1373, 'Приёмы рукопашного боя', '', 234, 329, 330, 4, '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 0, 1, 0),
     (262, 1384, 'Детская обувь', '', 24, 28, 29, 4, '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 0, 0, 0),
     (263, 1386, 'Мужское бельё', '', 24, 26, 27, 4, '', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 1, 0, 1, 0);
+
+
+INSERT INTO `module` (`name`, `description`) VALUES ('purchase', 'Коллективные закупки');
+
+CREATE TABLE IF NOT EXISTS `purchase_product` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `created_date` date NOT NULL,
+    `purchase_date` date NOT NULL,
+    `stop_date` date NOT NULL,
+    `renewal` tinyint(1) NOT NULL DEFAULT '0',
+    `purchase_total` decimal(15,2) NOT NULL,
+    `is_weights` tinyint(1) NOT NULL DEFAULT '0',
+    `tare` varchar(10) NOT NULL,
+    `weight` float NOT NULL,
+    `measurement` varchar(10) NOT NULL,
+    `summ` DECIMAL(15,2) NOT NULL,
+    `product_feature_id` int(11) NOT NULL,
+    `provider_id` int(11) NOT NULL,
+    `comment` TEXT DEFAULT NULL,
+    `send_notification` tinyint(1) NOT NULL DEFAULT '1',
+    `status` ENUM('advance','held','abortive') not null,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`product_feature_id`) REFERENCES `product_feature` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (`provider_id`) REFERENCES `provider` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `purchase_order` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `created_at` timestamp not null default current_timestamp,
+    `city_id` int(11) DEFAULT NULL COMMENT 'Идентификатор города',
+    `partner_id` int(11) DEFAULT NULL COMMENT 'Идентификатор партнера',
+    `user_id` int(11) DEFAULT NULL COMMENT 'Идентификатор пользователя',
+    `role` enum('admin','member','partner') DEFAULT NULL COMMENT 'Роль',
+    `city_name` varchar(255) NOT NULL COMMENT 'Название города',
+    `partner_name` varchar(255) DEFAULT NULL COMMENT 'Название партнера',
+    `email` varchar(255) NOT NULL COMMENT 'Емайл',
+    `phone` varchar(255) NOT NULL COMMENT 'Телефон',
+    `firstname` varchar(255) NOT NULL COMMENT 'Имя',
+    `lastname` varchar(255) NOT NULL COMMENT 'Фамилия',
+    `patronymic` varchar(255) NOT NULL COMMENT 'Отчество',
+    `address` text COMMENT 'Адрес доставки',
+    `total` decimal(19,2) NOT NULL COMMENT 'Стоимость',
+    `comment` text COMMENT 'Комментарий',
+    `paid_total` decimal(19,2) NOT NULL DEFAULT '0.00' COMMENT 'Оплаченная стоимость',
+    `hide` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Скрыть из истории',
+    `order_id` int(11) DEFAULT NULL,
+    `order_number` varchar(20) DEFAULT NULL,
+    `status` enum('advance','held','abortive','part_held','part_abortive','completed') default null,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`city_id`) REFERENCES `city` (`id`) ON DELETE SET NULL ON UPDATE SET NULL,
+    FOREIGN KEY (`partner_id`) REFERENCES `partner` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `purchase_order_product` (
+    `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Идентификатор',
+    `purchase_order_id` int(11) NOT NULL COMMENT 'Идентификатор заказа',
+    `product_id` int(11) DEFAULT NULL COMMENT 'Идентификатор товара',
+    `purchase_product_id` int(11) not null,
+    `name` varchar(255) NOT NULL COMMENT 'Название',
+    `price` decimal(19,2) NOT NULL COMMENT 'Цена',
+    `quantity` decimal(19,3) NOT NULL COMMENT 'Количество',
+    `total` decimal(19,2) NOT NULL COMMENT 'Стоимость',
+    `purchase_price` decimal(19,2) NOT NULL COMMENT 'Закупочная цена',
+    `provider_id` int(11) DEFAULT NULL,
+    `product_feature_id` int(11) DEFAULT NULL,
+    `deleted` tinyint(1) NOT NULL DEFAULT '0',
+    `deleted_p` tinyint(1) NOT NULL DEFAULT '0',
+    `status` enum('advance','held','abortive') default null,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`purchase_order_id`) REFERENCES `purchase_order` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`product_feature_id`) REFERENCES `product_feature` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`purchase_product_id`) REFERENCES `purchase_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`provider_id`) REFERENCES `provider` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `purchase_provider_balance` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `provider_id` int(11) NOT NULL,
+    `user_id` int(11) default null,
+    `purchase_order_product_id` int(11) not null,
+    `total` decimal(19,2) NOT NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`provider_id`) REFERENCES `provider` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`purchase_order_product_id`) REFERENCES `purchase_order_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `purchase_fund_balance` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `fund_id` int(11) NOT NULL,
+    `user_id` int(11) default null,
+    `purchase_order_product_id` int(11) not null,
+    `total` decimal(19,2) NOT NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`fund_id`) REFERENCES `fund` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (`purchase_order_product_id`) REFERENCES `purchase_order_product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+REPLACE INTO `email` (`id`, `name`, `subject`, `body`) VALUES (21, 'add_advance_order', 'Уведомление о получении предварительной заявки', '<p>Уважаемый(ая) {{%fio}}, от Вас принято поручение на производство закупки товаров.<br />\r\nПеречень товаров:</p>\r\n\r\n<p>{{%order_products}}<br />\r\nВ настоящее время Ваша заявка имеет статус &ldquo;Предварительной&rdquo;,&nbsp; № заявки<br />\r\n<strong>{{%order_number}}</strong><br />\r\n<br />\r\nПо истечении периода сбора заявок мы дополнительно сообщим Вам о её состоятельности.<br />\r\nДля получения справок, с нами можно связаться через личный кабинет, в разделе &ldquo;Вопросы / Предложения&rdquo; или по телефону +7(909)919 0669<br />\r\n&nbsp;<br />\r\nБлагодарим Вас за проявленный интерес к Общему делу.<br />\r\n<br />\r\n<strong><em>На это письмо отвечать не нужно, рассылка произведена автоматически.</em></strong></p>\r\n');
+REPLACE INTO `email` (`id`, `name`, `subject`, `body`) VALUES (22, 'held_order_member', 'Уведомление о передачи заявки на исполнение', '<p>Уважаемый(ая) {{%fio}}, поданная Вами предварительная заявка от {{%created_at}} №<strong>{{%order_number}}<br />\r\n<br />\r\nПеречень товаров:</strong>{{%order_products}}<br />\r\n&nbsp;</p>\r\n\r\n<p>переведена в статус &ldquo;Исполнение&rdquo; и передана производителю.</p>\r\n\r\n<p>Доставка товаров намечена на {{%purchase_date}}<br />\r\nПожалуйста, следите посредством электронной почты за её исполнением накануне или в день указанной даты.<br />\r\nДля получения справок с нами можно связаться через личный кабинет, в разделе &ldquo;Вопросы / предложения&rdquo; или по телефону +7(909)919 0669<br />\r\n&nbsp;<br />\r\nБлагодарим Вас за проявленный интерес к Общему делу.<br />\r\n<br />\r\n<strong><em>На это письмо отвечать не нужно, рассылка произведена автоматически.</em></strong></p>\r\n');
 

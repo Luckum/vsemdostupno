@@ -11,6 +11,7 @@ use app\models\Category;
 
 $this->title = 'Категории';
 $this->params['breadcrumbs'][] = $this->title;
+$hasModule = Yii::$app->hasModule('purchase') ? "1" : "0";
 $script = <<<JS
 $(function () {
     $('#update-structure .nested').on('change', function () {
@@ -48,6 +49,10 @@ $(function () {
             data: {id: $(this).val(), checked: check}
         }).responseText;
     });
+    
+    if ($hasModule == '0') {
+        $('[data-id="24"]').hide();
+    }
 })
 JS;
 $this->registerJs($script, $this::POS_END);

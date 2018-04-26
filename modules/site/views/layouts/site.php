@@ -12,6 +12,7 @@ use kartik\icons\Icon;
 use app\assets\AppAsset;
 use app\assets\BootboxAsset;
 use app\models\Category;
+use app\models\Product;
 use app\models\Cart;
 use yii\bootstrap\ActiveForm;
 use kartik\typeahead\Typeahead;
@@ -54,6 +55,12 @@ function getMenuItems($andWhere = 'TRUE')
     return $items;
 }
 
+$recomendations = [];
+$recomendations_root = Category::findOne('234');
+if ($recomendations_root) {
+    $recomendations = Category::getMenuItems($recomendations_root);
+}
+
 $recomendations = ArrayHelper::merge(
     [
         [
@@ -64,26 +71,19 @@ $recomendations = ArrayHelper::merge(
             ],
         ],
     ],
-    getMenuItems('slug != "" AND slug != "' . Category::PURCHASE_SLUG . '" OR id = 212')
+    $recomendations
 );
-$catalogue = getMenuItems('slug = "" AND id != 212');
+
+$catalogue = [];
+$catalogue_root = Category::findOne('220');
+if ($catalogue_root) {
+    $catalogue = Category::getMenuItems($catalogue_root);
+}
 
 $purchases = [];
 $purchase = Category::findOne(['slug' => Category::PURCHASE_SLUG]);
 if ($purchase) {
-    $categories = $purchase
-        ->children()
-        ->andWhere('visibility != 0')
-        ->orderBy([
-            'purchase_timestamp' => SORT_ASC,
-        ])
-        ->all();
-    foreach ($categories as $category) {
-        $purchases[] = [
-            'content' => $category->htmlFormattedFullName,
-            'url' => $category->url,
-        ];
-    }
+    $purchases = Category::getMenuItems($purchase);
 }
 
 
@@ -103,7 +103,82 @@ $account_routes = [
     'site/profile/partner/default/personal',
     'site/profile/member/default/personal',
     'site/profile/account/index',
+    'site/profile/provider/order/date',
+    'site/profile/provider/order/detail',
+    'site/search/search',
+    'purchase/site/provider/index',
+    'purchase/site/provider/contibute',
+    'site/profile/partner/member/update',
+    'purchase/site/history/index',
+    'purchase/site/history/details',
 ];
+
+$menu_style_p = $menu_style_c = $menu_style_r = 'display: none;';
+$exploded_path = explode('/', Yii::$app->request->pathInfo);
+if (count($exploded_path) > 1) {
+    if ($exploded_path[0] == 'category') {
+        $category_model = Category::find()->where('id = :id OR slug = :slug', [':id' => $exploded_path[1], ':slug' => $exploded_path[1]])->one();
+        if ($category_model->isPurchase()) {
+            $menu_style_p = 'display: block;';
+        } else if ($category_model->isStock()) {
+            $menu_style_c = 'display: block;';
+        } else if ($category_model->isRecomended()) {
+            $menu_style_r = 'display: block;';
+        }
+    } else if ($exploded_path[0] == 'product') {
+        $product_model = Product::findOne($exploded_path[1]);
+        if ($product_model->category->isPurchase()) {
+            $menu_style_p = 'display: block;';
+        } else if ($product_model->category->isStock()) {
+            $menu_style_c = 'display: block;';
+        } else if ($product_model->category->isRecomended()) {
+            $menu_style_r = 'display: block;';
+        }
+    }
+} 
+
+$script = <<<JS
+$(function () {
+    $(".menu-panel").click(function(e) {
+        var el = e.target;
+        if ($(el).hasClass('list-group-item')) {
+            return true;
+        } else {
+            var obj = this;
+            $(".list-group").slideUp();
+            if ($("#open-prev").val() == $(obj).attr('data-cat')) {
+                if ($("#main-cat-level-1").is(':hidden')) {
+                    $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeOut('300', function() {
+                        $("#main-cat-level-1").fadeIn();
+                    });
+                } else {
+                    $(obj).find(".list-group").slideDown();
+                    $("#main-cat-level-1").fadeOut('300', function() {
+                        $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                    });
+                }
+            } else {
+                if ($(obj).find(".list-group").is(':hidden')) {
+                    $(obj).find(".list-group").slideDown();
+                    if ($("#main-cat-level-1").is(':hidden')) {
+                        $("#main-cat-level-2-" + $("#open-prev").val()).fadeOut('300', function() {
+                            $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                        });
+                    } else {
+                        $("#main-cat-level-1").fadeOut('300', function() {
+                            $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                        });
+                    }
+                }
+            }
+            $("#open-prev").val($(obj).attr('data-cat'));
+        }
+        
+    });
+})
+JS;
+$this->registerJs($script, $this::POS_END);
+
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -129,82 +204,95 @@ $account_routes = [
             ]
         ]) ?>
         <?php $this->beginBody() ?>
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Поиск контрагентов</h4>
-      </div>
-      <div class="modal-body">
-        <?php $form = ActiveForm::begin([
-            'method' => 'get',
-            'action' => Yii::$app->urlManager->createUrl(['site/search/search'])
-        ]); ?>
-            <label for="fio">Поиск по фамилии</label>
-            <?php
-            echo Typeahead::widget([
-    'name' => 'fio',
-    'options' => ['placeholder' => 'Начните вводить фамилию'],
-    'pluginOptions' => ['highlight'=>true],
-    'dataset' => [
-        [
-            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
-            'display' => 'value',
-            
-            'remote' => [
-                'url' => Url::to(['search/searchajax']) . '?name=%QUERY',
-                'wildcard' => '%QUERY'
-            ],
-        ]
-    ]
-            ]); 
-        ?>
-            <label for="reg_nom" style="margin-top: 20px;">Поиск по регистрационному номеру</label>
-            <?php
-            echo Typeahead::widget([
-    'name' => 'reg_Nom',
-    'options' => ['placeholder' => 'Начните вводить регистрационный номер'],
-    'pluginOptions' => ['highlight'=>true],
-    'dataset' => [
-        [
-            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
-            'display' => 'value',
-            
-            'remote' => [
-                'url' => Url::to(['search/searchajax']) . '?disc_number=%QUERY',
-                'wildcard' => '%QUERY'
-            ],
-        ]
-    ]
-            ]); 
-        ?>
-            <label for="nomer_order" style="margin-top: 20px;">Поиск по № заказа</label>
-            <?php
-            echo Typeahead::widget([
-    'name' => 'nomer_order',
-    'options' => ['placeholder' => 'Начните вводить номер заказа'],
-    'pluginOptions' => ['highlight'=>true],
-    'dataset' => [
-        [
-            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
-            'display' => 'value',
-            
-            'remote' => [
-                'url' => Url::to(['search/searchajax']) . '?order_numb=%QUERY',
-                'wildcard' => '%QUERY'
-            ],
-        ]
-    ]
-            ]); 
-        ?>  <input type="hidden" name='id' value="<?= Yii::$app->user->id ?>">
-            <button type="submit" class="btn btn-success" style="width:150px; margin-left: 73%; margin-top: 5%;">Поиск</button>
-            <?php $form= ActiveForm::end(); ?>
-        </form>
-      </div>
-      
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Поиск контрагентов</h4>
+            </div>
+            <div class="modal-body">
+                <?php $form = ActiveForm::begin([
+                    'method' => 'get',
+                    'action' => Yii::$app->urlManager->createUrl(['site/search/search'])
+                ]); ?>
+                
+                <label for="fio">Поиск по фамилии</label>
+                <?php echo Typeahead::widget([
+                    'name' => 'fio',
+                    'options' => ['placeholder' => 'Начните вводить фамилию'],
+                    'pluginOptions' => ['highlight'=>true],
+                    'dataset' => [
+                        [
+                            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                            'display' => 'value',
+                            'remote' => [
+                                'url' => Url::to(['search/searchajax']) . '?name=%QUERY',
+                                'wildcard' => '%QUERY'
+                            ],
+                        ]
+                    ]
+                ]); ?>
+                
+                <label for="reg_nom" style="margin-top: 20px;">Поиск по регистрационному номеру</label>
+                <?php echo Typeahead::widget([
+                    'name' => 'reg_Nom',
+                    'options' => ['placeholder' => 'Начните вводить регистрационный номер'],
+                    'pluginOptions' => ['highlight'=>true],
+                    'dataset' => [
+                        [
+                            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                            'display' => 'value',
+                            'remote' => [
+                                'url' => Url::to(['search/searchajax']) . '?disc_number=%QUERY',
+                                'wildcard' => '%QUERY'
+                            ],
+                        ]
+                    ]
+                ]); ?>
+
+                <?php if (Yii::$app->hasModule('purchase')): ?>
+                    <label for="purchase_order_number" style="margin-top: 20px;">Поиск по № предварительного заказа</label>
+                    <?php echo Typeahead::widget([
+                        'name' => 'purchase_order_number',
+                        'options' => ['placeholder' => 'Начните вводить номер заказа'],
+                        'pluginOptions' => ['highlight'=>true],
+                        'dataset' => [
+                            [
+                                'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                                'display' => 'value',
+                                'remote' => [
+                                    'url' => Url::to(['search/searchajax']) . '?purchase_order_number=%QUERY',
+                                    'wildcard' => '%QUERY'
+                                ],
+                            ]
+                        ]
+                    ]); ?>
+                <?php endif; ?>
+                
+                <label for="nomer_order" style="margin-top: 20px;">Поиск по № заказа</label>
+                <?php echo Typeahead::widget([
+                    'name' => 'nomer_order',
+                    'options' => ['placeholder' => 'Начните вводить номер заказа'],
+                    'pluginOptions' => ['highlight'=>true],
+                    'dataset' => [
+                        [
+                            'datumTokenizer' => "Bloodhound.tokenizers.obj.whitespace('value')",
+                            'display' => 'value',
+                            'remote' => [
+                                'url' => Url::to(['search/searchajax']) . '?order_numb=%QUERY',
+                                'wildcard' => '%QUERY'
+                            ],
+                        ]
+                    ]
+                ]); ?> 
+                <input type="hidden" name='id' value="<?= Yii::$app->user->id ?>">
+                <button type="submit" class="btn btn-success" style="width:150px; margin-left: 73%; margin-top: 5%;">Поиск</button>
+                
+                <?php $form= ActiveForm::end(); ?>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
         <div class="modal fade" id="providerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
             <div class="modal-dialog" role="document">
@@ -276,21 +364,35 @@ $account_routes = [
                 ]) ?>
                 <div class="container">
                     <div class="row site-page">
+                        <?//= Yii::$app->controller->route ?>
                         <?php if (!in_array(Yii::$app->controller->route, $account_routes)): ?>
                             <div class="col-md-2">
-                                <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                    'heading' => Icon::show('thumbs-o-up') . ' Рекомендуем',
-                                    'items' => $recomendations,
-                                ]) ?>
-                                <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                    'heading' => Icon::show('list') . ' В наличии',
-                                    'items' => $catalogue,
-                                ]) ?>
-                                <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                    'heading' => Icon::show('calendar') . ' Закупки',
-                                    'items' => $purchases,
-                                    'class' => 'menu-purchases',
-                                ]) ?>
+                                <?php if (Yii::$app->hasModule('purchase') && $purchase && $purchase->visibility): ?>
+                                    <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                        'heading' => Icon::show('calendar') . ' Закупки',
+                                        'items' => $purchases,
+                                        'class' => 'menu-purchases',
+                                        'data' => 'purch',
+                                        'style' => $menu_style_p,
+                                    ]) ?>
+                                <?php endif; ?>
+                                <?php if ($catalogue_root && $catalogue_root->visibility): ?>
+                                    <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                        'heading' => Icon::show('list') . ' В наличии',
+                                        'items' => $catalogue,
+                                        'data' => 'catal',
+                                        'style' => $menu_style_c,
+                                    ]) ?>
+                                <?php endif; ?>
+                                <?php if ($recomendations_root && $recomendations_root->visibility): ?>
+                                    <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                        'heading' => Icon::show('thumbs-o-up') . ' Рекомендуем',
+                                        'items' => $recomendations,
+                                        'data' => 'recom',
+                                        'style' => $menu_style_r,
+                                    ]) ?>
+                                <?php endif; ?>
+                                <input type="hidden" id="open-prev" value="">
                             </div>
                         <?php endif; ?>
                         <div class="<?= !in_array(Yii::$app->controller->route, $account_routes) ? 'col-md-10' : 'col-md-12' ?>">

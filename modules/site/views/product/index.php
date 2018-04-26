@@ -66,7 +66,7 @@ if (Yii::$app->user->isGuest) {
 $features = [];
 foreach ($model->productFeatures as $feat) {
     if ($feat->quantity > 0 || $model->isPurchase()) {
-        $features[$feat->id] = $feat->tare . ', ' . $feat->volume . ' ' . $feat->measurement;
+        $features[$feat->id] = (!empty($feat->tare) ? $feat->tare . ', ' : "") . $feat->volume . ' ' . $feat->measurement;
     }
 }
 ?>
@@ -129,6 +129,15 @@ foreach ($model->productFeatures as $feat) {
                                         }
                                     }
                                 });
+                                var html = $.ajax({
+                                    url: "/site/product/get-purchase-date",
+                                    type: "POST",
+                                    async: false,
+                                    data: {f_id: $(this).val(), url: $("#category-url").val()}
+                                }).responseText;
+                                if (html) {
+                                    $("#dates-container").html(html);
+                                }
                             '),
                         ],
                     ]) ?>
@@ -265,31 +274,20 @@ foreach ($model->productFeatures as $feat) {
             </div>
         </div>
         <?php if ($model->isPurchase()): ?>
+            <input type="hidden" id="category-url" value="<?= $model->category->url ?>">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-12" id="dates-container">
                     <?php
-                        if ($model->purchaseCategory->formattedOrderDate) {
-                            echo Alert::widget([
-                                'body' => sprintf(
-                                    'Закупка состоится %s, заказы принимаются до %s включительно.',
-                                    Html::a($model->purchaseCategory->htmlFormattedPurchaseDate, Url::to([$model->purchaseCategory->url])),
-                                    Html::a($model->purchaseCategory->htmlFormattedOrderDate, Url::to([$model->purchaseCategory->url]))
-                                ),
-                                'options' => [
-                                    'class' => 'alert-info alert-def',
-                                ],
-                            ]);
-                        } else {
-                            echo Alert::widget([
-                                'body' => sprintf(
-                                    'Закупка состоится %s',
-                                    Html::a($model->purchaseCategory->htmlFormattedPurchaseDate, Url::to([$model->purchaseCategory->url]))
-                                ),
-                                'options' => [
-                                    'class' => 'alert-info alert-def',
-                                ],
-                            ]);
-                        }
+                        echo Alert::widget([
+                            'body' => sprintf(
+                                'Закупка состоится %s, заказы принимаются до %s включительно.',
+                                Html::a($model->productFeatures[0]->purchaseProducts[0]->htmlFormattedPurchaseDate, Url::to([$model->category->url])),
+                                Html::a($model->productFeatures[0]->purchaseProducts[0]->htmlFormattedStopDate, Url::to([$model->category->url]))
+                            ),
+                            'options' => [
+                                'class' => 'alert-info alert-def',
+                            ],
+                        ]);
                     ?>
                 </div>
             </div>

@@ -1,17 +1,18 @@
 <?php
-use kartik\helpers\Html;
+use yii\helpers\Html;
 use yii\helpers\Url;
 use app\models\ProductFeature;
 
 $this->title = 'Детали заказа';
-$this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/profile/provider/order/index'];
+$this->params['breadcrumbs'][] = ['label' => 'Коллективная закупка', 'url' => '/admin/provider-order'];
+$this->params['breadcrumbs'][] = ['label' => 'Заявка на поставку товаров на ' . date('d.m.Y', strtotime($date)), 'url' => '/admin/provider-order/date?date=' . date('Y-m-d', strtotime($date))];
 $this->params['breadcrumbs'][] = $this->title;
 $total_price = $total_qnt = 0;
 ?>
 
-<?= Html::pageHeader(Html::encode($this->title)) ?>
-<h4>Заявка от участников <?= $partner->name; ?> для поставки товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
-<div class="order-index">
+<div class="member-index">
+    <h1><?= Html::encode($this->title) ?></h1>
+    <h4>Заявка от участников <?= $partner->name; ?> для поставки товаров на <?= date('d.m.Y', strtotime($date)); ?></h4>
     <table class="table table-bordered">
         <thead>
             <th>Поставщик</th>
@@ -32,7 +33,7 @@ $total_price = $total_qnt = 0;
                     <td><?= $details[0]['name']; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
-                    <td><?= $details[0]['id']; ?></td>
+                    <td><?= !empty($details[0]['order_id']) ? sprintf("%'.05d\n", $details[0]['order_id']) : $details[0]['order_number']; ?></td>
                     <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
                     <td><?= number_format($details[0]['quantity']); ?></td>
@@ -46,7 +47,7 @@ $total_price = $total_qnt = 0;
                     <td rowspan="<?= $rowspan; ?>" class="td-v-align"><?= $details[0]['name']; ?></td>
                     <td><?= 1; ?></td>
                     <td><?= $details[0]['fio']; ?></td>
-                    <td><?= $details[0]['id']; ?></td>
+                    <td><?= !empty($details[0]['order_id']) ? sprintf("%'.05d\n", $details[0]['order_id']) : $details[0]['order_number']; ?></td>
                     <td><?= ProductFeature::getFeatureNameById($details[0]['product_feature_id']); ?></td>
                     <td><?= $details[0]['price']; ?></td>
                     <td><?= number_format($details[0]['quantity']); ?></td>
@@ -59,7 +60,7 @@ $total_price = $total_qnt = 0;
                         <tr>
                             <td><?= $k + 1 ?></td>
                             <td><?= $detail['fio']; ?></td>
-                            <td><?= $detail['id']; ?></td>
+                            <td><?= !empty($detail['order_id']) ? sprintf("%'.05d\n", $detail['order_id']) : $detail['order_number']; ?></td>
                             <td><?= ProductFeature::getFeatureNameById($detail['product_feature_id']); ?></td>
                             <td><?= $detail['price']; ?></td>
                             <td><?= number_format($detail['quantity']); ?></td>
@@ -77,4 +78,5 @@ $total_price = $total_qnt = 0;
             <td><b><?= number_format($total_price, 2, ".", ""); ?></b></td>
         </tfoot>
     </table>
+    <?= Html::a('Назад', Url::to(['date', 'date' => date('Y-m-d', strtotime($date))]), ['class' => 'btn btn-info']) ?>
 </div>

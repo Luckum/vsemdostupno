@@ -51,6 +51,11 @@ echo Nav::widget([
                     'options' => ['data-toggle' => 'modal', 'data-target' => '#providerModal'],
                 ],
                 [
+                    'label' => Icon::show('list-alt') . ' История моих закупок',
+                    'url' => Url::to(['/purchase/history']),
+                    'visible' => Yii::$app->hasModule('purchase'),
+                ],
+                [
                     'label' => Icon::show('pencil-square-o') . ' Личные данные',
                     'url' => Url::to(['/profile/member/personal']),
                 ],

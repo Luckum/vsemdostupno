@@ -44,7 +44,6 @@ class MailingProduct extends \yii\db\ActiveRecord
             [['for_candidates'], 'string', 'max' => 50],
             [['subject'], 'string', 'max' => 255],
             [['mailing_category_id'], 'exist', 'skipOnError' => true, 'targetClass' => MailingCategory::className(), 'targetAttribute' => ['mailing_category_id' => 'id']],
-            [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => Product::className(), 'targetAttribute' => ['product_id' => 'id']],
         ];
     }
 

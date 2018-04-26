@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\modules\purchase\models\PurchaseProduct;
 
 /**
  * This is the model class for table "product_feature".
@@ -23,6 +24,7 @@ class ProductFeature extends \yii\db\ActiveRecord
      * @inheritdoc
      */
     public $cart_quantity = 1;
+    public $purchase_product_id;
     public static function tableName()
     {
         return 'product_feature';
@@ -105,7 +107,15 @@ class ProductFeature extends \yii\db\ActiveRecord
         return $this->hasMany(FundCommonPrice::className(), ['product_feature_id' => 'id']);
     }
 
-    
+     /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getPurchaseProducts()
+    {
+        return $this->hasMany(PurchaseProduct::className(), ['product_feature_id' => 'id']);
+    }
+
+
     public static function getFeatureByProduct($product_id)
     {
         $res = self::find()->where(['product_id' => $product_id])->orderBy('id')->limit(1)->all();
@@ -159,7 +169,7 @@ class ProductFeature extends \yii\db\ActiveRecord
     public static function getFeatureNameById($id)
     {
         $feature = self::findOne($id);
-        return $feature->tare . ', ' . $feature->volume . ' ' . $feature->measurement;
+        return (!empty($feature->tare) ? $feature->tare . ', ' : "") . $feature->volume . ' ' . $feature->measurement;
     }
     
     public static function isWeights($id)

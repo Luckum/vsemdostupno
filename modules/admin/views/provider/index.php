@@ -18,7 +18,10 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>
         <?= Html::a('Добавить поставщика', ['create'], ['class' => 'btn btn-success']) ?>
         <?= Html::a('Принять товар', ['/admin/stock/create'], ['class' => 'btn btn-success']) ?>
-        <?= Html::a ('Учёт товаров/остатки',['/admin/stock/index'], ['class'=>'btn btn-success']) ?>
+        <?= Html::a('Учёт товаров/остатки',['/admin/stock/index'], ['class'=>'btn btn-success']) ?>
+        <?php if (Yii::$app->hasModule('purchase')): ?>
+            <?= Html::a('Оформить закупку',['/admin/purchase/create'], ['class'=>'btn btn-success']) ?>
+        <?php endif; ?>
     </p>
 
     <?= GridView::widget([

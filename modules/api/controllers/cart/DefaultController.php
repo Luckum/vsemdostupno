@@ -88,7 +88,7 @@ class DefaultController extends Controller
             ];
         }
 
-        if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
+        /*if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
             $product->cart_quantity = 0;
             $cart->update($product, $product->cart_quantity);
 
@@ -103,7 +103,7 @@ class DefaultController extends Controller
                 'productInformation' => $product->formattedCalculatedTotalPrice,
                 'order' => $cart->total != 0,
             ];
-        }
+        }*/
 
         $product->cart_quantity = $productAddition->quantity;
         $product->cart_quantity = $cart->add($product, $product->cart_quantity);
@@ -147,7 +147,7 @@ class DefaultController extends Controller
             ];
         }
 
-        if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
+        /*if ($product->product->orderDate && (strtotime($product->product->orderDate) + strtotime('1 day', 0)) < time()) {
             $product->cart_quantity = 0;
             $cart->update($product, $product->cart_quantity);
 
@@ -162,7 +162,7 @@ class DefaultController extends Controller
                 'productInformation' => $product->formattedCalculatedTotalPrice,
                 'order' => $cart->total != 0,
             ];
-        }
+        }*/
 
         $product->cart_quantity = $productUpdating->quantity;
         $product->cart_quantity = $cart->update($product, $product->cart_quantity);

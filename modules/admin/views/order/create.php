@@ -37,18 +37,26 @@ $script = <<<JS
         return false;
     }
 
-    function addProduct(id, name, quantity, price, total) {
+    function addProduct(id, name, quantity, price, total, purchase_date) {
         if ($('#product-' + id).length) {
             $('#product-' + id + ' .product-name').text(name);
             $('#product-' + id + ' .product-quantity').text(quantity);
             $('#product-' + id + ' .product-price').text(price);
             $('#product-' + id + ' .product-total').text(total);
+            if (purchase_date != "") {
+                $('#product-' + id + ' .product-purchase-date').text(purchase_date);
+            }
         } else {
+            var purchase_str = "";
+            if (purchase_date != "") {
+                purchase_str = '<td class="product-purchase-date text-center">' + purchase_date + '</td>';
+            }
             var row = '<tr id="product-' + id + '">' +
                 '<td class="product-name">' + name + '</td>' +
                 '<td class="product-quantity text-center">' + quantity + '</td>' +
                 '<td class="product-price text-center">' + price + '</td>' +
                 '<td class="product-total text-center">' + total + '</td>' +
+                purchase_str +
                 '<td class="text-center">' +
                     '<a href="#" onclick="return deleteProduct(' + id + ');" title="Удалить"><span class="glyphicon glyphicon-trash"></span></a>' +
                 '</td>' +
@@ -104,11 +112,12 @@ $script = <<<JS
                     ProductAddition: {
                         user_id: userId,
                         product_id: productId,
-                        quantity: quantity
+                        quantity: quantity,
+                        is_purchase: $("#is_purchase").prop("checked")
                     }
                 },
                 success: function (data) {
-                    addProduct(data.id, data.name, data.quantity, data.price, data.total);
+                    addProduct(data.id, data.name, data.quantity, data.price, data.total, data.purchase_date);
                 },
                 error: function () {
                 },
@@ -117,7 +126,7 @@ $script = <<<JS
             return false;
         });
 
-        $('button[type="submit"]').on('click', function(){
+        $('button[type="submit"]').on('click', function() {
             var userId = $('#user-id').val();
             var productList = [];
 
@@ -136,6 +145,14 @@ $script = <<<JS
 
             return true;
         });
+        
+        $("#is_purchase").change(function() {
+            if (this.checked) {
+                $("#purchase-date-th").show();
+            } else {
+                $("#purchase-date-th").hide();
+            }
+        });
     });
 JS;
 $this->registerJs($script, $this::POS_END);
@@ -150,6 +167,13 @@ $this->registerJs($script, $this::POS_END);
             'name' => 'order',
         ],
     ]); ?>
+    
+    <?php if (Yii::$app->hasModule('purchase')): ?>
+        <div class="form-group">
+            <?= Html::checkbox('is_purchase', false, ['id' => 'is_purchase']); ?>
+            <label for="is_purchase">Коллективная закупка</label>
+        </div>
+    <?php endif; ?>
 
     <h3>Информация о покупателе</h3>
 
@@ -204,7 +228,7 @@ $this->registerJs($script, $this::POS_END);
                 'ajax' => [
                     'url' => Url::to(['/api/profile/admin/product/search']),
                     'dataType' => 'json',
-                    'data' => new JsExpression('function(params) { return {q:params.term}; }')
+                    'data' => new JsExpression('function(params) { return {q:params.term, c:$("#is_purchase").prop("checked")}; }')
                 ],
                 'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
                 'templateResult' => new JsExpression('function(product) { return product.text; }'),
@@ -244,6 +268,7 @@ $this->registerJs($script, $this::POS_END);
                     <th>Количество</th>
                     <th>Цена</th>
                     <th>Всего</th>
+                    <th id="purchase-date-th" style="display: none;">Дата закупки</th>
                     <th>Действия</th>
                 </tr>
             </thead>

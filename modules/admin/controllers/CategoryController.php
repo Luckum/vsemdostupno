@@ -233,7 +233,7 @@ class CategoryController extends BaseController
     
     public function actionAddCategory()
     {
-        $parent_id = $_POST['parent_id'];
+        $parent_id = isset($_POST['parent_id']) ? $_POST['parent_id'] : 0;
         $name = $_POST['title'];
         if (!empty($name)) {
             $category = new Category;

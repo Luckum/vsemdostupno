@@ -1,83 +1,101 @@
 <?php
 
+use yii\web\JsExpression;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\widgets\ActiveForm;
-use app\modules\admin\widgets\NestedList;
-use app\models\Category;
-
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = 'Категории';
 $this->params['breadcrumbs'][] = $this->title;
-$hasModule = Yii::$app->hasModule('purchase') ? "1" : "0";
+
 $script = <<<JS
 $(function () {
-    $('#update-structure .nested').on('change', function () {
-        $('#update-structure-btn').removeClass('hidden');
+    $(".view-category").click(function() {
+        window.location = "/admin/category/view?id=" + $(this).attr("data-id");
     });
-
-    $('#update-structure-btn').on('click', function () {
-        $('#update-structure-btn').prop('disabled', true);
-
-        var data = JSON.stringify($('#update-structure .nested').nestable('serialize'));
-        $('#update-structure input[name="data"]').val(data);
-
-        $('#update-structure').submit();
-
-        return false;
+    $(".update-category").click(function() {
+        window.location = "/admin/category/update?id=" + $(this).attr("data-id");
     });
-    $.ajax({
-        url: '/admin/category/get-checked',
-        dataType: "json",
-        success: function (data, textStatus) {
-            $.each(data, function(i, val) {
-                $('#for-reg-' + val).attr('checked', true);
-            });
+    $(".delete-category").click(function() {
+        if (confirm('Вы уверены, что желаете удалить категорию?')) {
+            window.location = "/admin/category/delete?id=" + $(this).attr("data-id");
         }
     });
-    $('[name = for_reg]').change(function() {
-        var check = 0;
-        if (this.checked) {
-            check = 1;
-        }
-        var html = $.ajax({
-            url: "/admin/category/change-for-reg",
-            async: false,
-            type: "POST",
-            data: {id: $(this).val(), checked: check}
-        }).responseText;
-    });
-    
-    if ($hasModule == '0') {
-        $('[data-id="24"]').hide();
-    }
-})
+});
 JS;
 $this->registerJs($script, $this::POS_END);
+
 ?>
-
-<div class="category-index">
-
+<div>
     <h1><?= Html::encode($this->title) ?></h1>
+    <?= yii2mod\tree\Tree::widget([
+            'items' => $items,
+            'clientOptions' => [
+                'extensions' => ["edit", "dnd", "table", "gridnav"],
+                'dnd' => [
+                    'preventVoidMoves' => true,
+                    'preventRecursiveMoves' => true,
+                    'autoExpandMS' => 400,
+                    'dragStart' => new JsExpression('function(node, data) {return true;}'),
+                    'dragEnter' => new JsExpression('function(node, data) {return true;}'),
+                    'dragDrop' => new JsExpression('function(node, data) {
+                        data.otherNode.moveTo(node, data.hitMode);
+                        if (data.hitMode == "before" || data.hitMode == "after") {
+                            var parent_id = data.node.parent.data.id;
+                        } else if (data.hitMode == "over") {
+                            var parent_id = data.node.data.id;
+                        }
+                        $.ajax({
+                            url: "/admin/category/save-category",
+                            type: "POST",
+                            data: {id: data.otherNode.data.id, parent_id: parent_id},
+                            async: false,
+                            success: function(response) {
+                                
+                            }
+                        });
+                    }')
+                ],
+                'edit' => [
+                    'triggerStart' => ["f2", "shift+click", "mac+enter"],
+                    'close' => new JsExpression('function(event, data) {if( data.save && data.isNew ){$("#tree").trigger("nodeCommand", {cmd: "addSibling"});}}'),
+                ],
+                'table' => [
+                    'indentation' => 20,
+                    'nodeColumnIdx' => 0,
+                ],
 
-    <p>
-        <?= Html::a('Добавить категорию', ['create'], ['class' => 'btn btn-success']) ?>
-        <?= Html::a('Сохранить структуру категорий', ['#'], ['class' => 'btn btn-primary hidden', 'id' => 'update-structure-btn']) ?>
-    </p>
-
-    <?php $form = ActiveForm::begin([
-        'id' => 'update-structure',
-        'action' => Url::to(['/admin/category/update-structure']),
-    ]); ?>
-
-    <?= Html::hiddenInput('data', '') ?>
-
-    <?= NestedList::widget([
-        'items' => Category::find()->tree(),
-        'actions' => true,
-    ]) ?>
-
-    <?php ActiveForm::end(); ?>
+                'gridnav' => [
+                    'autofocusInput' => false,
+                    'handleCursorKeys' => true
+                ],
+                'renderColumns' => new JsExpression('function(event, data) {
+                    var node = data.node,
+                    $tdList = $(node.tr).find(">td");
+                    var el = $tdList.eq(2);
+                    $(el).find("a").attr("data-id", node.data.id);
+                }'),
+                'collapse' => new JsExpression('function(event, data) {
+                    $.ajax({
+                        url: "/admin/category/update-collapsed",
+                        type: "POST",
+                        data: {id: data.node.data.id, value: 1},
+                        async: false,
+                        success: function(response) {
+                            
+                        }
+                    });
+                }'),
+                'expand' => new JsExpression('function(event, data) {
+                    $.ajax({
+                        url: "/admin/category/update-collapsed",
+                        type: "POST",
+                        data: {id: data.node.data.id, value: 0},
+                        async: false,
+                        success: function(response) {
+                            
+                        }
+                    });
+                }')
+            ],
+        ]);
+    ?>
 </div>

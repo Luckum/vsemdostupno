@@ -24,7 +24,6 @@ class CategoryController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['post'],
                     'update-structure' => ['post'],
                 ],
             ],
@@ -37,12 +36,9 @@ class CategoryController extends BaseController
      */
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Category::find(),
-        ]);
-
+        $items = Category::getFancyCategories();
         return $this->render('index', [
-            'dataProvider' => $dataProvider,
+            'items' => $items,
         ]);
     }
 
@@ -136,7 +132,7 @@ class CategoryController extends BaseController
     {
         $model = $this->findModel($id);
 
-        $model->deleteNode();
+        $model->delete();
 
         return $this->redirect(['index']);
     }
@@ -223,5 +219,28 @@ class CategoryController extends BaseController
         $cat->collapsed = $value;
         $cat->save();
         return true;
+    }
+    
+    public function actionSaveCategory()
+    {
+        $id = $_POST['id'];
+        $parent_id = $_POST['parent_id'];
+        
+        $category = Category::findOne($id);
+        $category->parent = $parent_id;
+        $category->save();
+    }
+    
+    public function actionAddCategory()
+    {
+        $parent_id = $_POST['parent_id'];
+        $name = $_POST['title'];
+        if (!empty($name)) {
+            $category = new Category;
+            $category->name = $name;
+            $category->parent = $parent_id;
+            $category->order = 0;
+            $category->save();
+        }
     }
 }

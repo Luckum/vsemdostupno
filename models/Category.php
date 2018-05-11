@@ -49,6 +49,9 @@ use kgladkiy\behaviors\NestedSetQuery;
  */
 class Category extends \yii\db\ActiveRecord
 {
+    public $parent_node = 0;
+    public $tree_to_save = [];
+    
     const MAX_IMAGE_SIZE = 1024;
     const MAX_THUMB_WIDTH = 500;
     const MAX_THUMB_HEIGHT = 500;
@@ -93,7 +96,7 @@ class Category extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['visibility', 'order', 'photo_id', 'root', 'left', 'right', 'level', 'for_reg', 'collapsed'], 'integer'],
+            [['visibility', 'order', 'photo_id', 'root', 'left', 'right', 'level', 'for_reg', 'collapsed', 'parent'], 'integer'],
             [['name', 'order'], 'required'],
             [['description'], 'string'],
             [['purchase_timestamp', 'order_timestamp', 'purchaseDate', 'orderDate'], 'safe'],
@@ -137,13 +140,14 @@ class Category extends \yii\db\ActiveRecord
         if (parent::beforeDelete()) {
             $this->deletePhoto($this->photo);
 
-            $categories = $this->getAllChildrenQuery()->all();
-            $categories[] = $this;
-            foreach ($categories as $category) {
-                CategoryHasProduct::deleteAll('category_id = :category_id', [':category_id' => $category->id]);
-                CategoryHasService::deleteAll('category_id = :category_id', [':category_id' => $category->id]);
+            $categories = self::find()->where(['parent' => $this->id])->all();
+            if ($categories) {
+                foreach ($categories as $category) {
+                    $category->delete();
+                    CategoryHasProduct::deleteAll('category_id = :category_id', [':category_id' => $category->id]);
+                    CategoryHasService::deleteAll('category_id = :category_id', [':category_id' => $category->id]);
+                }
             }
-
             return true;
         } else {
             return false;
@@ -538,6 +542,7 @@ class Category extends \yii\db\ActiveRecord
     
     public static function getMenuItems($data)
     {
+        $ret = [];
         $categories = $data
             ->children()
             ->andWhere('visibility != 0')
@@ -554,5 +559,62 @@ class Category extends \yii\db\ActiveRecord
         }
         
         return $ret;
+    }
+    
+    public static function getFancyCategories()
+    {
+        $tree = self::find()->where(['parent' => 0])->orderBy('name')->all();
+        $map = function($items) use (&$map) {
+            $results = [];
+            foreach ($items as $item) {
+                $node = [
+                    'title' => $item->name,
+                    'id' => $item->id,
+                ];
+                $children = self::find()->where(['parent' => $item->id])->orderBy('name')->all();
+                if ($children) {
+                    $node += [
+                        'folder' => true,
+                        'expanded' => !$item->collapsed,
+                        'children' => $map($children),
+                    ];
+                }
+                $results[] = $node;
+            }
+            return $results;
+        };
+
+        
+        return $map($tree);
+    }
+    
+    public function setFancyCategories($data)
+    {
+        foreach ($data as $val) {
+            $this->tree_to_save[] = ['id' => $val->data->id, 'parent' => 0];
+        }
+        $map = function($items) use (&$map) {
+            foreach ($items as $item) {
+                $this->tree_to_save[] = ['id' => $item->data->id, 'parent' => $this->parent_node];
+                if (isset($item->children)) {
+                    $this->parent_node = $item->data->id;
+                    $map($item->children);
+                }
+            }
+            return true;
+        };
+        $res = $map($data);
+        
+        /*if (count($this->tree_to_save)) {
+            $saved = [];
+            foreach ($this->tree_to_save as $save) {
+                if (!in_array($save['id'], $saved)) {
+                    $cat = self::findOne($save['id']);
+                    $cat->parent = $save['parent'];
+                    $cat->save();
+                    $saved[] = $save['id'];
+                }
+            }
+        }*/
     }
 }

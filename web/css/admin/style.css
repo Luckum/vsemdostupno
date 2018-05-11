@@ -95,7 +95,7 @@ a.desc:after {
     margin-left: 5px;
 }
 
-span.fancytree-empty,
+/*span.fancytree-empty,
 span.fancytree-vline,
 span.fancytree-expander,
 span.fancytree-icon,
@@ -104,7 +104,7 @@ span.fancytree-radio,
 span.fancytree-drag-helper-img,
 #fancytree-drop-marker {
     background: none;
-}
+}*/
 
 span.fancytree-node {
     margin-top: 5px;

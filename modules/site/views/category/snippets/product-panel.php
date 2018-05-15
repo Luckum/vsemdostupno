@@ -5,7 +5,7 @@ use yii\helpers\Html;
 ?>
 
 <?php if ($products): ?>
-    <div class="row product-panel">
+    <div class="row product-panel" id="inner-product">
         <div class="col-md-12">
             <?php if (!empty($name)): ?>
                 <div class="row product-name">

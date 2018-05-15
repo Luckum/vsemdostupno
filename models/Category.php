@@ -232,7 +232,8 @@ class Category extends \yii\db\ActiveRecord
 
     public function getAllProductsQuery()
     {
-        $categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
+        //$categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
+        $categoryIds = [];
         $categoryIds = array_merge([$this->id], $categoryIds);
 
         $where = ['>', 'product_feature.quantity', 0];
@@ -481,6 +482,20 @@ class Category extends \yii\db\ActiveRecord
         return Html::encode($this->fullName);
     }
 
+    public function getRootParent()
+    {
+        $category = $this;
+        
+        do {
+            if ($category->parent == 0) {
+                return $category;
+            }
+            $category = self::findOne($category->parent);
+        } while ($category);
+
+        return false;
+    }
+    
     public function isPurchase()
     {
         $category = $this;
@@ -489,7 +504,7 @@ class Category extends \yii\db\ActiveRecord
             if ($category->slug == self::PURCHASE_SLUG) {
                 return true;
             }
-            $category = $category->parent()->one();
+            $category = self::findOne($category->parent);
         } while ($category);
 
         return false;
@@ -503,7 +518,7 @@ class Category extends \yii\db\ActiveRecord
             if ($category->id == '220') {
                 return true;
             }
-            $category = $category->parent()->one();
+            $category = self::findOne($category->parent);
         } while ($category);
 
         return false;
@@ -517,7 +532,7 @@ class Category extends \yii\db\ActiveRecord
             if ($category->id == '234') {
                 return true;
             }
-            $category = $category->parent()->one();
+            $category = self::findOne($category->parent);
         } while ($category);
 
         return false;
@@ -543,19 +558,16 @@ class Category extends \yii\db\ActiveRecord
     public static function getMenuItems($data)
     {
         $ret = [];
-        $categories = $data
-            ->children()
-            ->andWhere('visibility != 0')
-            ->orderBy([
-                'name' => SORT_ASC,
-            ])
-            ->all();
-        foreach ($categories as $category) {
-            $ret[] = [
-                'content' => $category->htmlFormattedFullName,
-                'url' => $category->url,
-                'thumbUrl' => $category->thumbUrl,
-            ];
+        $categories = self::find()->where(['parent' => $data->id])->andWhere('visibility != 0')->orderBy(['name' => SORT_ASC])->all();
+            
+        if ($categories) {
+            foreach ($categories as $category) {
+                $ret[] = [
+                    'content' => $category->htmlFormattedFullName,
+                    'url' => $category->url,
+                    'thumbUrl' => $category->thumbUrl,
+                ];
+            }
         }
         
         return $ret;

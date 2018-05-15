@@ -3,26 +3,24 @@
 use kartik\helpers\Html;
 
 ?>
-<?php if ($items): ?>
-    <div class="row">
-        <div class="col-md-12">
-            <?= Html::panel([
-                    'heading' => $heading,
-                    'postBody' => Html::listGroup(
-                        $items,
-                        [
-                            'style' => $style
-                        ]
-                    ),
-                    'headingTitle' => true,
-                ],
-                isset($type) ? $type : Html::TYPE_PRIMARY,
-                [
-                    'class' => 'menu-panel ' . (isset($class) ? $class : ''),
-                    'style' => 'cursor: pointer;',
-                    'data-cat' => $data,
-                ]
-            ) ?>
-        </div>
+<div class="row">
+    <div class="col-md-12">
+        <?= Html::panel([
+                'heading' => $heading,
+                'postBody' => Html::listGroup(
+                    $items,
+                    [
+                        'style' => $style
+                    ]
+                ),
+                'headingTitle' => true,
+            ],
+            isset($type) ? $type : Html::TYPE_PRIMARY,
+            [
+                'class' => 'menu-panel ' . (isset($class) ? $class : ''),
+                'style' => 'cursor: pointer;',
+                'data-cat' => $data,
+            ]
+        ) ?>
     </div>
-<?php endif ?>
+</div>

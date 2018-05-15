@@ -24,9 +24,12 @@ class CategoryController extends BaseController
         if ($model->slug && $model->slug != $id) {
             return $this->redirect($model->url);
         }
+        
+        $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
 
         return $this->render('index', [
             'model' => $model,
+            'menu_first_level' => $menu_first_level ? $menu_first_level : [],
         ]);
     }
 }

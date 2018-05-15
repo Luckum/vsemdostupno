@@ -28,7 +28,7 @@ use app\modules\purchase\models\PurchaseProduct;
                         $categories[$inCount]->url,
                         ['class' => 'thumbnail']
                     ) ?>
-                    <?= Html::tag('h5', $categories[$inCount]->htmlFormattedFullName, ['class' => 'text-center']) ?>
+                    <h5 class="text-center" style="font-size: 20px;"><strong><?= $categories[$inCount]->htmlFormattedFullName ?></strong></h5>
                 </div>
             <?php endfor ?>
             </div>

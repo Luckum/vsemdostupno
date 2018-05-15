@@ -14,19 +14,9 @@ class DefaultController extends BaseController
 
     public function actionIndex()
     {
-        $recomendations_root = Category::findOne('234');
-        $catalogue_root = Category::findOne('220');
-        $purchase = Category::findOne(['slug' => Category::PURCHASE_SLUG]);
-        
+        $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
         return $this->render('index', [
-            /*'newProducts' => $this->getCategoryProducts(Category::RECENT_SLUG),
-            'purchaseProducts' => $this->getCategoryProducts(Category::PURCHASE_SLUG),
-            'featuredProducts' => $this->getCategoryProducts(Category::FEATURED_SLUG),
-            'services' => $this->getServices(),*/
-            
-            'recomendations' => $recomendations_root,
-            'catalogue' => $catalogue_root,
-            'purchase' => $purchase
+            'menu_first_level' => $menu_first_level ? $menu_first_level : [],
         ]);
     }
 

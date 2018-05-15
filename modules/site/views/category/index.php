@@ -47,7 +47,7 @@ $services = $servicesQuery->offset($servicePages->offset)
     
 ?>
 
-<?= Html::pageHeader(Html::encode($model->fullName)) ?>
+<?= Html::pageHeader(Html::encode($model->fullName), '', ['id' => 'page-header-category']) ?>
 
 <?php if ($model->description): ?>
     <div class="row category-description">
@@ -59,6 +59,7 @@ $services = $servicesQuery->offset($servicePages->offset)
 
 <?= $this->renderFile('@app/modules/site/views/category/snippets/category-panel.php', [
     'categories' => $categories,
+    'menu_first_level' => $menu_first_level,
 ]) ?>
 
 <?php if (count($categories) == 0): ?>
@@ -80,6 +81,7 @@ $services = $servicesQuery->offset($servicePages->offset)
         'body' => 'Ничего не найдено.',
         'options' => [
             'class' => 'alert-info',
+            'id' => 'inner-alert-info'
         ],
     ])?>
 <?php endif ?>

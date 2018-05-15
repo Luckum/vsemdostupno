@@ -5,7 +5,7 @@ use yii\helpers\Html;
 ?>
 
 <?php if ($services): ?>
-    <div class="row service-panel">
+    <div class="row service-panel" id="inner-service">
         <div class="col-md-12">
             <?php if (!empty($name)): ?>
                 <div class="row service-name">

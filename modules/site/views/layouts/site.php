@@ -55,6 +55,8 @@ function getMenuItems($andWhere = 'TRUE')
     return $items;
 }
 
+$menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
+
 $recomendations = [];
 $recomendations_root = Category::findOne('234');
 if ($recomendations_root) {
@@ -113,29 +115,17 @@ $account_routes = [
     'purchase/site/history/details',
 ];
 
-$menu_style_p = $menu_style_c = $menu_style_r = 'display: none;';
+$menu_expanded = 0;
 $exploded_path = explode('/', Yii::$app->request->pathInfo);
 if (count($exploded_path) > 1) {
     if ($exploded_path[0] == 'category') {
         $category_model = Category::find()->where('id = :id OR slug = :slug', [':id' => $exploded_path[1], ':slug' => $exploded_path[1]])->one();
-        if ($category_model->isPurchase()) {
-            $menu_style_p = 'display: block;';
-        } else if ($category_model->isStock()) {
-            $menu_style_c = 'display: block;';
-        } else if ($category_model->isRecomended()) {
-            $menu_style_r = 'display: block;';
-        }
+        $menu_expanded = $category_model->rootParent->id;
     } else if ($exploded_path[0] == 'product') {
         $product_model = Product::findOne($exploded_path[1]);
-        if ($product_model->category->isPurchase()) {
-            $menu_style_p = 'display: block;';
-        } else if ($product_model->category->isStock()) {
-            $menu_style_c = 'display: block;';
-        } else if ($product_model->category->isRecomended()) {
-            $menu_style_r = 'display: block;';
-        }
+        $menu_expanded = $product_model->category->rootParent->id;
     }
-} 
+}
 
 $script = <<<JS
 $(function () {
@@ -158,16 +148,27 @@ $(function () {
                     });
                 }
             } else {
-                if ($(obj).find(".list-group").is(':hidden')) {
+                if ($("#open-prev").val() == "") {
                     $(obj).find(".list-group").slideDown();
-                    if ($("#main-cat-level-1").is(':hidden')) {
-                        $("#main-cat-level-2-" + $("#open-prev").val()).fadeOut('300', function() {
-                            $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
-                        });
-                    } else {
-                        $("#main-cat-level-1").fadeOut('300', function() {
-                            $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
-                        });
+                    $("#main-cat-level-1").fadeOut('300', function() {
+                        $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                    });
+                    
+                    $("#inner-cat, #inner-product, #inner-service, #inner-alert-info, #page-header-category").fadeOut('100', function() {
+                        $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                    });
+                } else {
+                    if ($(obj).find(".list-group").is(':hidden')) {
+                        $(obj).find(".list-group").slideDown();
+                        if ($("#main-cat-level-1").is(':hidden')) {
+                            $("#main-cat-level-2-" + $("#open-prev").val()).fadeOut('300', function() {
+                                $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                            });
+                        } else {
+                            $("#main-cat-level-1").fadeOut('300', function() {
+                                $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                            });
+                        }
                     }
                 }
             }
@@ -366,34 +367,36 @@ $this->registerJs($script, $this::POS_END);
                     <div class="row site-page">
                         <?//= Yii::$app->controller->route ?>
                         <?php if (!in_array(Yii::$app->controller->route, $account_routes)): ?>
-                            <div class="col-md-2">
-                                <?php if (Yii::$app->hasModule('purchase') && $purchase && $purchase->visibility): ?>
-                                    <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                        'heading' => Icon::show('calendar') . ' Закупки',
-                                        'items' => $purchases,
-                                        'class' => 'menu-purchases',
-                                        'data' => 'purch',
-                                        'style' => $menu_style_p,
-                                    ]) ?>
-                                <?php endif; ?>
-                                <?php if ($catalogue_root && $catalogue_root->visibility): ?>
-                                    <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                        'heading' => Icon::show('list') . ' В наличии',
-                                        'items' => $catalogue,
-                                        'data' => 'catal',
-                                        'style' => $menu_style_c,
-                                    ]) ?>
-                                <?php endif; ?>
-                                <?php if ($recomendations_root && $recomendations_root->visibility): ?>
-                                    <?= $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
-                                        'heading' => Icon::show('thumbs-o-up') . ' Рекомендуем',
-                                        'items' => $recomendations,
-                                        'data' => 'recom',
-                                        'style' => $menu_style_r,
-                                    ]) ?>
-                                <?php endif; ?>
-                                <input type="hidden" id="open-prev" value="">
-                            </div>
+                            <?php if ($menu_first_level): ?>
+                                <div class="col-md-2">
+                                    <?php foreach ($menu_first_level as $menu_f_l) {
+                                        $items = Category::getMenuItems($menu_f_l);
+                                        $show = true;
+                                        if ($menu_f_l->isPurchase()) {
+                                            $heading = Icon::show('calendar') . ' Закупки';
+                                            if (!Yii::$app->hasModule('purchase')) {
+                                                $show = false;
+                                            }
+                                        } else if ($menu_f_l->isRecomended()) {
+                                            $heading = Icon::show('thumbs-o-up') . ' Рекомендуем';
+                                        } else if ($menu_f_l->isStock()) {
+                                            $heading = Icon::show('list') . ' В наличии';
+                                        } else {
+                                            $heading = Icon::show('list') . ' ' . $menu_f_l->name;
+                                        }
+                                        if ($show) {
+                                            echo $this->renderFile('@app/modules/site/views/layouts/snippets/menu-panel.php', [
+                                                'heading' => $heading,
+                                                'items' => $items,
+                                                'class' => 'menu-purchases',
+                                                'data' => $menu_f_l->id,
+                                                'style' => $menu_expanded == $menu_f_l->id ? "display: block;" : "display: none;",
+                                            ]);
+                                        }
+                                    } ?>
+                                    <input type="hidden" id="open-prev" value="">
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
                         <div class="<?= !in_array(Yii::$app->controller->route, $account_routes) ? 'col-md-10' : 'col-md-12' ?>">
                             <?php if (in_array(Yii::$app->controller->route, $account_routes)): ?>

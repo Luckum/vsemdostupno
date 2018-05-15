@@ -1,6 +1,6 @@
 <?php
 
-use yii\helpers\Html;
+use kartik\helpers\Html;
 use yii\web\View;
 use app\models\Category;
 
@@ -47,86 +47,69 @@ foreach ($panels as $panel) {
 
 <div class="row product-panel">
     <div id="main-cat-level-1">
-        <?php if (Yii::$app->hasModule('purchase') && $purchase && $purchase->visibility): ?>
+        <?php foreach ($menu_first_level as $item): ?>
             <div class="col-md-4">
                 <?= Html::a(
-                        Html::img($purchase->thumbUrl),
-                        $purchase->url,
+                        Html::img($item->thumbUrl),
+                        $item->url,
                         ['class' => 'thumbnail']
                 ) ?>
             </div>
-        <?php endif; ?>
-        <?php if ($catalogue && $catalogue->visibility): ?>
-            <div class="col-md-4">
-                <?= Html::a(
-                        Html::img($catalogue->thumbUrl),
-                        $catalogue->url,
-                        ['class' => 'thumbnail']
-                ) ?>
-            </div>
-        <?php endif; ?>
-        <?php if ($recomendations && $recomendations->visibility): ?>
-            <div class="col-md-4">
-                <?= Html::a(
-                        Html::img($recomendations->thumbUrl),
-                        $recomendations->url,
-                        ['class' => 'thumbnail']
-                ) ?>
-            </div>
-        <?php endif; ?>
+        <?php endforeach; ?>
     </div>
     
-    <?php if ($purchase && $purchase->visibility): ?>
-        <div id="main-cat-level-2-purch" class="main-cat-level-2" style="display: none;">
-            <?php $purchases = Category::getMenuItems($purchase); ?>
-            <?php if ($purchases): ?>
-                <?php foreach ($purchases as $cat): ?>
+    <?php foreach ($menu_first_level as $f_level): ?>
+        <div id="main-cat-level-2-<?= $f_level->id ?>" class="main-cat-level-2" style="display: none;">
+            <?php $categories = Category::getMenuItems($f_level); ?>
+            <?php if ($categories): ?>
+                <?php foreach ($categories as $cat): ?>
                     <div class="col-md-4">
                         <?= Html::a(
                                 Html::img($cat['thumbUrl']),
                                 $cat['url'],
                                 ['class' => 'thumbnail']
                         ) ?>
-                        <h5 class="text-center"><?= $cat['content'] ?></h5>
+                        <h5 class="text-center" style="font-size: 20px;"><strong><?= $cat['content'] ?></strong></h5>
                     </div>
                 <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
-    
-    <?php if ($catalogue && $catalogue->visibility): ?>
-        <div id="main-cat-level-2-catal" class="main-cat-level-2" style="display: none;">
-            <?php $catalogues = Category::getMenuItems($catalogue); ?>
-            <?php if ($catalogues): ?>
-                <?php foreach ($catalogues as $cat): ?>
-                    <div class="col-md-4">
-                        <?= Html::a(
-                                Html::img($cat['thumbUrl']),
-                                $cat['url'],
-                                ['class' => 'thumbnail']
-                        ) ?>
-                        <h5 class="text-center"><?= $cat['content'] ?></h5>
+            <?php else: ?>
+                <?php $productsQuery = $f_level->getAllProductsQuery()
+                        ->andWhere('visibility != 0')
+                        ->andWhere('published != 0'); 
+                    $products = $productsQuery->all();
+                ?>
+                <?php if ($products): ?>
+                    <div class="row text-center">
+                        <?php foreach ($products as $val): ?>
+                            <div class="col-md-3 product-item">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <?= Html::a(
+                                            Html::img($val->thumbUrl),
+                                            $val->url,
+                                            ['class' => 'thumbnail']
+                                        ) ?>
+                                    </div>
+                                </div>
+                                <div class="row product-name">
+                                    <div class="col-md-12">
+                                        <?= Html::tag('h5', Html::encode($val->name)) ?>
+                                    </div>
+                                </div>
+                                <div class="row product-price">
+                                    <div class="col-md-12">
+                                        <?php if (Yii::$app->user->isGuest): ?>
+                                            <?= $val->productFeatures[0]->is_weights == 1 ? Html::badge(Yii::$app->formatter->asCurrency($val->formattedPrice * $val->productFeatures[0]->volume, 'RUB') , ['class' => '']) : Html::badge($val->formattedPrice, ['class' => '']) ?>
+                                        <?php else: ?>
+                                            <?= $val->productFeatures[0]->is_weights == 1 ? Html::badge(Yii::$app->formatter->asCurrency($val->formattedMemberPrice * $val->productFeatures[0]->volume, 'RUB') , ['class' => '']) : Html::badge($val->formattedMemberPrice, ['class' => '']) ?>
+                                        <?php endif ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
-    <?php endif; ?>
-    
-    <?php if ($recomendations && $recomendations->visibility): ?>
-        <div id="main-cat-level-2-recom" class="main-cat-level-2" style="display: none;">
-            <?php $recomendations_a = Category::getMenuItems($recomendations); ?>
-            <?php if ($recomendations_a): ?>
-                <?php foreach ($recomendations_a as $cat): ?>
-                    <div class="col-md-4">
-                        <?= Html::a(
-                                Html::img($cat['thumbUrl']),
-                                $cat['url'],
-                                ['class' => 'thumbnail']
-                        ) ?>
-                        <h5 class="text-center"><?= $cat['content'] ?></h5>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
+    <?php endforeach; ?>
 </div>

@@ -26,7 +26,7 @@ use app\models\Category;
     </div>
 <?php endif ?>
 
-<div class="product-panel" style="position: absolute; top: 0; width: 100%;">
+<div class="product-panel">
     <div id="main-cat-level-1" style="display: none;">
         <?php foreach ($menu_first_level as $item): ?>
             <div class="col-md-4">

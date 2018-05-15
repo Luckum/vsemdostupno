@@ -149,14 +149,22 @@ $(function () {
                 }
             } else {
                 if ($("#open-prev").val() == "") {
-                    $(obj).find(".list-group").slideDown();
-                    $("#main-cat-level-1").fadeOut('300', function() {
-                        $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
-                    });
+                    if ($("#main-cat-level-1").is(':visible')) {
+                        $("#main-cat-level-1").fadeOut('300', function() {
+                            $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                        });
+                    }
                     
-                    $("#inner-cat, #inner-product, #inner-service, #inner-alert-info, #page-header-category").fadeOut('100', function() {
-                        $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
-                    });
+                    if ($(obj).attr('data-cat') == $menu_expanded) {
+                        $("#inner-cat, #inner-product, #inner-service, #inner-alert-info, #inner-cate-descr, #page-header-category").fadeOut('10', function() {
+                            $("#main-cat-level-1").fadeIn();
+                        });
+                    } else {
+                        $(obj).find(".list-group").slideDown();
+                        $("#inner-cat, #inner-product, #inner-service, #inner-alert-info, #inner-cate-descr, #page-header-category").fadeOut('10', function() {
+                            $("#main-cat-level-2-" + $(obj).attr('data-cat')).fadeIn();
+                        });
+                    }
                 } else {
                     if ($(obj).find(".list-group").is(':hidden')) {
                         $(obj).find(".list-group").slideDown();
@@ -174,7 +182,6 @@ $(function () {
             }
             $("#open-prev").val($(obj).attr('data-cat'));
         }
-        
     });
 })
 JS;

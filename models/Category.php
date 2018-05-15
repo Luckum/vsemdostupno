@@ -264,7 +264,8 @@ class Category extends \yii\db\ActiveRecord
 
     public function getAllServicesQuery()
     {
-        $categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
+        //$categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
+        $categoryIds = [];
         $categoryIds = array_merge([$this->id], $categoryIds);
 
         $query = new Query();

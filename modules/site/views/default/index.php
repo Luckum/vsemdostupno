@@ -54,6 +54,7 @@ foreach ($panels as $panel) {
                         $item->url,
                         ['class' => 'thumbnail']
                 ) ?>
+                <h5 class="text-center" style="font-size: 20px;"><strong><?= $item->name ?></strong></h5>
             </div>
         <?php endforeach; ?>
     </div>

@@ -61,8 +61,8 @@ class PurchaseOrder extends \yii\db\ActiveRecord
             [['created_at'], 'safe'],
             [['city_id', 'partner_id', 'user_id', 'hide', 'order_id'], 'integer'],
             [['role', 'address', 'comment', 'status'], 'string'],
-            [['city_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic', 'total'], 'required'],
-            [['total', 'paid_total'], 'number'],
+            [['city_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic'], 'required'],
+            [['total', 'paid_total', 'total'], 'number'],
             [['city_name', 'partner_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic'], 'string', 'max' => 255],
             [['order_number'], 'string', 'max' => 20],
             [['city_id'], 'exist', 'skipOnError' => true, 'targetClass' => City::className(), 'targetAttribute' => ['city_id' => 'id']],
@@ -462,7 +462,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
         
         if (!$products_adv && !$products_held && $products_ab) {
             $order->status = 'abortive';
-            $order->order_number = null;
+            //$order->order_number = null;
         }
         
         if (!$products_adv && $products_held && $products_ab) {

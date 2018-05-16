@@ -28,6 +28,7 @@ use app\models\ProviderRegData;
 use app\models\ProviderHasCategory;
 use app\models\Candidate;
 use app\models\NoticeEmail;
+use app\models\Category;
 
 class DefaultController extends BaseController
 {
@@ -108,9 +109,11 @@ class DefaultController extends BaseController
             return $this->goBack();
         } else {
             $model->password = '';
-
+            $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
+            
             return $this->render('login', [
                 'model' => $model,
+                'menu_first_level' => $menu_first_level ? $menu_first_level : [],
             ]);
         }
     }
@@ -252,9 +255,11 @@ class DefaultController extends BaseController
         } else {
             $model->password =
             $model->password_repeat = '';
+            $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
 
             return $this->render('register', [
                 'model' => $model,
+                'menu_first_level' => $menu_first_level ? $menu_first_level : [],
             ]);
         }
     }
@@ -282,8 +287,10 @@ class DefaultController extends BaseController
             Yii::$app->session->setFlash('profile-message', 'profile-forgot-finish');
             return $this->redirect('/profile/message');
         } else {
+            $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
             return $this->render('forgot-request', [
                 'model' => $model,
+                'menu_first_level' => $menu_first_level ? $menu_first_level : [],
             ]);
         }
     }
@@ -317,8 +324,10 @@ class DefaultController extends BaseController
             $model->password =
             $model->password_repeat = '';
 
+            $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
             return $this->render('forgot-change', [
                 'model' => $model,
+                'menu_first_level' => $menu_first_level ? $menu_first_level : [],
             ]);
         }
     }
@@ -331,8 +340,10 @@ class DefaultController extends BaseController
             throw new NotFoundHttpException('Страница не найдена.');
         }
 
+        $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
         return $this->render('register-message', [
             'model' => $model,
+            'menu_first_level' => $menu_first_level ? $menu_first_level : [],
         ]);
     }
     public function actionRegisterProvider()
@@ -480,10 +491,12 @@ class DefaultController extends BaseController
             }
         }
         
+        $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
         return $this->render('register-provider',[
            'model' => $model,
            'model_user' => $model_user,
            'step' => $step,
+           'menu_first_level' => $menu_first_level ? $menu_first_level : [],
         ]);
     }
 

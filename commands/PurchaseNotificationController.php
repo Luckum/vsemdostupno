@@ -25,7 +25,7 @@ class PurchaseNotificationController extends Controller
                 $orders_to_send = [];
                 $product_total = PurchaseOrderProduct::getProductTotal($product->id);
                 if ($product_total >= $product->purchase_total) {
-                    /*$product->status = 'held';
+                    $product->status = 'held';
                     $product->save();
                     
                     $order_products = PurchaseOrderProduct::find()->where(['purchase_product_id' => $product->id])->all();
@@ -87,8 +87,9 @@ class PurchaseNotificationController extends Controller
                         $new_product->comment = $product->comment;
                         $new_product->send_notification = $product->send_notification;
                         $new_product->status = 'advance';
+                        $new_product->copy = $product->id;
                         $new_product->save();
-                    }*/
+                    }
                 } else {
                     $product->status = 'abortive';
                     $product->save();
@@ -130,6 +131,7 @@ class PurchaseNotificationController extends Controller
                         $new_product->comment = $product->comment;
                         $new_product->send_notification = $product->send_notification;
                         $new_product->status = 'advance';
+                        $new_product->copy = $product->id;
                         $new_product->save();
                     }
                     

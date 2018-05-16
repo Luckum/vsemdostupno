@@ -395,8 +395,9 @@ class MemberController extends BaseController
 
     public function actionAccount($id)
     {
-        $member=Member::findOne($id);
-        $user_id=$member->user_id;
+        //$member=Member::find()->where(['user_id' => $id])->one();
+        //$user_id=$member->user_id;
+        $user_id = $id;
         $user = User::findOne($user_id);
         
         if ($user->member->partner_id != $this->identity->entity->partner->id) {

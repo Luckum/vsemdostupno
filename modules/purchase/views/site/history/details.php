@@ -81,22 +81,20 @@ $this->title = 'История моих закупок на ' . date("d.m.Yг.",
                             ?>
                         <?php endif; ?>
                         <?php if ($model->status == 'abortive' || $model->status == 'part_abortive' || $model->status == 'completed'): ?>
-                            <?= Html::button('Повторить заказ', [
-                                    'type'=>'button',
-                                    'class'=>'btn btn-success',
+                            <?= Html::a('Повторить заказ', Url::to(['reorder', 'id' => $model->id, 'date' => $date]), [
+                                    'class' => 'btn btn-success',
                                     'style' => 'margin-top: 10px',
-                                    'onclick' => 'hideOrder(this);',
-                                    'data-order-id' => $model->id,
-                                    'data-date' => $date,
+                                    'data-pjax' => 0,
+                                    'data-method' => "post",
+                                    'data-confirm' => "Желаете повторить этот заказ?"
                                 ]);
                             ?>
-                            <?= Html::button('Удалить', [
-                                    'type'=>'button',
-                                    'class'=>'btn btn-danger',
+                            <?= Html::a('Удалить', Url::to(['delete', 'id' => $model->id, 'date' => $date]), [
+                                    'class' => 'btn btn-danger',
                                     'style' => 'margin-top: 10px',
-                                    'onclick' => 'hideOrder(this);',
-                                    'data-order-id' => $model->id,
-                                    'data-date' => $date,
+                                    'data-pjax' => 0,
+                                    'data-method' => "post",
+                                    'data-confirm' => "Вы уверены, что хотите удалить заказ?"
                                 ]);
                             ?>
                         <?php endif; ?>

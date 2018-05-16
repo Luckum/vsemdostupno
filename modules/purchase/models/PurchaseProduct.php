@@ -29,6 +29,7 @@ use app\modules\purchase\models\PurchaseOrderProduct;
  * @property string $comment
  * @property integer $send_notification
  * @property string $status
+ * @property integer $copy
  *
  * @property ProductFeature $productFeature
  */
@@ -51,7 +52,7 @@ class PurchaseProduct extends \yii\db\ActiveRecord
         return [
             [['created_date', 'purchase_date', 'stop_date', 'purchase_total', 'weight', 'measurement', 'summ', 'product_feature_id', 'provider_id', 'status'], 'required'],
             [['created_date', 'purchase_date', 'stop_date'], 'safe'],
-            [['renewal', 'is_weights', 'product_feature_id', 'provider_id', 'send_notification'], 'integer'],
+            [['renewal', 'is_weights', 'product_feature_id', 'provider_id', 'send_notification', 'copy'], 'integer'],
             [['purchase_total', 'weight', 'summ'], 'number'],
             [['comment'], 'string'],
             [['tare', 'measurement'], 'string', 'max' => 10],

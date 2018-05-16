@@ -27,6 +27,7 @@ use app\models\UnitContibution;
 use app\models\ProviderHasProduct;
 use app\models\Fund;
 use app\models\NoticeEmail;
+use app\models\Category;
 
 use app\modules\purchase\models\PurchaseOrder;
 use app\modules\purchase\models\PurchaseOrderProduct;
@@ -81,9 +82,11 @@ class CartController extends BaseController
     public function actionIndex()
     {
         $model = new Cart();
+        $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
 
         return $this->render('index', [
             'model' => $model,
+            'menu_first_level' => $menu_first_level ? $menu_first_level : [],
         ]);
     }
 

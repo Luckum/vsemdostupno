@@ -25,6 +25,7 @@ $this->params['breadcrumbs'] = [$model->title];
                         $item->url,
                         ['class' => 'thumbnail']
                 ) ?>
+                <h5 class="text-center" style="font-size: 20px;"><strong><?= $item->name ?></strong></h5>
             </div>
         <?php endforeach; ?>
     </div>
@@ -34,7 +35,7 @@ $this->params['breadcrumbs'] = [$model->title];
             <?php $categories = Category::getMenuItems($f_level); ?>
             <?php if ($categories): ?>
                 <?php foreach ($categories as $cat): ?>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <?= Html::a(
                                 Html::img($cat['thumbUrl']),
                                 $cat['url'],

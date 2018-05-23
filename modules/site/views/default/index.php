@@ -64,7 +64,7 @@ foreach ($panels as $panel) {
             <?php $categories = Category::getMenuItems($f_level); ?>
             <?php if ($categories): ?>
                 <?php foreach ($categories as $cat): ?>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <?= Html::a(
                                 Html::img($cat['thumbUrl']),
                                 $cat['url'],

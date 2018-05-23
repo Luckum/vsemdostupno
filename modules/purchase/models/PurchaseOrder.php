@@ -169,6 +169,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
     
     public static function getPurchaseDatesByPartner($partner_id, $deleted = 0)
     {
+        $partner = Partner::findOne($partner_id);
         $whereD = $deleted == -1 ? '1' : 'deleted = ' . $deleted;
         $query = new Query;
         $query->select([
@@ -179,6 +180,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'purchase_order', 'purchase_order.id = purchase_order_product.purchase_order_id')
             ->where($whereD)
             ->andWhere(['purchase_order.partner_id' => $partner_id])
+            ->orWhere(['purchase_order.user_id' => $partner->user_id])
             ->andWhere(['deleted_p' => 0])
             ->groupBy('purchase_date')
             ->orderBy('purchase_date ASC');
@@ -246,6 +248,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
     
     public static function getProvidersOrderByPartner($partner_id, $date, $deleted = 0)
     {
+        $partner = Partner::findOne($partner_id);
         $count = 0;
         $whereD = $deleted == -1 ? '1' : 'pop.deleted = ' . $deleted;
         $dataProvider = new SqlDataProvider([
@@ -272,6 +275,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
                         LEFT JOIN `purchase_product` pp ON pp.id = pop.purchase_product_id
                         WHERE `pp`.purchase_date = "' . $date . '"
                             AND po.partner_id = ' . $partner_id . '
+                            OR po.user_id = ' . $partner->user_id . '
                             AND pop.deleted_p = 0
                             AND ' . $whereD . '
                         GROUP BY product_feature_id',
@@ -307,6 +311,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
     
     public static function getOrderByProductByPartner($product, $date, $partner_id)
     {
+        $partner = Partner::findOne($partner_id);
         $query = new Query;
         $query->select([
                 'IF (purchase_order.partner_id IS NULL, partner.id, purchase_order.partner_id) AS p_id',
@@ -321,6 +326,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
             ->where(['purchase_order_product.product_feature_id' => $product])
             ->andWhere(['purchase_product.purchase_date' => $date])
             ->andWhere(['purchase_order.partner_id' => $partner_id])
+            ->orWhere(['purchase_order.user_id' => $partner->user_id])
             ->groupBy('p_name');
         
         $command = $query->createCommand();
@@ -371,11 +377,13 @@ class PurchaseOrder extends \yii\db\ActiveRecord
     
     public static function getDetalizationByPartner($partner_id, $date, $hide = 0)
     {
+        $partner = Partner::findOne($partner_id);
         $query = self::find();
         $query->joinWith('purchaseOrderProducts');
         $query->joinWith('purchaseOrderProducts.purchaseProduct');
         $query->where(['purchase_product.purchase_date' => $date]);
         $query->andWhere(['partner_id' => $partner_id]);
+        $query->orWhere(['user_id' => $partner->user_id]);
         $query->andWhere(['hide' => $hide]);
             
         $dataProvider = new ActiveDataProvider([

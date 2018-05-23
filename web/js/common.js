@@ -642,6 +642,8 @@ function correctRecalc()
     var id = $("#ohp-id").val();
     var prev_quantity = $("#quantity-td").html();
     
+    $("#correct-weight-btns").hide();
+    $("#correct-weight-loader").show();
     $.ajax({
         url: "/admin/order/set-corrected",
         type: "POST",

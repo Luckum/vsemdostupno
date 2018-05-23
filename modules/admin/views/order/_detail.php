@@ -152,10 +152,12 @@ use app\helpers\Sum;
     <label for="quantity-correct-txt">Общий вес:</label>
     <input type="text" pattern="\d+(\.\d{1,3})?" id="quantity-correct-txt" value="" style="width: 80px; padding-left: 5px;" onkeyup="setTotalCorrect()">
     <input type="hidden" id="ohp-id" value="">
-    <div class="form-group" style="text-align: right;">
+    <div class="form-group" style="text-align: right;" id="correct-weight-btns">
         <?= Html::button('Отмена', ['class' => 'btn btn-default', 'data-dismiss' => 'modal', 'aria-hidden' => 'true']) ?>
         <?= Html::submitButton('Пересчитать', ['class' => 'btn btn-success', 'id' => 'correct-recalc', 'onclick' => 'correctRecalc();']) ?>
     </div>
-    
+    <div id="correct-weight-loader" style="text-align: right; display: none;">
+        <img src="/images/ajax-loader.gif">
+    </div>
     
 <?php Modal::end(); ?>

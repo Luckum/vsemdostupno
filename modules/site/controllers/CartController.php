@@ -467,6 +467,11 @@ class CartController extends BaseController
 
                     return $this->redirect('/cart/checkout');
                 }
+                Email::send('add_advance_order', $order->email, [
+                    'fio' => $entity->respectedName,
+                    'order_products' => $order->htmlEmailFormattedInformation,
+                    'order_number' => $order->order_number,
+                ]);
             }
             
             $order->formattedTotal = Yii::$app->formatter->asCurrency($cart->total, 'RUB');

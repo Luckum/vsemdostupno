@@ -52,8 +52,11 @@ class ProductController extends BaseController
             throw new NotFoundHttpException('Страница не найдена.');
         }
 
+        $menu_first_level = Category::find()->where(['parent' => 0, 'visibility' => 1])->all();
+        
         return $this->render('index', [
             'model' => $model,
+            'menu_first_level' => $menu_first_level ? $menu_first_level : [],
         ]);
     }
     

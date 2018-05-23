@@ -136,6 +136,10 @@ class DefaultController extends Controller
             ->where(['product_feature.id' => $productUpdating->id])
             ->one();
             
+        
+        if ($product->product->isPurchase()) {
+            $product->quantity = 100;
+        }
         $cart = new Cart();
 
         Yii::$app->response->format = Response::FORMAT_JSON;

@@ -252,7 +252,8 @@ class Category extends \yii\db\ActiveRecord
             ->andWhere($where);
         if ($this->isPurchase()) {
             $query->join('RIGHT JOIN', 'purchase_product', 'product_feature.id = purchase_product.product_feature_id');
-            $query->andWhere('purchase_product.stop_date >= ' . date('Y-m-d'));
+            $query->andWhere('purchase_product.stop_date >= "' . date('Y-m-d') . '"');
+            $query->andWhere(['purchase_product.status' => 'advance']);
         }
         $productIds = $query->all();
         
@@ -475,11 +476,6 @@ class Category extends \yii\db\ActiveRecord
 
     public function getHtmlFormattedFullName()
     {
-        if ($this->formattedPurchaseDate) {
-            return $this->htmlFormattedPurchaseDate .
-                '<br>' . $this->htmlFormattedName;
-        }
-
         return Html::encode($this->fullName);
     }
 

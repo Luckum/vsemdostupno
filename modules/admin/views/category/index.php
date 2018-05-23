@@ -8,17 +8,17 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $script = <<<JS
 $(function () {
-    $(".view-category").click(function() {
+    /*$(".view-category").click(function() {
         window.location = "/admin/category/view?id=" + $(this).attr("data-id");
-    });
-    $(".update-category").click(function() {
+    });*/
+    /*$(".update-category").click(function() {
         window.location = "/admin/category/update?id=" + $(this).attr("data-id");
     });
     $(".delete-category").click(function() {
         if (confirm('Вы уверены, что желаете удалить категорию?')) {
             window.location = "/admin/category/delete?id=" + $(this).attr("data-id");
         }
-    });
+    });*/
 });
 JS;
 $this->registerJs($script, $this::POS_END);

@@ -6,28 +6,23 @@ use app\models\Category;
 ?>
 
 <?php if ($categories): ?>
-    <div class="row category-panel" id="inner-cat">
-        <div class="col-md-12">
-            <?php if (!empty($name)): ?>
-                <div class="row category-name">
-                    <div class="col-md-12">
-                        <h2><?= Html::encode($name) ?></h2>
-                    </div>
-                </div>
-            <?php endif ?>
-            <div class="row">
+    <div class="category-panel" id="inner-cat">
+        <?php if (!empty($name)): ?>
+            <div class="row category-name">
                 <div class="col-md-12">
-                    <?= $this->renderFile('@app/modules/site/views/category/snippets/category-grid.php', [
-                        'categories' => $categories,
-                    ]) ?>
+                    <h2><?= Html::encode($name) ?></h2>
                 </div>
             </div>
-        </div>
+        <?php endif ?>
+        <?= $this->renderFile('@app/modules/site/views/category/snippets/category-grid.php', [
+            'categories' => $categories,
+        ]) ?>
     </div>
 <?php endif ?>
 
 <div class="product-panel">
     <div id="main-cat-level-1" style="display: none;">
+        <?= Html::pageHeader('Исходная') ?>
         <?php foreach ($menu_first_level as $item): ?>
             <div class="col-md-4">
                 <?= Html::a(
@@ -42,6 +37,7 @@ use app\models\Category;
 
     <?php foreach ($menu_first_level as $f_level): ?>
         <div id="main-cat-level-2-<?= $f_level->id ?>" class="main-cat-level-2" style="display: none;">
+            <?= Html::pageHeader(Html::encode($f_level->fullName)) ?>
             <?php $categories = Category::getMenuItems($f_level); ?>
             <?php if ($categories): ?>
                 <?php foreach ($categories as $cat): ?>

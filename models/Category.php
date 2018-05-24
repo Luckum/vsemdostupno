@@ -212,13 +212,13 @@ class Category extends \yii\db\ActiveRecord
 
     public function getAllChildrenQuery()
     {
-        $tree = $this->children()->all();
+        $tree = self::find()->where(['parent' => $this->id])->all();
 
         $map = function($items) use (&$map) {
             $results = [];
             foreach ($items as $item) {
                 $results[] = $item->id;
-                if ($children = $item->children()->all()) {
+                if ($children = self::find()->where(['parent' => $item->id])->all()) {
                     $results = array_merge($results, $map($children));
                 }
             }
@@ -232,8 +232,8 @@ class Category extends \yii\db\ActiveRecord
 
     public function getAllProductsQuery()
     {
-        //$categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
-        $categoryIds = [];
+        $categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
+        //$categoryIds = [];
         $categoryIds = array_merge([$this->id], $categoryIds);
 
         $where = ['>', 'product_feature.quantity', 0];
@@ -265,8 +265,8 @@ class Category extends \yii\db\ActiveRecord
 
     public function getAllServicesQuery()
     {
-        //$categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
-        $categoryIds = [];
+        $categoryIds = ArrayHelper::getColumn($this->getAllChildrenQuery()->all(), 'id');
+        //$categoryIds = [];
         $categoryIds = array_merge([$this->id], $categoryIds);
 
         $query = new Query();

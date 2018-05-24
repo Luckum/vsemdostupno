@@ -288,7 +288,9 @@ class StockController extends BaseController
 	    $products = Product::getProductsByProvider($provider_id)->getModels();
         $data = [];
 	    foreach ($products as $k => $val) {
-            $data[$val->categoryHasProduct[0]->category->name][$val->id] = $val->name;
+            if (!$val->categoryHasProduct[0]->category->isPurchase()) {
+                $data[$val->categoryHasProduct[0]->category->name][$val->id] = $val->name;
+            }
         }
         return $this->renderPartial('_products', [
             'data' => $data,

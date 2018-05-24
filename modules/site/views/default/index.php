@@ -47,6 +47,7 @@ foreach ($panels as $panel) {
 
 <div class="row product-panel">
     <div id="main-cat-level-1">
+        <?= Html::pageHeader('Исходная') ?>
         <?php foreach ($menu_first_level as $item): ?>
             <div class="col-md-4">
                 <?= Html::a(
@@ -61,6 +62,7 @@ foreach ($panels as $panel) {
     
     <?php foreach ($menu_first_level as $f_level): ?>
         <div id="main-cat-level-2-<?= $f_level->id ?>" class="main-cat-level-2" style="display: none;">
+            <?= Html::pageHeader(Html::encode($f_level->fullName)) ?>
             <?php $categories = Category::getMenuItems($f_level); ?>
             <?php if ($categories): ?>
                 <?php foreach ($categories as $cat): ?>

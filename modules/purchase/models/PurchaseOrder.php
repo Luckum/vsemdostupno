@@ -179,8 +179,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
             ->join('RIGHT JOIN', 'purchase_order_product', 'purchase_product.id=purchase_order_product.purchase_product_id')
             ->join('LEFT JOIN', 'purchase_order', 'purchase_order.id = purchase_order_product.purchase_order_id')
             ->where($whereD)
-            ->andWhere(['purchase_order.partner_id' => $partner_id])
-            ->orWhere(['purchase_order.user_id' => $partner->user_id])
+            ->andWhere('purchase_order.partner_id = ' . $partner_id . ' OR purchase_order.user_id = ' . $partner->user_id)
             ->andWhere(['deleted_p' => 0])
             ->groupBy('purchase_date')
             ->orderBy('purchase_date ASC');
@@ -274,8 +273,8 @@ class PurchaseOrder extends \yii\db\ActiveRecord
                         LEFT JOIN `product_feature` pf ON pop.product_feature_id = pf.id
                         LEFT JOIN `purchase_product` pp ON pp.id = pop.purchase_product_id
                         WHERE `pp`.purchase_date = "' . $date . '"
-                            AND po.partner_id = ' . $partner_id . '
-                            OR po.user_id = ' . $partner->user_id . '
+                            AND (po.partner_id = ' . $partner_id . '
+                            OR po.user_id = ' . $partner->user_id . ')
                             AND pop.deleted_p = 0
                             AND ' . $whereD . '
                         GROUP BY product_feature_id',
@@ -325,8 +324,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
             ->join('LEFT JOIN', 'purchase_product', 'purchase_product.id = purchase_order_product.purchase_product_id')
             ->where(['purchase_order_product.product_feature_id' => $product])
             ->andWhere(['purchase_product.purchase_date' => $date])
-            ->andWhere(['purchase_order.partner_id' => $partner_id])
-            ->orWhere(['purchase_order.user_id' => $partner->user_id])
+            ->andWhere('purchase_order.partner_id = ' . $partner_id . ' OR purchase_order.user_id = ' . $partner->user_id)
             ->groupBy('p_name');
         
         $command = $query->createCommand();
@@ -382,8 +380,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
         $query->joinWith('purchaseOrderProducts');
         $query->joinWith('purchaseOrderProducts.purchaseProduct');
         $query->where(['purchase_product.purchase_date' => $date]);
-        $query->andWhere(['partner_id' => $partner_id]);
-        $query->orWhere(['user_id' => $partner->user_id]);
+        $query->andWhere('partner_id = ' . $partner_id . ' OR user_id = ' . $partner->user_id);
         $query->andWhere(['hide' => $hide]);
             
         $dataProvider = new ActiveDataProvider([

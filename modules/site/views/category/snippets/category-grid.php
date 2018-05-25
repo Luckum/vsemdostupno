@@ -19,7 +19,7 @@ use app\modules\purchase\models\PurchaseProduct;
                 <?php endif; ?>
                 <div class="col-md-3">
                     <?php if ($categories[$inCount]->isPurchase()): ?>
-                        <div style="height: 25px;">
+                        <div class="purchase-date-hdr">
                             <h5 class="text-center" style="font-size: 20px;"><strong><?= $date ? 'Закупка ' . date('d.m.Yг.', strtotime($date)) : '' ?></strong></h5>
                         </div>
                     <?php endif; ?>

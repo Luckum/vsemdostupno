@@ -563,6 +563,7 @@ class Category extends \yii\db\ActiveRecord
                     'content' => $category->htmlFormattedFullName,
                     'url' => $category->url,
                     'thumbUrl' => $category->thumbUrl,
+                    'model' => $category
                 ];
             }
         }

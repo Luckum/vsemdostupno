@@ -296,7 +296,10 @@ div.required > label::after {
 .blink1 {
 	-webkit-animation: blink1 1s linear infinite;
 	animation: blink1 1s linear infinite;
-} 
+}
+.purchase-date-hdr{
+	height: 25px;
+}
 @-webkit-keyframes blink1 {
 	0% { color: rgba(34, 34, 34, 1); }
 	50% { color: rgba(155, 155, 155, 1); }
@@ -321,6 +324,9 @@ div.required > label::after {
 @media (min-width: 992px) {
   .container {
     width: 1090px;
+  }
+  .purchase-date-hdr{
+  		height: 50px;
   }
 }
 @media (min-width: 1200px) {

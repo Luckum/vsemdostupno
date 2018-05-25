@@ -14,6 +14,7 @@ use app\models\User;
 use app\models\Member;
 use dosamigos\gallery\Gallery;
 use dosamigos\selectize\SelectizeDropDownList;
+use app\modules\purchase\models\PurchaseProduct;
 
 /* @var $this yii\web\View */
 $this->title = $model->name;
@@ -380,7 +381,20 @@ foreach ($model->productFeatures as $feat) {
             <?php $categories = Category::getMenuItems($f_level); ?>
             <?php if ($categories): ?>
                 <?php foreach ($categories as $cat): ?>
+                    <?php if ($cat['model']->isPurchase()): ?>
+                        <?php $productsQuery = $cat['model']->getAllProductsQuery()
+                                ->andWhere('visibility != 0')
+                                ->andWhere('published != 0'); 
+                            $products = $productsQuery->all();
+                            $date = PurchaseProduct::getClosestDate($products);
+                        ?>
+                    <?php endif; ?>
                     <div class="col-md-3">
+                        <?php if ($cat['model']->isPurchase()): ?>
+                            <div class="purchase-date-hdr">
+                                <h5 class="text-center" style="font-size: 20px;"><strong><?= $date ? 'Закупка ' . date('d.m.Yг.', strtotime($date)) : '' ?></strong></h5>
+                            </div>
+                        <?php endif; ?>
                         <?= Html::a(
                                 Html::img($cat['thumbUrl']),
                                 $cat['url'],

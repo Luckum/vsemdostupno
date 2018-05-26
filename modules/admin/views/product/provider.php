@@ -73,7 +73,7 @@ $this->registerJs($script, $this::POS_END);
             [
                 'label' => 'Название',
                 'content' => function ($model) {
-                    return $model->product->name . ', ' . $model->featureName;
+                    return $model->product->name . ', ' . $model->featureName . '<strong>' . ProductFeature::getPurchaseTypeProduct($model->product->id) . '</strong>';
                 }
             ],
             [

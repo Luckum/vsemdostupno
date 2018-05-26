@@ -124,6 +124,20 @@ class ProductFeature extends \yii\db\ActiveRecord
         }
     }
     
+    public static function getPurchaseTypeProduct($product_id)
+    {
+        $res = self::find()->where(['product_id' => $product_id])->all();
+        if ($res) {
+            foreach ($res as $val) {
+                if (count($val->purchaseProducts)) {
+                    return ' - оформлен как закупка';
+                }
+            }
+            return ' - оформлен со склада';
+        }
+        return '';
+    }
+    
     public static function getQuantityByProduct($product_id)
     {
         $res = self::find()->where(['product_id' => $product_id])->orderBy('id')->limit(1)->all();

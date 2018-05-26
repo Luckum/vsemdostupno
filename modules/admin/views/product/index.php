@@ -88,7 +88,7 @@ $this->registerJs($script, $this::POS_END);
             [
                 'label' => 'Название',
                 'content' => function ($model) {
-                    return $model->name . ProductFeature::getFeatureByProduct($model->id);
+                    return $model->name . ProductFeature::getFeatureByProduct($model->id) . '<strong>' . ProductFeature::getPurchaseTypeProduct($model->id) . '</strong>';
                 }
             ],
             [

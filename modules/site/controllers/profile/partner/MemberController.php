@@ -384,6 +384,9 @@ class MemberController extends BaseController
                 ]);
             }
             
+            if ($is_purchase) {
+                return $this->redirect(['/profile/provider/order/index']);
+            }
             return $this->redirect(['/profile/partner/order/index']);
         } else {
             return $this->render('order-create', [

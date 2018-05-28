@@ -23,7 +23,7 @@ use yii\helpers\Html;
                 <?php $ar = []; ?>
                 <?php foreach ($products as $product): ?>
                     <tr>
-                        <td><?= $product['name'] . $product['descr']; ?></td>
+                        <td><?= $product['name'] . $product['p_name'] . $product['descr']; ?></td>
                         <td align="center"><?= $product['date']; ?></td>
                         <td align="center"><?= $product['price']; ?></td>
                         <td align="center"><?= $product['member_price']; ?></td>

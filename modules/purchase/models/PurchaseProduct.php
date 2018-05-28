@@ -135,7 +135,7 @@ class PurchaseProduct extends \yii\db\ActiveRecord
     
     public static function getPurchaseDateByFeature($f_id)
     {
-        return self::find()->where(['product_feature_id' => $f_id, 'status' => 'advance'])->andWhere('stop_date >= "' . date('Y-m-d') . '"')->orderBy('purchase_date ASC')->limit(1)->all();
+        return self::find()->where(['product_feature_id' => $f_id, 'status' => 'advance'])->andWhere('stop_date >= "' . date('Y-m-d') . '"')->orderBy('purchase_date ASC, stop_date ASC')->limit(1)->all();
     }
     
     public static function getProviderProducts($provider_id)

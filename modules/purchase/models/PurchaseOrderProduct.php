@@ -24,6 +24,7 @@ use app\models\Provider;
  * @property integer $deleted
  * @property integer $deleted_p
  * @property integer $status
+ * @property integer $reorder
  *
  * @property PurchaseOrder $purchaseOrder
  * @property ProductFeature $productFeature
@@ -48,7 +49,7 @@ class PurchaseOrderProduct extends \yii\db\ActiveRecord
     {
         return [
             [['purchase_order_id', 'purchase_product_id', 'name', 'price', 'quantity', 'total', 'purchase_price'], 'required'],
-            [['purchase_order_id', 'product_id', 'purchase_product_id', 'provider_id', 'product_feature_id', 'deleted', 'deleted_p'], 'integer'],
+            [['purchase_order_id', 'product_id', 'purchase_product_id', 'provider_id', 'product_feature_id', 'deleted', 'deleted_p', 'reorder'], 'integer'],
             [['price', 'quantity', 'total', 'purchase_price'], 'number'],
             [['name'], 'string', 'max' => 255],
             [['status'], 'string'],

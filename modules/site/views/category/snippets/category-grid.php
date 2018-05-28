@@ -7,7 +7,7 @@ use app\modules\purchase\models\PurchaseProduct;
 <?php if ($categories): ?>
     <div class="category-grid">
         <?php for ($exCount = 0; $exCount < count($categories); $exCount += 4): ?>
-            <div class="category-item">
+            <div class="row category-item">
             <?php for ($inCount = $exCount; $inCount < $exCount + 4 && $inCount < count($categories); $inCount += 1): ?>
                 <?php if ($categories[$inCount]->isPurchase()): ?>
                     <?php $productsQuery = $categories[$inCount]->getAllProductsQuery()

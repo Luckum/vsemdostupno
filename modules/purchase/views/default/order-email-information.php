@@ -10,7 +10,7 @@ use yii\helpers\Html;
     <li>
         <?php if ($orderHasProduct->product): ?>
             <?= Html::a(Html::encode($orderHasProduct->name . ', ' . $orderHasProduct->productFeature->featureName), Url::to([$orderHasProduct->product->url], true), ['target' => '_blank']) ?>
-                (<?= $orderHasProduct->purchaseProduct->htmlFormattedPurchaseDate ?>)
+                (Закупку планируется произвести <?= $orderHasProduct->purchaseProduct->htmlFormattedPurchaseDate ?>)
         <?php else: ?>
             <?= Html::encode($orderHasProduct->name) ?>
         <?php endif ?>

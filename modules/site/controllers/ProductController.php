@@ -81,10 +81,17 @@ class ProductController extends BaseController
         $feature_id = $_POST['f_id'];
         $url = $_POST['url'];
         $product = PurchaseProduct::getPurchaseDateByFeature($feature_id);
-        return $this->renderPartial('_dates', [
-            'purchase_date' => $product[0]->htmlFormattedPurchaseDate,
-            'stop_date' => $product[0]->htmlFormattedStopDate,
-            'url' => $url,
-        ]);
+        if ($product) {
+            return $this->renderPartial('_dates', [
+                'purchase_date' => $product[0]->htmlFormattedPurchaseDate,
+                'stop_date' => $product[0]->htmlFormattedStopDate,
+                'url' => $url,
+            ]);
+        } else {
+            return $this->renderPartial('_dates', [
+                'no_dates' => true
+            ]);
+        }
+        
     }
 }

@@ -35,6 +35,7 @@ use app\models\Order;
  * @property integer $order_id
  * @property string $order_number
  * @property string $status
+ * @property integer $reorder
  *
  * @property City $city
  * @property Partner $partner
@@ -59,7 +60,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
     {
         return [
             [['created_at'], 'safe'],
-            [['city_id', 'partner_id', 'user_id', 'hide', 'order_id'], 'integer'],
+            [['city_id', 'partner_id', 'user_id', 'hide', 'order_id', 'reorder'], 'integer'],
             [['role', 'address', 'comment', 'status'], 'string'],
             [['city_name', 'email', 'phone', 'firstname', 'lastname', 'patronymic'], 'required'],
             [['total', 'paid_total', 'total'], 'number'],

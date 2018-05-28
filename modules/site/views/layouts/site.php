@@ -13,6 +13,7 @@ use app\assets\AppAsset;
 use app\assets\BootboxAsset;
 use app\models\Category;
 use app\models\Product;
+use app\models\Service;
 use app\models\Cart;
 use yii\bootstrap\ActiveForm;
 use kartik\typeahead\Typeahead;
@@ -124,6 +125,9 @@ if (count($exploded_path) > 1) {
     } else if ($exploded_path[0] == 'product') {
         $product_model = Product::findOne($exploded_path[1]);
         $menu_expanded = $product_model->category->rootParent->id;
+    } else if ($exploded_path[0] == 'service') {
+        $service_model = Service::findOne($exploded_path[1]);
+        $menu_expanded = $service_model->categories[0]->rootParent->id;
     }
 }
 

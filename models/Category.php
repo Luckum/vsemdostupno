@@ -254,6 +254,7 @@ class Category extends \yii\db\ActiveRecord
             $query->join('RIGHT JOIN', 'purchase_product', 'product_feature.id = purchase_product.product_feature_id');
             $query->andWhere('purchase_product.stop_date >= "' . date('Y-m-d') . '"');
             $query->andWhere(['purchase_product.status' => 'advance']);
+            $query->orderBy('purchase_product.purchase_date ASC');
         }
         $productIds = $query->all();
         
@@ -284,7 +285,8 @@ class Category extends \yii\db\ActiveRecord
     public static function getFancyTree($selected = [], $tree = [], $visibility = true, $for_reg = false)
     {
         if (!$tree) {
-            $tree = Category::find()->roots()->all();
+            //$tree = Category::find()->roots()->all();
+            $tree = self::find()->where(['parent' => 0])->orderBy('name')->all();
         }
 
         $map = function($items) use (&$map, &$selected, &$visibility, &$for_reg) {
@@ -298,7 +300,8 @@ class Category extends \yii\db\ActiveRecord
                                 'key' => $item->id,
                                 'selected' => in_array($item->id, $selected),
                             ];
-                            $children = $item->children()->all();
+                            //$children = $item->children()->all();
+                            $children = self::find()->where(['parent' => $item->id])->orderBy('name')->all();
                             if ($children) {
                                 $node += [
                                     'folder' => true,
@@ -313,7 +316,8 @@ class Category extends \yii\db\ActiveRecord
                             'key' => $item->id,
                             'selected' => in_array($item->id, $selected),
                         ];
-                        $children = $item->children()->all();
+                        //$children = $item->children()->all();
+                        $children = self::find()->where(['parent' => $item->id])->orderBy('name')->all();
                         if ($children) {
                             $node += [
                                 'folder' => true,

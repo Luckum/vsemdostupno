@@ -25,7 +25,8 @@ class DefaultController extends Controller
         if ($productQuery) {
             foreach ($productQuery as $product) {
                 $products[] =[
-                    'name' => Category::getCategoryPath($product->productFeature->product->categoryHasProduct[0]->category->id) . $product->productFeature->product->name,
+                    'name' => Category::getCategoryPath($product->productFeature->product->categoryHasProduct[0]->category->id),
+                    'p_name' => $product->productFeature->product->name,
                     'descr' => ' (' . (!empty($product->productFeature->tare) ? $product->productFeature->tare . ', ' : "") . $product->productFeature->volume . ' ' . $product->productFeature->measurement . ')',
                     'date' => (new \DateTime($product->purchase_date))->format('d.m.Y'),
                     'price' => $product->productFeature->productPrices[0]->price != 0 ? $product->productFeature->productPrices[0]->price : '',
@@ -35,7 +36,7 @@ class DefaultController extends Controller
         }
         usort($products, function($a, $b) {
             if ($a['name'] == $b['name']) {
-                return strtotime($a['date']) > strtotime($b['date']);
+                return ($a['date'] < $b['date']);
             }
             return ($a['name'] > $b['name']);
         });

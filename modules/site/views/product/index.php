@@ -67,7 +67,15 @@ if (Yii::$app->user->isGuest) {
 $features = [];
 foreach ($model->productFeatures as $feat) {
     if ($feat->quantity > 0 || $model->isPurchase()) {
-        $features[$feat->id] = (!empty($feat->tare) ? $feat->tare . ', ' : "") . $feat->volume . ' ' . $feat->measurement;
+        if ($model->isPurchase()) {
+            foreach ($feat->purchaseProducts as $prod) {
+                if (strtotime($prod->stop_date) >= strtotime(date('Y-m-d')) && $prod->status == 'advance') {
+                    $features[$feat->id] = (!empty($feat->tare) ? $feat->tare . ', ' : "") . $feat->volume . ' ' . $feat->measurement;
+                }
+            }
+        } else {
+            $features[$feat->id] = (!empty($feat->tare) ? $feat->tare . ', ' : "") . $feat->volume . ' ' . $feat->measurement;
+        }
     }
 }
 ?>
@@ -144,56 +152,112 @@ foreach ($model->productFeatures as $feat) {
                         ],
                     ]) ?>
                 </div>
-                <?php $cnt_show = 1; ?>
+                <?php $cnt_show = 1; $purch_to_show = false; ?>
                 <?php foreach ($model->productFeatures as $k => $feat): ?>
                     <?php if ($feat->quantity > 0 || $model->isPurchase()): ?>
                         <?php $f_quantity = $model->isPurchase() ? 100 : ($feat->is_weights == 1 ? $feat->quantity / $feat->volume : $feat->quantity) ?>
-                        <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($cnt_show != 1): ?>style="display: none;"<?php endif; ?>>
-                            <?= SelectizeDropDownList::widget([
-                                'name' => 'quantity',
-                                'value' => Cart::hasQuantity($feat),
-                                'items' => array_combine(
-                                    range(1, $f_quantity),
-                                    range(1, $f_quantity)
-                                ),
-                                'options' => [
-                                    'data-product-id' => $feat->id,
-                                    'id' => $feat->id,
-                                    'readonly' => true,
-                                    'onchange' => new JsExpression('
-                                        if ($(".btn-product-in-cart").length) {
-                                            var id = $(this).attr("data-product-id");
-                                            var quantity = $(this).val();
+                        <?php if ($model->isPurchase()): ?>
+                            <?php foreach ($feat->purchaseProducts as $prod): ?>
+                                <?php if (strtotime($prod->stop_date) >= strtotime(date('Y-m-d')) && $prod->status == 'advance'): ?>
+                                    <?php $purch_to_show = true; ?>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                            <?php if ($purch_to_show): ?>
+                                <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($cnt_show != 1): ?>style="display: none;"<?php endif; ?>>
+                                    <?= SelectizeDropDownList::widget([
+                                        'name' => 'quantity',
+                                        'value' => Cart::hasQuantity($feat),
+                                        'items' => array_combine(
+                                            range(1, $f_quantity),
+                                            range(1, $f_quantity)
+                                        ),
+                                        'options' => [
+                                            'data-product-id' => $feat->id,
+                                            'id' => $feat->id,
+                                            'readonly' => true,
+                                            'onchange' => new JsExpression('
+                                                if ($(".btn-product-in-cart").length) {
+                                                    var id = $(this).attr("data-product-id");
+                                                    var quantity = $(this).val();
 
-                                            $(this).prop("disabled", true);
-                                            WidgetHelpers.showLoading();
+                                                    $(this).prop("disabled", true);
+                                                    WidgetHelpers.showLoading();
 
-                                            if (CartHelpers.update(id, quantity)) {
-                                                WidgetHelpers.hideLoading();
-                                                WidgetHelpers.showFlashDialog(CartHelpers.Message);
-                                                $(this)[0].selectize.setValue(CartHelpers.UpdatedProductQuantity, true);
-                                            } else {
-                                                WidgetHelpers.hideLoading();
-                                                WidgetHelpers.showFlashDialog(CartHelpers.Message);
-                                                $(this).removeClass("btn-product-in-cart");
-                                                $(this).removeClass("btn-info");
-                                                $(this).addClass("btn-success");
-                                                $(this).html(\'' . Icon::show('cart-plus') . ' Добавить в корзину\');
+                                                    if (CartHelpers.update(id, quantity)) {
+                                                        WidgetHelpers.hideLoading();
+                                                        WidgetHelpers.showFlashDialog(CartHelpers.Message);
+                                                        $(this)[0].selectize.setValue(CartHelpers.UpdatedProductQuantity, true);
+                                                    } else {
+                                                        WidgetHelpers.hideLoading();
+                                                        WidgetHelpers.showFlashDialog(CartHelpers.Message);
+                                                        $(this).removeClass("btn-product-in-cart");
+                                                        $(this).removeClass("btn-info");
+                                                        $(this).addClass("btn-success");
+                                                        $(this).html(\'' . Icon::show('cart-plus') . ' Добавить в корзину\');
+                                                    }
+
+                                                    if (CartHelpers.Information) {
+                                                        $(".cart-information").text(CartHelpers.Information);
+                                                    }
+
+                                                    $(this).prop("disabled", false);
+                                                }
+
+                                                return false;
+                                            '),
+                                        ],
+                                    ]) ?>
+                                </div>
+                                <?php $cnt_show = 0; ?>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="col-md-3 qnt-container" data-feature-id="<?= $feat->id; ?>" id="quantity-container-<?= $feat->id; ?>" <?php if ($cnt_show != 1): ?>style="display: none;"<?php endif; ?>>
+                                <?= SelectizeDropDownList::widget([
+                                    'name' => 'quantity',
+                                    'value' => Cart::hasQuantity($feat),
+                                    'items' => array_combine(
+                                        range(1, $f_quantity),
+                                        range(1, $f_quantity)
+                                    ),
+                                    'options' => [
+                                        'data-product-id' => $feat->id,
+                                        'id' => $feat->id,
+                                        'readonly' => true,
+                                        'onchange' => new JsExpression('
+                                            if ($(".btn-product-in-cart").length) {
+                                                var id = $(this).attr("data-product-id");
+                                                var quantity = $(this).val();
+
+                                                $(this).prop("disabled", true);
+                                                WidgetHelpers.showLoading();
+
+                                                if (CartHelpers.update(id, quantity)) {
+                                                    WidgetHelpers.hideLoading();
+                                                    WidgetHelpers.showFlashDialog(CartHelpers.Message);
+                                                    $(this)[0].selectize.setValue(CartHelpers.UpdatedProductQuantity, true);
+                                                } else {
+                                                    WidgetHelpers.hideLoading();
+                                                    WidgetHelpers.showFlashDialog(CartHelpers.Message);
+                                                    $(this).removeClass("btn-product-in-cart");
+                                                    $(this).removeClass("btn-info");
+                                                    $(this).addClass("btn-success");
+                                                    $(this).html(\'' . Icon::show('cart-plus') . ' Добавить в корзину\');
+                                                }
+
+                                                if (CartHelpers.Information) {
+                                                    $(".cart-information").text(CartHelpers.Information);
+                                                }
+
+                                                $(this).prop("disabled", false);
                                             }
 
-                                            if (CartHelpers.Information) {
-                                                $(".cart-information").text(CartHelpers.Information);
-                                            }
-
-                                            $(this).prop("disabled", false);
-                                        }
-
-                                        return false;
-                                    '),
-                                ],
-                            ]) ?>
-                        </div>
-                        <?php $cnt_show = 0; ?>
+                                            return false;
+                                        '),
+                                    ],
+                                ]) ?>
+                            </div>
+                            <?php $cnt_show = 0; ?>
+                        <?php endif; ?>
                     <?php endif; ?>
                 <?php endforeach; ?>
                 <div class="col-md-6">
@@ -280,18 +344,26 @@ foreach ($model->productFeatures as $feat) {
             <div class="row">
                 <div class="col-md-12" id="dates-container">
                     <?php
-                        foreach ($model->productFeatures[0]->purchaseProducts as $val) {
-                            if ($val->stop_date >= date('Y-m-d') && $val->status == 'advance') {
-                                $purchase_date_0 = $val->htmlFormattedPurchaseDate;
-                                $stop_date_0 = $val->htmlFormattedStopDate;
-                                break;
+                        $purchase_date_0 = $stop_date_0 = 9999999999;
+                        foreach ($model->productFeatures as $val) {
+                            foreach ($val->purchaseProducts as $prod) {
+                                if (strtotime($prod->stop_date) >= strtotime(date('Y-m-d')) && $prod->status == 'advance') {
+                                    if ($prod->purchase_date < $purchase_date_0) {
+                                        $purchase_date_0 = $prod->purchase_date;
+                                        $purchase_date_1 = $prod->htmlFormattedPurchaseDate;
+                                    }
+                                    if ($prod->stop_date < $stop_date_0) {
+                                        $stop_date_0 = $prod->stop_date;
+                                        $stop_date_1 = $prod->htmlFormattedStopDate;
+                                    }
+                                }
                             }
                         }
                         echo Alert::widget([
                             'body' => sprintf(
                                 'Закупка состоится %s, заказы принимаются до %s включительно.',
-                                Html::a($purchase_date_0, Url::to([$model->category->url])),
-                                Html::a($stop_date_0, Url::to([$model->category->url]))
+                                Html::a($purchase_date_1, Url::to([$model->category->url])),
+                                Html::a($stop_date_1, Url::to([$model->category->url]))
                             ),
                             'options' => [
                                 'class' => 'alert-info alert-def',

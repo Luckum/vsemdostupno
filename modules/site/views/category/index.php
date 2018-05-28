@@ -31,7 +31,7 @@ $productPages = new Pagination([
 ]);
 $products = $productsQuery->offset($productPages->offset)
     ->limit($productPages->limit)
-    ->orderBy(['name' => SORT_ASC])
+    //->orderBy(['name' => SORT_ASC])
     ->all();
 
 $servicesQuery = $model->getAllServicesQuery()
@@ -72,11 +72,13 @@ $services = $servicesQuery->offset($servicePages->offset)
     ]) ?>
 <?php endif; ?>
 
-<?= $this->renderFile('@app/modules/site/views/category/snippets/service-panel.php', [
-    'name' => count($categories) || count($products) ? 'Услуги' : null,
-    'services' => $services,
-    'pages' => $servicePages,
-]) ?>
+<?php if (count($categories) == 0): ?>
+    <?= $this->renderFile('@app/modules/site/views/category/snippets/service-panel.php', [
+        'name' => count($categories) || count($products) ? 'Услуги' : null,
+        'services' => $services,
+        'pages' => $servicePages,
+    ]) ?>
+<?php endif; ?>
 
 <?php if (!$model->description && !$categories && !$products && !$services): ?>
     <?= Alert::widget([

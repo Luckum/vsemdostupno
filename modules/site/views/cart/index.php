@@ -64,6 +64,8 @@ $this->params['breadcrumbs'][] = $this->title;
                                             <?= Html::badge(Html::encode($product->formattedCalculatedPrice)) ?>
                                         </p>
                                         <?php if ($product->product->isPurchase()): ?>
+                                            
+                                             
                                             <?php $purchase = PurchaseProduct::getPurchaseDateByFeature($product->id);?>
                                             <p>
                                                 <b>Закупка:</b>

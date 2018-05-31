@@ -254,14 +254,16 @@ class Category extends \yii\db\ActiveRecord
             $query->join('RIGHT JOIN', 'purchase_product', 'product_feature.id = purchase_product.product_feature_id');
             $query->andWhere('purchase_product.stop_date >= "' . date('Y-m-d') . '"');
             $query->andWhere(['purchase_product.status' => 'advance']);
-            $query->orderBy('purchase_product.purchase_date ASC');
+            $query->orderBy('purchase_product.purchase_date ASC, {{%product}}.name DESC');
         }
         $productIds = $query->all();
         
         $productIds = ArrayHelper::getColumn($productIds, 'id');
 
-        return Product::find()
-            ->where(['IN', 'id', $productIds]);
+        $ret = Product::find()->where(['IN', 'id', $productIds]);
+        if (count($productIds)) $ret->orderBy([new \yii\db\Expression('FIELD (id, ' . implode(',', $productIds) . ')')]);
+        
+        return $ret;
     }
 
     public function getAllServicesQuery()

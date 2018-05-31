@@ -50,6 +50,7 @@ use kgladkiy\behaviors\NestedSetQuery;
 class Category extends \yii\db\ActiveRecord
 {
     public $parent_node = 0;
+    public $purchase_date;
     public $tree_to_save = [];
     
     const MAX_IMAGE_SIZE = 1024;
@@ -254,7 +255,7 @@ class Category extends \yii\db\ActiveRecord
             $query->join('RIGHT JOIN', 'purchase_product', 'product_feature.id = purchase_product.product_feature_id');
             $query->andWhere('purchase_product.stop_date >= "' . date('Y-m-d') . '"');
             $query->andWhere(['purchase_product.status' => 'advance']);
-            $query->orderBy('purchase_product.purchase_date ASC, {{%product}}.name DESC');
+            $query->orderBy('purchase_product.purchase_date ASC, {{%product}}.name ASC');
         }
         $productIds = $query->all();
         

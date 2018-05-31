@@ -5,6 +5,7 @@ use yii\helpers\Html;
 use app\modules\purchase\models\PurchaseProduct;
 ?>
 <?php if ($categories): ?>
+    <?php $categories = PurchaseProduct::getSortedView($categories) ?>
     <div class="category-grid">
         <?php for ($exCount = 0; $exCount < count($categories); $exCount += 4): ?>
             <div class="row category-item">

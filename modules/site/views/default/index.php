@@ -66,6 +66,7 @@ foreach ($panels as $panel) {
             <?= Html::pageHeader(Html::encode($f_level->fullName)) ?>
             <?php $categories = Category::getMenuItems($f_level); ?>
             <?php if ($categories): ?>
+                <?php $categories = PurchaseProduct::getSortedViewItems($categories) ?>
                 <?php foreach ($categories as $cat): ?>
                     <?php if ($cat['model']->isPurchase()): ?>
                         <?php $productsQuery = $cat['model']->getAllProductsQuery()

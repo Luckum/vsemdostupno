@@ -228,4 +228,54 @@ class PurchaseProduct extends \yii\db\ActiveRecord
         }
         return false;
     }
+    
+    public static function getSortedView($categories)
+    {
+        foreach ($categories as $k => $cat) {
+            if ($cat->isPurchase()) {
+                $productsQuery = $cat->getAllProductsQuery()
+                    ->andWhere('visibility != 0')
+                    ->andWhere('published != 0'); 
+                $products = $productsQuery->all();
+                $categories[$k]->purchase_date = self::getClosestDate($products);
+            }
+        }
+        
+        usort($categories, function($a, $b) {
+            if ($a->isPurchase()) {
+                if (strtotime($a['purchase_date']) == strtotime($b['purchase_date'])) {
+                    return ($a['name'] > $b['name']);
+                }
+                return (strtotime($a['purchase_date']) < strtotime($b['purchase_date']));
+            }
+            return ($a['name'] > $b['name']);
+        });
+        
+        return $categories;
+    }
+    
+    public static function getSortedViewItems($categories)
+    {
+        foreach ($categories as $k => $cat) {
+            if ($cat['model']->isPurchase()) {
+                $productsQuery = $cat['model']->getAllProductsQuery()
+                    ->andWhere('visibility != 0')
+                    ->andWhere('published != 0'); 
+                $products = $productsQuery->all();
+                $categories[$k]['purchase_date'] = self::getClosestDate($products);
+            }
+        }
+        
+        usort($categories, function($a, $b) {
+            if ($a['model']->isPurchase()) {
+                if (strtotime($a['purchase_date']) == strtotime($b['purchase_date'])) {
+                    return ($a['content'] > $b['content']);
+                }
+                return (strtotime($a['purchase_date']) < strtotime($b['purchase_date']));
+            }
+            return ($a['content'] > $b['content']);
+        });
+        
+        return $categories;
+    }
 }

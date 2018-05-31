@@ -64,22 +64,33 @@ class HistoryController extends BaseController
                 if ($product->purchaseProduct->purchase_date == $date) {
                     $copy = PurchaseProduct::find()->where(['copy' => $product->purchase_product_id])->one();
                     if ($copy) {
-                        $new_product = new PurchaseOrderProduct;
-                        $new_product->purchase_order_id = $new_order->id;
-                        $new_product->product_id = $product->product_id;
-                        $new_product->purchase_product_id = $copy->id;
-                        $new_product->name = $product->name;
-                        $new_product->price = $product->price;
-                        $new_product->quantity = $product->quantity;
-                        $new_product->total = $product->total;
-                        $new_product->purchase_price = $product->purchase_price;
-                        $new_product->provider_id = $product->provider_id;
-                        $new_product->product_feature_id = $product->product_feature_id;
-                        $new_product->status = 'advance';
-                        $new_product->reorder = $product->id;
-                        $new_product->save();
+                        do {
+                            if (strtotime($copy->stop_date) >= strtotime(date('Y-m-d'))) {
+                                break;
+                            }
+                            $copy = PurchaseProduct::find()->where(['copy' => $copy->id])->one();;
+                        } while ($copy);
                         
-                        $new_order_total += $new_product->total;
+                        if ($copy) {
+                            $new_product = new PurchaseOrderProduct;
+                            $new_product->purchase_order_id = $new_order->id;
+                            $new_product->product_id = $product->product_id;
+                            $new_product->purchase_product_id = $copy->id;
+                            $new_product->name = $product->name;
+                            $new_product->price = $product->price;
+                            $new_product->quantity = $product->quantity;
+                            $new_product->total = $product->total;
+                            $new_product->purchase_price = $product->purchase_price;
+                            $new_product->provider_id = $product->provider_id;
+                            $new_product->product_feature_id = $product->product_feature_id;
+                            $new_product->status = 'advance';
+                            $new_product->reorder = $product->id;
+                            $new_product->save();
+                            
+                            $new_order_total += $new_product->total;
+                        } else {
+                            $not_copy ++;
+                        }
                     } else {
                         $not_copy ++;
                     }

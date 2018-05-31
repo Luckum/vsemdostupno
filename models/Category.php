@@ -383,18 +383,25 @@ class Category extends \yii\db\ActiveRecord
     {
         $breadcrumbs = [];
 
-        for ($parent = $this->parent()->one(); $parent; $parent = $parent->parent()->one()) {
+        $category = $this;
+        
+        do {
+            if ($category->parent == 0) {
+                
+                break;
+            }
             array_unshift($breadcrumbs, [
-                'label' => Html::encode($parent->fullName),
-                'url' => $parent->url,
+                'label' => Html::encode($category->fullName),
+                'url' => $category->url,
             ]);
-        }
-
+            $category = self::findOne($category->parent);
+        } while ($category);
+        
         if ($name) {
-            $breadcrumbs[] = [
+            /*$breadcrumbs[] = [
                 'label' => Html::encode($this->fullName),
                 'url' => $this->url,
-            ];
+            ];*/
             $breadcrumbs[] = Html::encode($name);
         } else {
             $breadcrumbs[] = Html::encode($this->fullName);

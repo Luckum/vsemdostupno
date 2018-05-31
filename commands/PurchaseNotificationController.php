@@ -19,7 +19,7 @@ class PurchaseNotificationController extends Controller
     public function actionIndex()
     {
         $date = date('Y-m-d');
-        //$date = '2018-05-26';
+        //$date = '2018-05-30';
         $products = PurchaseProduct::find()->where(['stop_date' => $date, 'status' => 'advance'])->all();
         if ($products) {
             foreach ($products as $product) {

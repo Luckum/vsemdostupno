@@ -35,10 +35,13 @@ class DefaultController extends Controller
             }
         }
         usort($products, function($a, $b) {
-            if ($a['name'] == $b['name']) {
-                return ($a['date'] < $b['date']);
+            if ((strtotime($a['date']) == strtotime($b['date']))) {
+                if ($a['name'] == $b['name']) {
+                    return ($a['p_name'] < $b['p_name']);
+                }
+                return ($a['name'] < $b['name']);
             }
-            return ($a['name'] > $b['name']);
+            return (strtotime($a['date']) > strtotime($b['date']));
         });
         
         return $this->renderFile('@app/modules/purchase/views/site/default/pricelist.php', [

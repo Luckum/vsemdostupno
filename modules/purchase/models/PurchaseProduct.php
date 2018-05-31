@@ -191,7 +191,7 @@ class PurchaseProduct extends \yii\db\ActiveRecord
                     foreach ($product->productFeatures as $feat) {
                         if (isset($feat->purchaseProducts)) {
                             foreach ($feat->purchaseProducts as $purchase) {
-                                if ($purchase->stop_date >= date('Y-m-d') && $purchase->status == 'advance') {
+                                if (strtotime($purchase->stop_date) >= strtotime(date('Y-m-d')) && $purchase->status == 'advance') {
                                     if ($purchase->purchase_date < $date) {
                                         $date = $purchase->purchase_date;
                                     }
@@ -203,7 +203,29 @@ class PurchaseProduct extends \yii\db\ActiveRecord
             }
             return $date;
         }
-        
+        return false;
+    }
+    
+    public static function getClosestDateForProduct($product)
+    {
+        if ($product) {
+            if (isset($product->productFeatures)) {
+                $date = 9999999999;
+                foreach ($product->productFeatures as $feat) {
+                    if (isset($feat->purchaseProducts)) {
+                        foreach ($feat->purchaseProducts as $purchase) {
+                            if (strtotime($purchase->stop_date) >= strtotime(date('Y-m-d')) && $purchase->status == 'advance') {
+                                if ($purchase->purchase_date < $date) {
+                                    $date = $purchase->purchase_date;
+                                }
+                            }
+                        }
+                    }
+                }
+                return $date;
+            }
+            
+        }
         return false;
     }
 }

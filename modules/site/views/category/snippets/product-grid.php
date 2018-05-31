@@ -22,7 +22,7 @@ use app\modules\purchase\models\PurchaseProduct;
             <div class="row text-center">
                 <?php for ($inCount = $exCount; $inCount < $exCount + 4 && $inCount < count($products); $inCount += 1): ?>
                     <?php if ($products[$inCount]->category->isPurchase()): ?>
-                        <?php $date = PurchaseProduct::getClosestDate($products); ?>
+                        <?php $date = PurchaseProduct::getClosestDateForProduct($products[$inCount]); ?>
                     <?php endif ?>
                     <div class="col-md-3 product-item">
                         <?php if ($products[$inCount]->category->isPurchase()): ?>

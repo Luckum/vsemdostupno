@@ -93,7 +93,9 @@ class User extends \yii\base\Object implements \yii\web\IdentityInterface
         $time = $time = new \DateTime('now', new \DateTimeZone(Yii::$app->params['timezone']));
         $entity->logged_in_at = $time->format('Y-m-d H:i:s');
         $entity->logged_in_ip = Yii::$app->getRequest()->getUserIP();
+        $entity->scenario = 'user_login';
         $entity->save();
+        
     }
 
     protected static function createUserFromEntity($entity)

@@ -44,7 +44,7 @@ use app\helpers\Sum;
                     <td colspan="5"><span style="text-decoration: underline;">Списано с лицевого счёта заказчика:</span> <strong><?= Sum::toStr($total) ?></strong></td>
                     <td><strong><?= number_format($total, 2, '.', '') ?></strong></td>
                     <td rowspan="2">
-                        <?php if ($model->status !== 'advance'): ?>
+                        <?php if (!empty($model->order_id)): ?>
                             <?= Html::beginTag('div', ['class'=>'dropdown']) .
                                     Html::button('Действия <span class="caret"></span>', [
                                         'type'=>'button',
@@ -55,19 +55,19 @@ use app\helpers\Sum;
                                     'items' => [
                                         [
                                             'label' => 'Прих. ордер',
-                                            'url' => Url::to(['/admin/order/download-order', 'id' => $model->id]),
+                                            'url' => Url::to(['/admin/purchase/download-order', 'id' => $model->id]),
                                         ],
                                         [
                                             'label' => 'Акт возврата',
-                                            'url' => Url::to(['/admin/order/download-act', 'id' => $model->id]),
+                                            'url' => Url::to(['/admin/purchase/download-act', 'id' => $model->id]),
                                         ],
                                         [
                                             'label' => 'Заявка',
-                                            'url' => Url::to(['/admin/order/download-request', 'id' => $model->id]),
+                                            'url' => Url::to(['/admin/purchase/download-request', 'id' => $model->id]),
                                         ],
                                         [
                                             'label' => 'Акт возврата паевого взноса',
-                                            'url' => Url::to(['/admin/order/download-return-fee-act', 'id' => $model->id]),
+                                            'url' => Url::to(['/admin/purchase/download-return-fee-act', 'id' => $model->id]),
                                         ],
                                         '<li class="divider"></li>',
                                         [

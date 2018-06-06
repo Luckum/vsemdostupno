@@ -559,4 +559,16 @@ class PurchaseOrder extends \yii\db\ActiveRecord
         
         return $ret;
     }
+    
+    public function getProductPriceTotal($priceName)
+    {
+        $total = 0;
+
+        foreach ($this->purchaseOrderProducts as $orderHasProduct) {
+            $total += $orderHasProduct->quantity *
+                (isset($orderHasProduct->$priceName) ? $orderHasProduct->$priceName : $orderHasProduct->product->$priceName);
+        }
+
+        return $total;
+    }
 }

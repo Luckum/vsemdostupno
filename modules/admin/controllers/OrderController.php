@@ -329,7 +329,7 @@ class OrderController extends BaseController
         $parameters['quantityTotal'] = 0;
 
         $objectExcel->setActiveSheetIndex(0)
-            ->setCellValue('A5', sprintf('ЗАКАЗ № %05d от %s', $order->id, $parameters['currentDate']))
+            ->setCellValue('A5', sprintf('ЗАКАЗ № %05d от %s', $order->order_id, $parameters['currentDate']))
             ->setCellValue('C8', $order->fullName)
             ->setCellValue('A15', sprintf('Итого к оплате: %s', $spelloutTotal));
 

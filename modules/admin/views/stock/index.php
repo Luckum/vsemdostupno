@@ -75,53 +75,95 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [
-                'attribute' => 'stock_body.stockHead.date',
-                'headerOptions' => ['style' => 'min-width: 120px;']
-            ],
-            [
-                'attribute' => 'stock_body.stockHead.provider_id',
-                'label' => 'Поставщик',
-                'content'=>function($data){
-                    return $data->stock_body->stockHead->providerName;
-                }
-            ],
-            [
-                'attribute' => 'stock_body.product_id',
+                'label' => 'Дата приёмки / Дата закупки',
+                'headerOptions' => ['style' => 'min-width: 120px;'],
                 'content' => function($data) {
-                    return $data->stock_body->productName;
+                    return isset($data->stock_body_id) ? $data->stock_body->stockHead->date : $data->purchase_date;
+                } 
+            ],
+            [
+                'label' => 'Поставщик',
+                'content' => function($data){
+                    return isset($data->stock_body_id) ? $data->stock_body->stockHead->providerName : $data->provider->name;
                 }
             ],
-            'stock_body.tare',
-            'stock_body.weight',
-            'stock_body.measurement',
-            'total_rent',
-            'stock_body.summ',
-            'total_sum',
-            'reaminder_rent',
             [
-                'attribute' => 'summ_reminder',
-                'headerOptions' => ['style' => 'min-width: 80px;']
+                'label' => 'Наименование товара',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->stock_body->productName : $data->productName;
+                }
+            ],
+            [
+                'label' => 'Тара',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->stock_body->tare : $data->tare;
+                }
+            ],
+            [
+                'label' => 'Масса',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->stock_body->weight : $data->weight;
+                }
+            ],
+            [
+                'label' => 'Ед. измерения',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->stock_body->measurement : $data->measurement;
+                }
+            ],
+            [
+                'label' => 'Сдано общее кол-во',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->total_rent : $data->orderedCount;
+                }
+            ],
+            [
+                'label' => 'Цена за единицу',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->stock_body->summ : $data->summ;
+                }
+            ],
+            [
+                'label' => 'На общую сумму',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->total_sum : $data->orderedTotal;
+                }
+            ],
+            [
+                'label' => 'Количество на остатке',
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->reaminder_rent : 0;
+                }
+            ],
+            [
+                'label' => 'Остаток на общую сумму',
+                'headerOptions' => ['style' => 'min-width: 80px;'],
+                'content' => function($data) {
+                    return isset($data->stock_body_id) ? $data->summ_reminder : 0;
+                }
             ],
             [
                 'class' => 'yii\grid\ActionColumn',
                 'template' => '{actions}',
                 'buttons' => [
                     'actions' => function ($url, $model) {
-                        return Html::beginTag('div', ['class'=>'dropdown']) .
-                        Html::button('Действия <span class="caret"></span>', [
-                            'type'=>'button',
-                            'class'=>'btn btn-default',
-                            'data-toggle'=>'dropdown'
-                        ]) .
-                        DropdownX::widget([
-                            'items' => [
-                                [
-                                    'label' => 'История поставок',
-                                    'url' => Url::to(['view', 'id' => $model->stock_body->stockHead->provider_id]),
+                        if (isset($model->stock_body_id)) {
+                            return Html::beginTag('div', ['class'=>'dropdown']) .
+                            Html::button('Действия <span class="caret"></span>', [
+                                'type'=>'button',
+                                'class'=>'btn btn-default',
+                                'data-toggle'=>'dropdown'
+                            ]) .
+                            DropdownX::widget([
+                                'items' => [
+                                    [
+                                        'label' => 'История поставок',
+                                        'url' => Url::to(['view', 'id' => $model->stock_body->stockHead->provider_id]),
+                                    ],
                                 ],
-                            ],
-                        ]) .
-                        Html::endTag('div');
+                            ]) .
+                            Html::endTag('div');
+                        }
                     }
                 ],
             ],

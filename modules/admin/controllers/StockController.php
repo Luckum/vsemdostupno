@@ -4,6 +4,7 @@ namespace app\modules\admin\controllers;
 
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\data\ArrayDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -26,6 +27,8 @@ use app\models\ProductNewPrice;
 use app\models\ProductFeature;
 use app\models\ProductPrice;
 
+use app\modules\purchase\models\PurchaseProduct;
+
 class StockController extends BaseController
 {
     public function behaviors()
@@ -42,18 +45,36 @@ class StockController extends BaseController
 
     public function actionIndex()
     {
-        $query = ProviderStock::find();
-        $query->joinWith(['stock_body', 'stock_body.stockHead']);
-        $query->orderBy('stock_head.date DESC');
+        $stocks = ProviderStock::find()
+            ->joinWith(['stock_body', 'stock_body.stockHead'])
+            ->orderBy('stock_head.date DESC')
+            ->all();
         
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'sort' => false,
-            'pagination' => [
-                'pageSize' => 20,
-            ],
-        ]);
+        if (Yii::$app->hasModule('purchase')) {
+            $purchases = PurchaseProduct::find()->where(['status' => 'held'])->all();
+        }
+        
+        $resultData = ArrayHelper::merge($stocks, $purchases);
+        
+        @usort($resultData, function($a, $b) {
+            if (isset($a->stock_body_id) && isset($b->stock_body_id)) {
+                return (strtotime($a->stock_body->stockHead->date) < strtotime($b->stock_body->stockHead->date));
+            } else if (isset($a->stock_body_id) && isset($b->purchase_date)) {
+                return (strtotime($a->stock_body->stockHead->date) < strtotime($b->purchase_date));
+            } else if (isset($a->purchase_date) && isset($b->stock_body_id)) {
+                return (strtotime($a->purchase_date) < strtotime($b->stock_body->stockHead->date));
+            } else if (isset($a->purchase_date) && isset($b->purchase_date)) {
+                return (strtotime($a->purchase_date) < strtotime($b->purchase_date));
+            }
+            
+        });
+        
         $model= StockHead::find()->all();
+        
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $resultData,
+            'sort' => false
+        ]);
 
         return $this->render('index', [
             'dataProvider' => $dataProvider,

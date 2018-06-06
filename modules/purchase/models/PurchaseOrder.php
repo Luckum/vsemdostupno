@@ -494,7 +494,7 @@ class PurchaseOrder extends \yii\db\ActiveRecord
     {
         $query = new Query;
         $query->select([
-                'IF (purchase_order.partner_id IS NULL, partner.id, Purchase_order.partner_id) AS p_id',
+                'IF (purchase_order.partner_id IS NULL, partner.id, purchase_order.partner_id) AS p_id',
                 'purchase_order_product.name AS product_name',
                 'purchase_order_product.product_id',
                 'purchase_order_product.product_feature_id AS product_feature',

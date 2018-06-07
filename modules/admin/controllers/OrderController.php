@@ -620,12 +620,24 @@ class OrderController extends BaseController
                     
                     $message = 'Членский взнос';
 
-                    if (!Account::swap($user->deposit, null, $order->paid_total - $total_paid_for_provider, $message)) {
+                    if (!Account::swap($user->deposit, null, $order->paid_total - $total_paid_for_provider, $message, !$is_purchase)) {
                         throw new Exception('Ошибка модификации счета пользователя!');
                     }
                     if ($user->role == User::ROLE_PROVIDER) {
                         ProviderStock::setStockSum($user->id, $order->paid_total);
                     }
+                    
+                    if ($is_purchase) {
+                        $deposit = $user->deposit;
+                        $message = 'Списание на закупку';
+                        Email::send('account-log', $deposit->user->email, [
+                            'typeName' => $deposit->typeName,
+                            'message' => $message,
+                            'amount' => -$order->paid_total,
+                            'total' => $deposit->total,
+                        ]);
+                    }
+                    
                 }
                 
                 if (!$is_purchase) Fund::setDeductionForOrder($product->id, $product->purchase_price, $product->cart_quantity);

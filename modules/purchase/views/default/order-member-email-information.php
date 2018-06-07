@@ -7,7 +7,8 @@
             <?php else: ?>
                 <?= $orderHasProduct->name ?>
             <?php endif ?>
-            <?= $orderHasProduct->quantity . ' x ' . Yii::$app->formatter->asCurrency($orderHasProduct->price, 'RUB') . ' = ' . Yii::$app->formatter->asCurrency($orderHasProduct->total, 'RUB') ?>
+            <?php $quantity = $orderHasProduct->purchaseProduct->is_weights ? $orderHasProduct->quantity : number_format($orderHasProduct->quantity) ?>
+            <?= $quantity . ' x ' . $orderHasProduct->price . ' = ' . $orderHasProduct->total ?>
         </li>
     <?php endif; ?>
 <?php endforeach ?>

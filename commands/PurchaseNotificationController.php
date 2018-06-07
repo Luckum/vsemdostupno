@@ -44,6 +44,10 @@ class PurchaseNotificationController extends Controller
                         } 
                     }
                     
+                    foreach ($order_products as $order_product) {
+                        PurchaseOrder::setOrderStatus($order_product->purchase_order_id);
+                    }
+                    
                     foreach ($orders_to_send as $val) {
                         $order = PurchaseOrder::findOne($val);
                         Email::send('held_order_member', $order->email, [
@@ -53,10 +57,6 @@ class PurchaseNotificationController extends Controller
                             'order_products' => $order->getHtmlMemberEmailFormattedInformation($product->purchase_date),
                             'purchase_date' => date('d.m.Y', strtotime($product->purchase_date))
                         ]);
-                    }
-                    
-                    foreach ($order_products as $order_product) {
-                        PurchaseOrder::setOrderStatus($order_product->purchase_order_id);
                     }
                     
                     if ($product->send_notification) {
@@ -101,16 +101,30 @@ class PurchaseNotificationController extends Controller
                         $fund_balance = PurchaseFundBalance::find()->where(['purchase_order_product_id' => $order_product->id])->one();
                         $provider_balance = PurchaseProviderBalance::find()->where(['purchase_order_product_id' => $order_product->id])->one();
                         if ($fund_balance) {
-                            Account::swap(null, $deposit, $fund_balance->total, 'Возврат членского взноса');
+                            Account::swap(null, $deposit, $fund_balance->total, 'Возврат членского взноса', false);
                         }
                         if ($provider_balance) {
                             $provider_account = Account::findOne(['user_id' => $provider_balance->provider->user_id]);
-                            Account::swap($provider_account, $deposit, $provider_balance->total, 'Возврат пая по заявке №' . $order_product->purchaseOrder->order_number);
+                            Account::swap($provider_account, $deposit, $provider_balance->total, 'Возврат пая по заявке №' . $order_product->purchaseOrder->order_number, false);
                         }
                         
                         if (!in_array($order_product->purchase_order_id, $orders_to_send)) {
                             $orders_to_send[] = $order_product->purchase_order_id;
-                        } 
+                        }
+                        
+                        Email::send('account-log', $provider_account->user->email, [
+                            'typeName' => $provider_account->typeName,
+                            'message' => 'Списан возврат от закупки',
+                            'amount' => -$provider_balance->total,
+                            'total' => $provider_account->total,
+                        ]);
+                        
+                        Email::send('account-log', $deposit->user->email, [
+                            'typeName' => $deposit->typeName,
+                            'message' => 'Зачислен возврат от закупки',
+                            'amount' => $provider_balance->total + $fund_balance->total,
+                            'total' => $deposit->total,
+                        ]); 
                     }
                     
                     if ($product->renewal) {

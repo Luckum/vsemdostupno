@@ -238,15 +238,18 @@ class PurchaseProduct extends \yii\db\ActiveRecord
                     ->andWhere('published != 0'); 
                 $products = $productsQuery->all();
                 $categories[$k]->purchase_date = self::getClosestDate($products);
+                if (empty($categories[$k]->purchase_date)) {
+                    $categories[$k]->purchase_date = '2038-01-01';
+                }
             }
         }
         
-        usort($categories, function($a, $b) {
+        @usort($categories, function($a, $b) {
             if ($a->isPurchase()) {
                 if (strtotime($a['purchase_date']) == strtotime($b['purchase_date'])) {
                     return ($a['name'] > $b['name']);
                 }
-                return (strtotime($a['purchase_date']) < strtotime($b['purchase_date']));
+                return (strtotime($a['purchase_date']) > strtotime($b['purchase_date']));
             }
             return ($a['name'] > $b['name']);
         });
@@ -263,15 +266,18 @@ class PurchaseProduct extends \yii\db\ActiveRecord
                     ->andWhere('published != 0'); 
                 $products = $productsQuery->all();
                 $categories[$k]['purchase_date'] = self::getClosestDate($products);
+                if (empty($categories[$k]['purchase_date'])) {
+                    $categories[$k]['purchase_date'] = '2038-01-01';
+                }
             }
         }
         
-        usort($categories, function($a, $b) {
+        @usort($categories, function($a, $b) {
             if ($a['model']->isPurchase()) {
                 if (strtotime($a['purchase_date']) == strtotime($b['purchase_date'])) {
                     return ($a['content'] > $b['content']);
                 }
-                return (strtotime($a['purchase_date']) < strtotime($b['purchase_date']));
+                return (strtotime($a['purchase_date']) > strtotime($b['purchase_date']));
             }
             return ($a['content'] > $b['content']);
         });

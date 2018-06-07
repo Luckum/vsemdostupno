@@ -448,12 +448,21 @@ class CartController extends BaseController
                         }
                         $message = 'Членский взнос';
 
-                        if (!Account::swap($deposit, null, $order->paid_total - $total_paid_for_provider, $message)) {
+                        if (!Account::swap($deposit, null, $order->paid_total - $total_paid_for_provider, $message, false)) {
                            throw new Exception('Ошибка модификации счета пользователя!');
                         }
                         if ($entity->role == User::ROLE_PROVIDER) {
                             ProviderStock::setStockSum($entity->id, $order->paid_total);
                         }
+                        
+                        $deposit = Yii::$app->user->identity->entity->deposit;
+                        $message = 'Списание на закупку';
+                        Email::send('account-log', $deposit->user->email, [
+                            'typeName' => $deposit->typeName,
+                            'message' => $message,
+                            'amount' => -$order->paid_total,
+                            'total' => $deposit->total,
+                        ]);
                     }
                     
                     $transaction->commit();

@@ -50,6 +50,7 @@ class StockController extends BaseController
             ->orderBy('stock_head.date DESC')
             ->all();
         
+        $purchases = [];
         if (Yii::$app->hasModule('purchase')) {
             $purchases = PurchaseProduct::find()->where(['status' => 'held'])->all();
         }
@@ -283,14 +284,26 @@ class StockController extends BaseController
 
     public function actionFilter($from_date, $to_date)
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => ProviderStock::findBySql('SELECT ps.* FROM provider_stock as ps
-              INNER JOIN stock_body as body ON ps.stock_body_id=body.id INNER JOIN stock_head as head ON body.stock_head_id=head.id WHERE head.date BETWEEN :date_from AND :date_to
-              ORDER BY head.date DESC',[':date_from'=>$from_date, ':date_to'=>$to_date])->with(['stock_body']),
+        $stocks = ProviderStock::find()
+            ->joinWith(['stock_body', 'stock_body.stockHead'])
+            ->where(['between', 'date', $from_date, $to_date])
+            ->orderBy('stock_head.date DESC')
+            ->all();
+        
+        $purchases = [];
+        if (Yii::$app->hasModule('purchase')) {
+            $purchases = PurchaseProduct::find()->where(['status' => 'held'])->andWhere(['between', 'purchase_date', $from_date, $to_date])->all();
+        }
+        
+        $resultData = ArrayHelper::merge($stocks, $purchases);
+        
+        $dataProvider = new ArrayDataProvider([
+            'allModels' => $resultData,
+            'sort' => false
         ]);
-
+        
         return $this->render('index',[
-           'dataProvider'=>$dataProvider,
+           'dataProvider' => $dataProvider,
         ]);
     }
     
